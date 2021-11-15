@@ -1,0 +1,67 @@
+name: Test Setup
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "setup/**"
+  pull_request:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test:
+    name: Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+        version: [latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup infracost
+        uses: ./setup
+        with:
+          version: ${{ matrix.version }}
+          api_key: abcdefg123456
+          currency: GBP
+          pricing_api_endpoint: https://test.test
+
+      - name: Get latest version
+        run: |
+          export INFRACOST_LATEST_VERSION=$(curl --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' -s https://api.github.com/repos/infracost/infracost/releases/latest | jq -r .name )
+          echo "Latest version: $INFRACOST_LATEST_VERSION"
+          echo "INFRACOST_LATEST_VERSION=Infracost $INFRACOST_LATEST_VERSION" >> $GITHUB_ENV
+
+      - name: Capture infracost version installed
+        run: |
+          echo "INFRACOST_VERSION_INSTALLED=$( infracost --version )" >> $GITHUB_ENV
+      - name: Capture infracost configure settings
+        run : |
+          echo "CONFIGURED_API_KEY=$( infracost configure get api_key )" >> $GITHUB_ENV
+          echo "CONFIGURED_CURRENCY=$( infracost configure get currency )" >> $GITHUB_ENV
+          echo "CONFIGURED_PRICING_API_ENDPOINT=$( infracost configure get pricing_api_endpoint )" >> $GITHUB_ENV
+      - name: Verify
+        shell: bash
+        run: |
+          if [ "$INFRACOST_LATEST_VERSION" != "$INFRACOST_VERSION_INSTALLED" ]; then
+            echo "Unexpected version, expected $INFRACOST_LATEST_VERSION, got: $INFRACOST_VERSION_INSTALLED"
+            exit 1;
+          elif [ "abcdefg123456" != "$CONFIGURED_API_KEY" ]; then
+            echo "Unexpected api_key, got: $CONFIGURED_API_KEY"
+            exit 1;
+          elif [ "GBP" != "$CONFIGURED_CURRENCY" ]; then
+            echo "Unexpected currency, got: $CONFIGURED_CURRENCY"
+            exit 1;
+          elif [ "https://test.test" != "$CONFIGURED_PRICING_API_ENDPOINT" ]; then
+            echo "Unexpected pricing_api_endpoint, got: $CONFIGURED_PRICING_API_ENDPOINT"
+            exit 1;
+          else
+            exit 0;
+          fi
+
