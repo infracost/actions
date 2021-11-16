@@ -1,4 +1,4 @@
-# setup-infracost
+# Infracost Setup Action
 
 Infracost enables you to see cloud cost estimates for Terraform in pull requests.
 
@@ -14,7 +14,7 @@ Assuming you have [downloaded Infracost](https://www.infracost.io/docs/#quick-st
 
     ```yml
     steps:
-    - uses: infracost/setup-infracost@master
+    - uses: infracost/actions/setup@master
       with:
         api_key: ${{ secrets.INFRACOST_API_KEY }}
         version: latest # See https://github.com/infracost/infracost/releases for other versions
@@ -52,7 +52,7 @@ jobs:
         run: echo '${{ steps.tf_show.outputs.stdout }}' > plan.json # Do not change
 
       - name: Setup Infracost
-        uses: infracost/setup-infracost@master
+        uses: infracost/actions/setup@master
         with:
           api_key: ${{ secrets.INFRACOST_API_KEY }}
           version: latest
