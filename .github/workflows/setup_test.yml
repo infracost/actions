@@ -19,7 +19,7 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
-        version: ["0.8.x", "0.9.12", "0.9.x", "latest"]
+        version: ["<0.9.11", "0.9.12", "0.9.x", "latest"]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -34,8 +34,8 @@ jobs:
 
       - name: Get expected version
         run: |
-          if [ "${{ matrix.version }}" = "0.8.x" ]; then
-            export INFRACOST_EXPECTED_VERSION=v0.8.7
+          if [ "${{ matrix.version }}" = "<0.9.11" ]; then
+            export INFRACOST_EXPECTED_VERSION=v0.9.10
           elif [ "${{ matrix.version }}" = "0.9.12" ]; then
             export INFRACOST_EXPECTED_VERSION=v0.9.12
           else
