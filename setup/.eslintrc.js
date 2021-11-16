@@ -8,8 +8,13 @@ module.exports = {
   extends: [
     'airbnb-base',
     'plugin:@typescript-eslint/recommended',
+    'plugin:@typescript-eslint/recommended-requiring-type-checking',
     'prettier',
   ],
+  parserOptions: {
+    project: './tsconfig.json',
+  },
+
   parser: '@typescript-eslint/parser',
   plugins: ['@typescript-eslint'],
   settings: {
@@ -36,5 +41,6 @@ module.exports = {
   ignorePatterns: [
     'src/generated/**/*',
     'dist/**/*',
+    '.eslintrc.js',
   ],
 };
