@@ -1,14 +1,16 @@
-import path from 'path';
+import * as path from 'path';
 import * as core from '@actions/core';
 import * as tc from '@actions/tool-cache';
 import * as io from '@actions/io';
-import os from 'os';
+import * as os from 'os';
+import * as semver from 'semver';
 import * as exec from '@actions/exec';
+import * as github from '@actions/github';
 
 // arch in [arm, x32, x64...] (https://nodejs.org/api/os.html#os_os_arch)
 // return value in [amd64, 386, arm]
-function mapArch(arch) {
-  const mappings = {
+function mapArch(arch: string): string {
+  const mappings: { [s: string]: string } = {
     x64: 'amd64',
   };
   return mappings[arch] || arch;
@@ -16,14 +18,17 @@ function mapArch(arch) {
 
 // os in [darwin, linux, win32...] (https://nodejs.org/api/os.html#os_os_platform)
 // return value in [darwin, linux, windows]
-function mapOS(os) {
-  const mappings = {
+function mapOS(os: string): string {
+  const mappings: { [s: string]: string } = {
     win32: 'windows',
   };
   return mappings[os] || os;
 }
 
-function getDownloadObject(version): { url: string; binaryName: string } {
+function getDownloadObject(version: string): {
+  url: string;
+  binaryName: string;
+} {
   let path = `releases/download/v${version}`;
   if (version === 'latest') {
     path = `releases/latest/download`;
@@ -40,7 +45,10 @@ function getDownloadObject(version): { url: string; binaryName: string } {
 }
 
 // Rename infracost-<platform>-<arch> to infracost
-async function renameBinary(pathToCLI, binaryName) {
+async function renameBinary(
+  pathToCLI: string,
+  binaryName: string
+): Promise<void> {
   if (!binaryName.endsWith('.exe')) {
     const source = path.join(pathToCLI, binaryName);
     const target = path.join(pathToCLI, 'infracost');
@@ -54,10 +62,47 @@ async function renameBinary(pathToCLI, binaryName) {
   }
 }
 
-async function setup() {
+async function getVersion(): Promise<string> {
+  const version = core.getInput('version');
+  if (semver.valid(version)) {
+    return semver.clean(version) || version;
+  }
+
+  if (semver.validRange(version)) {
+    const max = semver.maxSatisfying(await getAllVersions(), version);
+    if (max) {
+      return semver.clean(max) || version;
+    }
+    core.warning(`${version} did not match any release version.`);
+  } else {
+    core.warning(`${version} is not a valid version or range.`);
+  }
+  return version;
+}
+
+async function getAllVersions(): Promise<string[]> {
+  const githubToken = core.getInput('GITHUB_TOKEN', { required: true });
+  const octokit = github.getOctokit(githubToken);
+
+  const allVersions: string[] = [];
+  for await (const response of octokit.paginate.iterator(
+    octokit.rest.repos.listReleases,
+    { owner: 'infracost', repo: 'infracost' }
+  )) {
+    for (const release of response.data) {
+      if (release.name) {
+        allVersions.push(release.name);
+      }
+    }
+  }
+
+  return allVersions;
+}
+
+async function setup(): Promise<void> {
   try {
     // Get version of tool to be installed
-    const version = core.getInput('version');
+    const version = await getVersion();
 
     // Download the specific version of the tool, e.g. as a tarball/zipball
     const download = getDownloadObject(version);
@@ -123,5 +168,6 @@ async function setup() {
 }
 
 if (require.main === module) {
-  setup();
+  // eslint-disable-next-line no-void
+  void setup();
 }
