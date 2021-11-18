@@ -1,3 +1,12 @@
+# Terraform
+.terraform*
+
+# Terragrunt
+.terragrunt*
+
+# Act workflow
+/workflow
+
 # Logs
 logs
 *.log
