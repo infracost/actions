@@ -1,0 +1,31 @@
+name: Test Comment
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "comment/**"
+  pull_request:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup infracost
+        uses: ./setup
+        with:
+          version: 0.9.13
+          api_key: abcdefg123456
+      - name: Infracost comment
+        uses: ./comment
+        with:
+          path: ./testdata/comment/simple_breakdown.json
