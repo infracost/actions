@@ -22,7 +22,7 @@ runs:
     - name: Run infracost output
       shell: bash
       run: |
-        infracost output ${{ inputs.path }} --format github-comment --out-file comment.md
+        infracost output --path ${{ inputs.path }} --format github-comment --out-file comment.md
     - name: Map sticky behavior
       shell: bash
       run: |
