@@ -9,13 +9,9 @@ inputs:
     required: false
     default: update
   target:
-    description: What object should be commented on.  Must be one of '{pull|merge}_request' | 'commit'.  When 'commit', the 'behavior' option will be ignored.
+    description: What object should be commented on.  Must be one of 'pr', 'mr', or 'commit'.  When 'commit', the 'behavior' option will be ignored.
     required: false
-    default: pull_request
-  GITHUB_TOKEN:
-    description: 'The GitHub access token (e.g. secrets.GITHUB_TOKEN) used to post the comment. This defaults to {{ github.token }}.'
-    default: '${{ github.token }}'
-    required: false
+    default: pr
 runs:
   using: "composite"
   steps:
@@ -23,44 +19,13 @@ runs:
       shell: bash
       run: |
         infracost output --path ${{ inputs.path }} --format github-comment --out-file comment.md
-    - name: Map sticky behavior
+    - name: Install compost
       shell: bash
       run: |
-        if [ "${{ inputs.behavior }}" = "new" ] || [ "${{ inputs.target }}" = "commit" ]; then
-          echo "NEW_COMMENT=true" >> $GITHUB_ENV
-        elif [ "${{ inputs.behavior }}" = "update" ]; then
-          echo "STICKY_RECREATE=false" >> $GITHUB_ENV
-          echo "STICKY_HIDE_AND_CREATE=false" >> $GITHUB_ENV
-        elif [ "${{ inputs.behavior }}" = "delete_and_new" ]; then
-          echo "STICKY_RECREATE=true" >> $GITHUB_ENV
-          echo "STICKY_HIDE_AND_CREATE=false" >> $GITHUB_ENV
-        elif [ "${{ inputs.behavior }}" = "hide_and_new" ]; then
-          echo "STICKY_RECREATE=false" >> $GITHUB_ENV
-          echo "STICKY_HIDE_AND_CREATE=true" >> $GITHUB_ENV
-        else
-          echo "::error::Unexpect behvaior '${{ inputs.behavior }}' must be one of: 'update' | 'delete_and_new' | 'hide_and_new' | 'new'"
-          exit 1
-        fi
-    - name: Post sticky comment
-      uses: marocchino/sticky-pull-request-comment@v2
-      if: env.USE_GH != true
-      with:
-        recreate: ${{ env.STICKY_RECREATE }}
-        hide_and_recreate:  ${{ env.STICKY_HIDE_AND_CREATE }}
-        path: comment.md
-    - name: Post new to commit
-      if: env.NEW_COMMENT == true
+        npm install -g @infracost/compost
+    - name: Post comment
       shell: bash
       run: |
-        if [ "${{ inputs.target }}" = "commit" ]; then
-          if [ "${{ github.event.name }}" == "pull_request" ]; then
-            gh commit comment "${{ github.event.number }}" -F comment.md
-        else
-          if [ "${{ github.event.name }}" == "pull_request" ]; then
-            gh pr comment "${{ github.event.number }}" -F comment.md
-          else
-            echo "::info::Skipping  pullrequest number in github.event.number"
-          fi
-        fi
+        compost autodetect ${{ inputs.behavior }} --body-file comment.md --tag "Infracost Cost Estimates" --target ${{ inputs.target }}
 
 
