@@ -26,6 +26,6 @@ runs:
     - name: Post comment
       shell: bash
       run: |
-        compost autodetect ${{ inputs.behavior }} --body-file comment.md --tag "Infracost Cost Estimates" --target ${{ inputs.target }}
+        compost autodetect ${{ inputs.behavior }} --body-file comment.md --tag "Infracost Cost Estimates" --target-type ${{ inputs.target }}
 
 
