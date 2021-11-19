@@ -26,7 +26,7 @@ runs:
     - name: Install compost
       shell: bash
       run: |
-        npm install -g https://github.com/infracost/compost
+        npm install -g @infracost/compost
     - name: Post comment
       shell: bash
       env:
