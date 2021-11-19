@@ -10,7 +10,7 @@ const yaml = require('js-yaml');
 const examplesTestWorkflowPath = './.github/workflows/examples_test.yml';
 const examplesDir = 'examples';
 const exampleRegex =
-  /\[\/\/\]: <> \(BEGIN EXAMPLE\)\n```.*\n((.|\n)*)```\n\[\/\/\]: <> \(END EXAMPLE\)/gm;
+  /\[\/\/\]: <> \(BEGIN EXAMPLE\)\n```.*\n((.|\n)*?)```\n\[\/\/\]: <> \(END EXAMPLE\)/gm;
 
 const workflowTemplate = {
   name: 'Run examples',

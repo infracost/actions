@@ -7,6 +7,9 @@
 # Terragrunt
 .terragrunt*
 
+# Act artifacts
+.act
+
 # Act workflow
 /workflow
 

@@ -45,7 +45,7 @@ The script that handles extracting and modifying the examples is [./scripts/gene
 You can test the examples locally with [act](https://github.com/nektos/act). To install on Mac OS X:
 
 ```sh
-brew install act
+brew install --HEAD act # Use HEAD so we get the artifact server support
 ```
 
 Install packages:
