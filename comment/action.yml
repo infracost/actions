@@ -12,6 +12,10 @@ inputs:
     description: What object should be commented on.  Must be one of 'pr', 'mr', or 'commit'.  When 'commit', the 'behavior' option will be ignored.
     required: false
     default: pr
+  GITHUB_TOKEN:
+    description: 'The GitHub access token (e.g. secrets.GITHUB_TOKEN) used to get the list of Infracost CLI versions. This defaults to {{ github.token }}.'
+    default: '${{ github.token }}'
+    required: false
 runs:
   using: "composite"
   steps:
@@ -22,9 +26,11 @@ runs:
     - name: Install compost
       shell: bash
       run: |
-        npm install -g @infracost/compost
+        npm install -g https://github.com/infracost/compost
     - name: Post comment
       shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
       run: |
         compost autodetect ${{ inputs.behavior }} --body-file comment.md --tag "Infracost Cost Estimates" --target-type ${{ inputs.target }}
 
