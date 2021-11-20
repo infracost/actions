@@ -23,17 +23,12 @@ runs:
       shell: bash
       run: |
         infracost output --path ${{ inputs.path }} --format github-comment --out-file comment.md
-    - name: Check env
-      shell: bash
-      run: | 
-        echo $GITHUB_SHA
-        echo $GITHUB_EVENT_PATH
-        cat $GITHUB_EVENT_PATH
     - name: Install compost
       shell: bash
       run: |
         git clone -b alistair-test https://github.com/infracost/compost
         cd compost
+        npm install
         npm run build
         npm link
     - name: Post comment
