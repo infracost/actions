@@ -3,6 +3,7 @@
 [Infracost](https://www.infracost.io/) enables you to see cloud cost estimates for Terraform in pull requests. This project provides a set of GitHub Actions for Infracost:
 - [setup](setup): downloads and installs the Infracost CLI in your GitHub Actions workflow. Subsequent steps in the same job can run the CLI in the same way it is run on the command line.
 - [comment](comment): coming soon! Adds comments to pull requests.
+- [examples](examples): examples of how to use the actions in different workflows, including with multiple workspaces, matrix builds, and Terragrunt.
 
 Typically these actions will be used in conjunction with the [setup-terraform](https://github.com/hashicorp/setup-terraform) action. Refer to the **[examples](examples)** directory for how to use these actions together.
 
