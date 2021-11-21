@@ -8,8 +8,8 @@ inputs:
     description: The behavior to use when posting comments.  Must be one of 'update' | 'delete_and_new' | 'hide_and_new' | 'new'.
     required: false
     default: update
-  target:
-    description: What object should be commented on.  Must be one of 'pr', 'mr', or 'commit'.  When 'commit', the 'behavior' option will be ignored.
+  targetType:
+    description: What object should be commented on.  Must be 'pr' or 'commit'.  When 'commit', the 'behavior' option will be ignored.
     required: false
     default: pr
   GITHUB_TOKEN:
@@ -23,15 +23,12 @@ runs:
       shell: bash
       run: |
         infracost output --path ${{ inputs.path }} --format github-comment --out-file comment.md
-    - name: Install compost
-      shell: bash
-      run: |
-        npm install -g @infracost/compost
-    - name: Post comment
-      shell: bash
-      env:
-        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
-      run: |
-        compost autodetect ${{ inputs.behavior }} --body-file comment.md --tag "Infracost Cost Estimates" --target-type ${{ inputs.target }}
+    - name: Comment
+      uses: infracost/compost-action@master
+      with:
+        bodyFile: comment.md
+        behavior: ${{ inputs.behavior }}
+        targetType: ${{ inputs.targetType }}
+        GITHUB_TOKEN: ${{ github.token }}
 
 

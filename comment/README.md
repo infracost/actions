@@ -63,7 +63,7 @@ jobs:
       - name: Infracost comment
         uses: infracost/actions/comment@master
         with: 
-          path: infracost-comment.md
+          path: infracost.json
 ```
 
 ## Inputs
@@ -74,7 +74,7 @@ The action supports the following inputs:
 
 - `behavior`: Optional, defaults to `update`.  The behavior to use when posting comments.  Must be one of `update` | `delete_and_new` | `hide_and_new` | `new`.   
 
-- `target`: Optional, defaults to `pull_request`.  What object should be commented on.  Must be one of `{pull|merge}_request` | `commit`.  When `commit`, the `behavior` option will be ignored.
+- `target`: Optional, defaults to `pr`.  What object should be commented on.  Must be `pr` or `commit`.  When `commit`, the `behavior` option will be ignored.
 
 ## Outputs
 
