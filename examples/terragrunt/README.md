@@ -5,11 +5,7 @@ This example shows how to run Infracost actions with Terragrunt.
 [//]: <> (BEGIN EXAMPLE)
 ```yml
 name: Terragrunt
-on:
-  push:
-    branches:
-      - master
-  pull_request:
+on: [pull_request]
 
 jobs:
   terragrunt:
