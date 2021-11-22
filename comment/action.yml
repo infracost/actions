@@ -22,6 +22,16 @@ runs:
       shell: bash
       run: |
         infracost output --path ${{ inputs.path }} --format github-comment --out-file comment.md
+
+        if [ "${{ inputs.behavior }}" = "update" ]; then
+          printf "\nThis comment will be updated when the cost estimate changes.\n\n" >> comment.md
+        elif [ "${{ inputs.behavior }}" = "delete_and_new" ]; then
+          printf "\nThis comment will be replaced when the cost estimate changes.\n\n" >> comment.md
+        fi
+
+        printf "<sub>\n" >> comment.md
+        printf "  Is this comment useful? <a href=\"https://www.infracost.io/feedback/submit/?value=yes\" rel=\"noopener noreferrer\" target=\"_blank\">Yes</a>, <a href=\"https://www.infracost.io/feedback/submit/?value=no\" rel=\"noopener noreferrer\" target=\"_blank\">No</a>\n" >> comment.md
+        printf "</sub>\n" >> comment.md
     - name: Comment
       uses: infracost/compost-action@master
       with:
