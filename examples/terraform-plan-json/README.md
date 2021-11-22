@@ -1,4 +1,4 @@
-# Terraform directory
+# Terraform plan JSON
 
 This example shows how to run Infracost actions with a Terraform plan JSON file. Installing Terraform is not needed since the Infracost CLI can use the plan JSON directly.
 

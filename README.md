@@ -6,7 +6,7 @@
 
 The [examples](examples) directory demonstrates how these actions can be used in different workflows, including how it can be used with:
   - [Terraform directory](examples/terraform-directory): a Terraform directory containing HCL code
-  - [Terraform plan JSON](terraform-plan-json): a Terraform plan JSON file
+  - [Terraform plan JSON](examples/terraform-plan-json): a Terraform plan JSON file
   - [Terragrunt](examples/terragrunt): a Terragrunt project
 
 ## Usage
