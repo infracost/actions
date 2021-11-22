@@ -70,11 +70,13 @@ jobs:
 
 The action supports the following inputs:
 
-- `path`: Required. The path to the infracost breakdown json that will be passed to infracost output.  For multiple paths, pass a glob pattern or a JSON array of paths.
+- `path`: Required. The path to the infracost breakdown json that will be passed to infracost output. For multiple paths, pass a glob pattern or a JSON array of paths.
 
-- `behavior`: Optional, defaults to `update`.  The behavior to use when posting comments.  Must be one of `update` | `delete_and_new` | `hide_and_new` | `new`.   
+- `behavior`: Optional, defaults to `update`. The behavior to use when posting comments. Must be one of `update` | `delete_and_new` | `hide_and_new` | `new`.  
 
-- `target`: Optional, defaults to `pr`.  What object should be commented on.  Must be `pr` or `commit`.  When `commit`, the `behavior` option will be ignored.
+- `target`: Optional. Which objects should be commented on. May be 'pr' or 'commit'.
+
+- `GITHUB_TOKEN`: Optional, default to `${{ github.token }}`.
 
 ## Outputs
 
