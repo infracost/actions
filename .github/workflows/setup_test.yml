@@ -70,5 +70,9 @@ jobs:
             echo "Unexpected pricing_api_endpoint, got: $CONFIGURED_PRICING_API_ENDPOINT"
             exit 1;
           fi
+          if [ "$INFRACOST_GITHUB_ACTION" != "true" ]; then
+            echo "Unexpected INFRACOST_GITHUB_ACTION, got: $INFRACOST_GITHUB_ACTION"
+            exit 1;
+          fi
           exit 0;
 

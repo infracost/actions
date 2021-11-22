@@ -101,6 +101,8 @@ async function getAllVersions(): Promise<string[]> {
 
 async function setup(): Promise<void> {
   try {
+    core.exportVariable("INFRACOST_GITHUB_ACTION", true)
+    
     // Get version of tool to be installed
     const version = await getVersion();
 

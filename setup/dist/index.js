@@ -15328,6 +15328,7 @@ function getAllVersions() {
 function setup() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            core.exportVariable("INFRACOST_GITHUB_ACTION", true);
             // Get version of tool to be installed
             const version = yield getVersion();
             // Download the specific version of the tool, e.g. as a tarball/zipball
