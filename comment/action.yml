@@ -23,9 +23,9 @@ runs:
       run: |
         # handle multiple paths
         if jq . >/dev/null 2>&1 <<< '${{ inputs.path }}'; then
-          paths=$(jq -r 'if type == "array" then map("--path \"" + . + "\"") | join(" ") else . end' <<< '${{ inputs.path }}')
+          paths=$(jq -r 'if type == "array" then map("--path " + .) | join(" ") else . end' <<< '${{ inputs.path }}')
         else
-          paths="--path \"${{ inputs.path }}\""
+          paths="--path ${{ inputs.path }}"
         fi
         echo "::info::Using paths: $paths"
 
