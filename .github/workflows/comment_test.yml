@@ -35,7 +35,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-
       - name: Setup infracost
         uses: ./setup
         with:
@@ -44,5 +43,5 @@ jobs:
       - name: Infracost comment
         uses: ./comment
         with:
-          path: ./testdata/comment/simple_breakdown.json
+          path: '["./testdata/comment/simple_breakdown.json", "./testdata/comment/simple_breakdown.json"]'
           targetType: commit
