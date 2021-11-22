@@ -57,11 +57,8 @@ Assuming you [downloaded Infracost](https://www.infracost.io/docs/#quick-start) 
 
           - name: Terraform show
             id: tf_show
-            run: terraform show -json plan.tfplan
+            run: terraform show -json plan.tfplan > plan.json
             working-directory: path/to/my-terraform
-
-          - name: Save Terraform Plan JSON
-            run: echo '${{ steps.tf_show.outputs.stdout }}' > plan.json # Do not change
 
           - name: Setup Infracost
             uses: infracost/actions/setup@master
