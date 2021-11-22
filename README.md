@@ -1,14 +1,15 @@
 # Infracost GitHub Actions
 
 [Infracost](https://www.infracost.io/) enables you to see cloud cost estimates for Terraform in pull requests. This project provides a set of GitHub Actions for Infracost:
-- [setup](setup): downloads and installs the Infracost CLI in your GitHub Actions workflow. Subsequent steps in the same job can run the CLI in the same way it is run on the command line.
+- [setup](setup): downloads and installs the Infracost CLI in your GitHub Actions workflow.
 - [comment](comment): coming soon! Adds comments to pull requests.
-- [examples](examples): examples of how to use the actions in different workflows, includes:
+
+The [examples](examples) directory demonstrates how these actions can be used in different workflows, includes:
   - [Terragrunt](examples/terragrunt): using the actions with Terragrunt
 
-Typically these actions will be used in conjunction with the [setup-terraform](https://github.com/hashicorp/setup-terraform) action. Refer to the **[examples](examples)** directory for how to use these actions together.
-
 ## Usage
+
+Typically these actions will be used in conjunction with the [setup-terraform](https://github.com/hashicorp/setup-terraform) action. Subsequent steps in the same job can run arbitrary Infracost or Terraform commands using the [GitHub Actions `run` syntax](https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idstepsrun). This allows most commands to work exactly like they do on your local command line.
 
 Assuming you [downloaded Infracost](https://www.infracost.io/docs/#quick-start) and ran `infracost register` to get an API key, you should:
 
@@ -85,7 +86,7 @@ Assuming you [downloaded Infracost](https://www.infracost.io/docs/#quick-start) 
 
 ## Contributing
 
-Issues and pull requests are welcome! For major changes, including interface changes, please open an issue first to discuss what you would like to change. [Join our community Slack channel](https://www.infracost.io/community-chat), we are a friendly bunch and happy to help you get started :)
+Issues and pull requests are welcome! For development details, see the [contributing](CONTRIBUTING.md) guide. For major changes, including interface changes, please open an issue first to discuss what you would like to change. [Join our community Slack channel](https://www.infracost.io/community-chat), we are a friendly bunch and happy to help you get started :)
 
 ## License
 
