@@ -4,8 +4,10 @@
 - [setup](setup): downloads and installs the Infracost CLI in your GitHub Actions workflow.
 - [comment](comment): coming soon! Adds comments to pull requests.
 
-The [examples](examples) directory demonstrates how these actions can be used in different workflows, includes:
-  - [Terragrunt](examples/terragrunt): using the actions with Terragrunt
+The [examples](examples) directory demonstrates how these actions can be used in different workflows, including how it can be used with:
+  - [Terraform directory](examples/terraform-directory): a Terraform directory containing HCL code
+  - [Terraform plan JSON](terraform-plan-json): a Terraform plan JSON file
+  - [Terragrunt](examples/terragrunt): a Terragrunt project
 
 ## Usage
 

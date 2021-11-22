@@ -8,6 +8,64 @@ defaults:
   run:
     shell: bash
 jobs:
+  terraform-directory:
+    name: Terraform directory
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_wrapper: false
+      - name: Setup Infracost
+        uses: ./setup
+        with:
+          api_key: ${{ secrets.INFRACOST_API_KEY }}
+      - name: Run Infracost
+        run: >-
+          infracost breakdown --path=examples/terraform-directory/code
+          --format=json --out-file=/tmp/infracost_breakdown.json
+      - name: Generate Infracost comment
+        run: >-
+          infracost output --path=/tmp/infracost_breakdown.json
+          --format=github-comment --out-file=/tmp/infracost_comment.md
+      - name: Check the comment
+        run: >-
+          diff /tmp/infracost_comment.md
+          ./testdata/terraform-directory_comment_golden.md
+        if: env.UPDATE_GOLDEN_FILES != 'true'
+      - name: Update the golden comment file
+        run: >-
+          cp /tmp/infracost_comment.md
+          ./testdata/terraform-directory_comment_golden.md
+        if: env.UPDATE_GOLDEN_FILES == 'true'
+  terraform-plan-json:
+    name: Terraform plan JSON
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Infracost
+        uses: ./setup
+        with:
+          api_key: ${{ secrets.INFRACOST_API_KEY }}
+      - name: Run Infracost
+        run: >-
+          infracost breakdown --path=examples/terraform-plan-json/code/plan.json
+          --format=json --out-file=/tmp/infracost_breakdown.json
+      - name: Generate Infracost comment
+        run: >-
+          infracost output --path=/tmp/infracost_breakdown.json
+          --format=github-comment --out-file=/tmp/infracost_comment.md
+      - name: Check the comment
+        run: >-
+          diff /tmp/infracost_comment.md
+          ./testdata/terraform-plan-json_comment_golden.md
+        if: env.UPDATE_GOLDEN_FILES != 'true'
+      - name: Update the golden comment file
+        run: >-
+          cp /tmp/infracost_comment.md
+          ./testdata/terraform-plan-json_comment_golden.md
+        if: env.UPDATE_GOLDEN_FILES == 'true'
   terragrunt:
     name: Terragrunt
     runs-on: ubuntu-latest
