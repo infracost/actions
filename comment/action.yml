@@ -29,6 +29,8 @@ runs:
         fi
         echo "::info::Using paths: $paths"
 
+        export INFRACOST_CI_POST_CONDITION=${{ inputs.behavior }}
+
         infracost output $paths --format github-comment --out-file comment.md
 
         if [ "${{ inputs.targetType }}" != "commit" ]; then
