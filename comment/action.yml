@@ -23,10 +23,12 @@ runs:
       run: |
         infracost output --path ${{ inputs.path }} --format github-comment --out-file comment.md
 
-        if [ "${{ inputs.behavior }}" = "update" ]; then
-          printf "\nThis comment will be updated when the cost estimate changes.\n\n" >> comment.md
-        elif [ "${{ inputs.behavior }}" = "delete_and_new" ]; then
-          printf "\nThis comment will be replaced when the cost estimate changes.\n\n" >> comment.md
+        if [ "${{ inputs.targetType }}" != "commit" ]; then
+          if [ "${{ inputs.behavior }}" = "update" ]; then
+            printf "\nThis comment will be updated when the cost estimate changes.\n\n" >> comment.md
+          elif [ "${{ inputs.behavior }}" = "delete_and_new" ]; then
+            printf "\nThis comment will be replaced when the cost estimate changes.\n\n" >> comment.md
+          fi
         fi
 
         printf "<sub>\n" >> comment.md

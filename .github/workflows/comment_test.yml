@@ -13,8 +13,8 @@ defaults:
     shell: bash
 
 jobs:
-  test:
-    name: Test
+  test_pr:
+    name: Test PR Comment
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -30,7 +30,7 @@ jobs:
         with:
           path: ./testdata/comment/simple_breakdown.json
   test_commit:
-    name: Test Commit
+    name: Test Commit Comment
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -45,4 +45,4 @@ jobs:
         uses: ./comment
         with:
           path: ./testdata/comment/simple_breakdown.json
-          target: commit
+          targetType: commit
