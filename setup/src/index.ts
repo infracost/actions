@@ -101,7 +101,9 @@ async function getAllVersions(): Promise<string[]> {
 
 async function setup(): Promise<void> {
   try {
+    // Set Infracost environment variables
     core.exportVariable("INFRACOST_GITHUB_ACTION", true)
+    core.exportVariable("INFRACOST_LOG_LEVEL", "info")
     
     // Get version of tool to be installed
     const version = await getVersion();
