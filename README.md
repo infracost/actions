@@ -10,6 +10,7 @@ The [examples](examples) directory demonstrates how these actions can be used in
   - [Terragrunt](examples/terragrunt): a Terragrunt project
   - [Multi-project using config file](examples/multi-project/README.md#using-an-infracost-config-file): multiple Terraform projects using the Infracost config file
   - [Multi-project using build matrix](examples/multi-project/README.md#using-github-actions-build-matrix): multiple Terraform projects using GitHub Actions build matrix
+  - [Multi-Terraform workspace](examples/multi-terraform-workspace): multiple Terraform workspaces using the Infracost config file
 
 ## Usage
 

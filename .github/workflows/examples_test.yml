@@ -101,6 +101,38 @@ jobs:
           cp /tmp/infracost_comment.md
           ./testdata/multi_project_matrix_merge_comment_golden.md
         if: env.UPDATE_GOLDEN_FILES == 'true'
+  multi_terraform_workspace_config_file:
+    name: Multi-Terraform workspace config file
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_wrapper: false
+      - name: Setup Infracost
+        uses: ./setup
+        with:
+          api_key: ${{ secrets.INFRACOST_API_KEY }}
+      - name: Run Infracost
+        run: >-
+          infracost breakdown
+          --config-file=examples/multi-terraform-workspace/code/infracost.yml
+          --format=json --out-file=/tmp/infracost_breakdown.json
+      - name: Generate Infracost comment
+        run: >-
+          infracost output --path=/tmp/infracost_breakdown.json
+          --format=github-comment --out-file=/tmp/infracost_comment.md
+      - name: Check the comment
+        run: >-
+          diff /tmp/infracost_comment.md
+          ./testdata/multi_terraform_workspace_config_file_comment_golden.md
+        if: env.UPDATE_GOLDEN_FILES != 'true'
+      - name: Update the golden comment file
+        run: >-
+          cp /tmp/infracost_comment.md
+          ./testdata/multi_terraform_workspace_config_file_comment_golden.md
+        if: env.UPDATE_GOLDEN_FILES == 'true'
   terraform-directory:
     name: Terraform directory
     runs-on: ubuntu-latest

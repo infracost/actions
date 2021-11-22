@@ -1,0 +1,10 @@
+version: 0.1
+
+projects:
+  - path: examples/multi-terraform-workspace/code
+    terraform_workspace: dev
+    terraform_plan_flags: "-var-file=dev.tfvars"
+
+  - path: examples/multi-terraform-workspace/code
+    terraform_workspace: prod
+    terraform_plan_flags: "-var-file=prod.tfvars"
