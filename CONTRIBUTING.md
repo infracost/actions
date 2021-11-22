@@ -1,5 +1,13 @@
 # Contributing
 
+## Adding examples
+
+Copy another example that is similar to what you'd like to add. If you don't know which to pick, try the `terraform-directory`.
+1. Update your example's readme file with the required steps.
+2. Follow [updating the golden files](#updating-the-golden-files) to update the test output, review the new additions/changes to ensure they are what you expect for your example.
+3. Update the [repo readme](readme.md), the [examples readme](examples/readme.md) and your new example's readme with the description of the example.
+4. Send a pull request and wait for an Infracost team member to review it.
+
 ## Testing examples
 
 Examples are tested by extracting them from the README.md files into a GitHub Actions workflow.
@@ -45,7 +53,7 @@ Install packages:
 npm install
 ```
 
-Then run:
+Then run (with `act`, select the Medium size image):
 
 ```sh
 export GITHUB_TOKEN=<GITHUB_PERSONAL_ACCESS_TOKEN>
@@ -58,6 +66,6 @@ You can update the golden files for the examples by running:
 
 ```sh
 export GITHUB_TOKEN=<GITHUB_PERSONAL_ACCESS_TOKEN>
-npm run examples:test:update
+npm run examples:update_golden
 ```
 

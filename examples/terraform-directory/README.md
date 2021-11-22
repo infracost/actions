@@ -1,10 +1,10 @@
-# Terragrunt
+# Terraform directory
 
-This example shows how to run Infracost actions with Terragrunt.
+This example shows how to run Infracost actions with a Terraform project containing HCL code.
 
 [//]: <> (BEGIN EXAMPLE)
 ```yml
-name: Terragrunt
+name: Terraform directory
 on:
   push:
     branches:
@@ -12,8 +12,8 @@ on:
   pull_request:
 
 jobs:
-  terragrunt:
-    name: Terragrunt
+  terraform-directory:
+    name: Terraform directory
     runs-on: ubuntu-latest
 
     steps:
@@ -24,18 +24,13 @@ jobs:
         with:
           terraform_wrapper: false # This is required so that Terraform binary outputs valid JSON
 
-      - name: Setup Terragrunt
-        uses: autero1/action-terragrunt@v1.1.0
-        with:
-          terragrunt_version: 0.35.9
-
       - name: Setup Infracost
         uses: infracost/actions/setup@v1
         with:
           api_key: ${{ secrets.INFRACOST_API_KEY }}
           
       - name: Run Infracost
-        run: infracost breakdown --path=examples/terragrunt/code --format=json --out-file=/tmp/infracost_breakdown.json
+        run: infracost breakdown --path=examples/terraform-directory/code --format=json --out-file=/tmp/infracost_breakdown.json
         
       - name: Post the comment
         uses: infracost/actions/comment@v1

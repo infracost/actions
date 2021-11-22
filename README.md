@@ -5,6 +5,7 @@
 - [comment](comment): coming soon! Adds comments to pull requests.
 
 The [examples](examples) directory demonstrates how these actions can be used in different workflows, includes:
+  - [Terraform directory](examples/terraform-directory): using the actions with a Terraform directory containing HCL code
   - [Terragrunt](examples/terragrunt): using the actions with Terragrunt
 
 ## Usage
