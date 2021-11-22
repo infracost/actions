@@ -15328,7 +15328,9 @@ function getAllVersions() {
 function setup() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            // Set Infracost environment variables
             core.exportVariable("INFRACOST_GITHUB_ACTION", true);
+            core.exportVariable("INFRACOST_LOG_LEVEL", "info");
             // Get version of tool to be installed
             const version = yield getVersion();
             // Download the specific version of the tool, e.g. as a tarball/zipball
