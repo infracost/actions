@@ -15330,7 +15330,7 @@ function setup() {
         try {
             // Set Infracost environment variables
             core.exportVariable("INFRACOST_GITHUB_ACTION", true);
-            core.exportVariable("INFRACOST_LOG_LEVEL", "info");
+            core.exportVariable("INFRACOST_LOG_LEVEL", core.isDebug() ? "debug" : "info");
             // Get version of tool to be installed
             const version = yield getVersion();
             // Download the specific version of the tool, e.g. as a tarball/zipball
