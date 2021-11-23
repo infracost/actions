@@ -9,7 +9,7 @@ inputs:
     required: false
     default: update
   target-type:
-    description: Which objects should be commented on, either `pr` (for pull requests) or `commit`.
+    description: Which objects should be commented on, either `pull_request` or `commit`.
     required: false
   github-token:
     description: 'Default to {{ github.token }}. This is the default GitHub token available to actions and is used to post comments.'
@@ -20,7 +20,18 @@ runs:
   steps:
     - name: Run infracost output
       shell: bash
+      id: run-infracost-output
       run: |
+        # validate inputs
+        if [ "${{ inputs.target-type }}" = "commit" ]; then
+          echo '::set-output name=target-type::commit'
+        elif [ "${{ inputs.target-type }}" != "pull_request" ]; then
+          echo '::set-output name=target-type::pr'
+        else
+          echo "::error::Invalid target-type '${{ inputs.target-type }}'.  Must be commit or pull_request."
+          exit 1
+        fi
+
         # handle multiple paths
         if jq . >/dev/null 2>&1 <<< '${{ inputs.path }}'; then
           paths=$(jq -r 'if type == "array" then map("--path " + .) | join(" ") else . end' <<< '${{ inputs.path }}')
@@ -49,7 +60,7 @@ runs:
       with:
         bodyFile: comment.md
         behavior: ${{ inputs.behavior }}
-        targetType: ${{ inputs.target-type }}
+        targetType: ${{ steps.run-infracost-output.outputs.target-type }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
 
 

@@ -26,7 +26,7 @@ The action supports the following inputs:
   - `hide_and_new`: Minimize previous cost estimate comments and create a new one. Pull request followers will be notified on each comment.
   - `new`:  Create a new cost estimate comment. Pull request followers will be notified on each comment.
 
-- `target-type`: Optional. Which objects should be commented on, either `pr` (for pull requests) or `commit`.
+- `target-type`: Optional. Which objects should be commented on, either `pull_request` or `commit`.
 
 - `github-token`: Optional, default to `${{ github.token }}`. This is the default GitHub token available to actions and is used to post comments.
 
