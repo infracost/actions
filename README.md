@@ -2,7 +2,7 @@
 
 [Infracost](https://www.infracost.io/) enables you to see cloud cost estimates for Terraform in pull requests. This project provides a set of GitHub Actions for Infracost:
 - [setup](setup): downloads and installs the Infracost CLI in your GitHub Actions workflow.
-- [comment](comment): coming soon! Adds comments to pull requests.
+- [comment](comment): adds comments to pull requests.
 
 The [examples](examples) directory demonstrates how these actions can be used in different workflows, including how it can be used with:
   - [Terraform directory](examples/terraform-directory): a Terraform directory containing HCL code
