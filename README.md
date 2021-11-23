@@ -70,10 +70,10 @@ Assuming you [downloaded Infracost](https://www.infracost.io/docs/#quick-start) 
           - name: Infracost output
             run: infracost output --path infracost.json --format github-comment --out-file infracost-comment.md
 
-          - name: Post comment
-            uses: marocchino/sticky-pull-request-comment@v2
-            with:
-              path: infracost-comment.md
+          - name: Infracost comment
+            uses: infracost/actions/comment@master
+            with: 
+              path: infracost.json
     ```
 
     You might find the following Infracost CLI [docs](https://www.infracost.io/docs/ ) pages useful:

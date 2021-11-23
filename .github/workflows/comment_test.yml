@@ -1,0 +1,47 @@
+name: Test Comment
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "comment/**"
+  pull_request:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test_pr:
+    name: Test PR Comment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup infracost
+        uses: ./setup
+        with:
+          version: 0.9.13
+          api_key: abcdefg123456
+      - name: Infracost comment
+        uses: ./comment
+        with:
+          path: ./testdata/comment/simple_breakdown.json
+  test_commit:
+    name: Test Commit Comment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup infracost
+        uses: ./setup
+        with:
+          version: 0.9.13
+          api_key: abcdefg123456
+      - name: Infracost comment
+        uses: ./comment
+        with:
+          path: '["./testdata/comment/simple_breakdown.json", "./testdata/comment/simple_breakdown.json"]'
+          targetType: commit

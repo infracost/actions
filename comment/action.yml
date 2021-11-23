@@ -1,0 +1,55 @@
+name: "Infracost Comment"
+description: Posts a comment to the GitHub pull request showing cloud cost estimates for Terraform. Requires infracost/actions/setup to have been run.
+inputs:
+  path:
+    description: The path to the infracost breakdown json that will be passed to infracost output. For multiple paths, pass a glob pattern or a JSON array of paths.
+    required: true
+  behavior:
+    description: The behavior to use when posting comments. Must be one of 'update' | 'delete_and_new' | 'hide_and_new' | 'new'.
+    required: false
+    default: update
+  targetType:
+    description: Which objects should be commented on. May be 'pr' or 'commit'.
+    required: false
+  GITHUB_TOKEN:
+    description: Defaults to {{ github.token }}.
+    default: '${{ github.token }}'
+    required: false
+runs:
+  using: "composite"
+  steps:
+    - name: Run infracost output
+      shell: bash
+      run: |
+        # handle multiple paths
+        if jq . >/dev/null 2>&1 <<< '${{ inputs.path }}'; then
+          paths=$(jq -r 'if type == "array" then map("--path " + .) | join(" ") else . end' <<< '${{ inputs.path }}')
+        else
+          paths="--path ${{ inputs.path }}"
+        fi
+        echo "::info::Using paths: $paths"
+
+        export INFRACOST_CI_POST_CONDITION=${{ inputs.behavior }}
+
+        infracost output $paths --format github-comment --out-file comment.md
+
+        if [ "${{ inputs.targetType }}" != "commit" ]; then
+          if [ "${{ inputs.behavior }}" = "update" ]; then
+            printf "\nThis comment will be updated when the cost estimate changes.\n\n" >> comment.md
+          elif [ "${{ inputs.behavior }}" = "delete_and_new" ]; then
+            printf "\nThis comment will be replaced when the cost estimate changes.\n\n" >> comment.md
+          fi
+        fi
+
+        printf "<sub>\n" >> comment.md
+        printf "  Is this comment useful? <a href=\"https://www.infracost.io/feedback/submit/?value=yes\" rel=\"noopener noreferrer\" target=\"_blank\">Yes</a>, <a href=\"https://www.infracost.io/feedback/submit/?value=no\" rel=\"noopener noreferrer\" target=\"_blank\">No</a>\n" >> comment.md
+        printf "</sub>\n" >> comment.md
+    - name: Comment
+      uses: infracost/compost-action@master
+      with:
+        bodyFile: comment.md
+        behavior: ${{ inputs.behavior }}
+        targetType: ${{ inputs.targetType }}
+        GITHUB_TOKEN: ${{ github.token }}
+
+
