@@ -75,7 +75,7 @@ The following steps assume a simple Terraform directory is being used, we recomm
     ```
 
     You might find the following Infracost CLI [docs](https://www.infracost.io/docs/ ) pages useful:
-    - [`infracost output`](https://www.infracost.io/docs/multi_project/report) is used to combine and output Infracost JSON files in different formats.
+    - [`infracost output`](https://www.infracost.io/docs/multi_project/report) is used to combine and output Infracost JSON files.
     - [config file](https://www.infracost.io/docs/multi_project/config_file) is useful for running Infracost against multiple projects/workspaces.
 
 7. Post the pull request comment using the `comment` action.
@@ -87,7 +87,7 @@ The following steps assume a simple Terraform directory is being used, we recomm
         path: infracost.json
     ```
 
-    An optional `behavior` input is available. It can be used to control how a comment is posted and updated. See the [comment](comment) action readme for other options such as `targetType`.
+    An optional `behavior` input is available, which can be used to control how a comment is posted and updated. See the [comment](comment) action readme for other options such as `targetType`.
 
 8. Send a new pull request to change something in Terraform that costs money and you should see a pull request comment as shown below. See [examples/terraform-directory] for the full example GitHub Action yaml. Check the GitHub Actions logs and [this page](https://www.infracost.io/docs/integrations/cicd#cicd-troubleshooting) if there are issues.
 
