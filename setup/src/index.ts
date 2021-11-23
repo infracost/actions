@@ -99,14 +99,29 @@ async function getAllVersions(): Promise<string[]> {
   return allVersions;
 }
 
+function exportEnvVars(): void {
+  core.exportVariable('INFRACOST_GITHUB_ACTION', true);
+
+  const repoUrl =
+    github.context.payload.repository?.html_url ||
+    `${github.context.serverUrl}/${github.context.repo.owner}/${github.context.repo.repo}`;
+  const pullRequestUrl = github.context.payload.pull_request?.html_url;
+
+  if (repoUrl) {
+    core.exportVariable('VCS_REPO_URL', repoUrl);
+  }
+
+  if (pullRequestUrl) {
+    core.exportVariable('VCS_PULL_REQUEST_URL', pullRequestUrl);
+  }
+
+  core.exportVariable('INFRACOST_LOG_LEVEL', core.isDebug() ? 'debug' : 'info');
+}
+
 async function setup(): Promise<void> {
   try {
     // Set Infracost environment variables
-    core.exportVariable('INFRACOST_GITHUB_ACTION', true);
-    core.exportVariable(
-      'INFRACOST_LOG_LEVEL',
-      core.isDebug() ? 'debug' : 'info'
-    );
+    exportEnvVars();
 
     // Get version of tool to be installed
     const version = await getVersion();

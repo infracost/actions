@@ -15325,12 +15325,25 @@ function getAllVersions() {
         return allVersions;
     });
 }
+function exportEnvVars() {
+    var _a, _b;
+    core.exportVariable('INFRACOST_GITHUB_ACTION', true);
+    const repoUrl = ((_a = github.context.payload.repository) === null || _a === void 0 ? void 0 : _a.html_url) ||
+        `${github.context.serverUrl}/${github.context.repo.owner}/${github.context.repo.repo}`;
+    const pullRequestUrl = (_b = github.context.payload.pull_request) === null || _b === void 0 ? void 0 : _b.html_url;
+    if (repoUrl) {
+        core.exportVariable('VCS_REPO_URL', repoUrl);
+    }
+    if (pullRequestUrl) {
+        core.exportVariable('VCS_PULL_REQUEST_URL', pullRequestUrl);
+    }
+    core.exportVariable('INFRACOST_LOG_LEVEL', core.isDebug() ? 'debug' : 'info');
+}
 function setup() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             // Set Infracost environment variables
-            core.exportVariable('INFRACOST_GITHUB_ACTION', true);
-            core.exportVariable('INFRACOST_LOG_LEVEL', core.isDebug() ? 'debug' : 'info');
+            exportEnvVars();
             // Get version of tool to be installed
             const version = yield getVersion();
             // Download the specific version of the tool, e.g. as a tarball/zipball
