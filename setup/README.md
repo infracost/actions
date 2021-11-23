@@ -1,6 +1,18 @@
-# Infracost Setup Action
+# Infracost setup action
 
 This GitHub Action downloads and installs the [Infracost CLI](https://github.com/infracost/infracost) in your GitHub Actions workflow. Subsequent steps in the same job can run the CLI in the same way it is run on the command line using the [GitHub Actions `run` syntax](https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idstepsrun).
+
+## Usage
+
+The action can be used as follows:
+
+```yml
+steps:
+  - name: Setup Infracost
+  uses: infracost/actions/setup@v1
+  with:
+    api_key: ${{ secrets.INFRACOST_API_KEY }}
+```
 
 ## Inputs
 
@@ -8,7 +20,7 @@ The action supports the following inputs:
 
 - `api_key`: Required. The Infracost API key.
 
-- `version`: Optional. [Version](https://github.com/infracost/infracost/releases) of Infracost CLI to install, e.g. 0.9.x or 0.9.13.
+- `version`: Optional, defaults to `0.9.x`. [Semver Ranges](https://www.npmjs.com/package/semver#ranges) are supported, so instead of a [full version](https://github.com/infracost/infracost/releases) string, you can use `0.9.x`. This enables you to automatically get the latest backward compatible changes in the 0.9 release (e.g. new resources or bug fixes).
 
 - `currency`: Optional. Convert output from USD to your preferred [ISO 4217 currency](https://en.wikipedia.org/wiki/ISO_4217#Active_codes), e.g. EUR, BRL or INR.
 

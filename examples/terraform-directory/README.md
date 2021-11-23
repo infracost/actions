@@ -15,10 +15,22 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
-      - name: Install Terraform
+      - name: Install terraform
         uses: hashicorp/setup-terraform@v1
         with:
           terraform_wrapper: false # This is required so the `terraform show` command outputs valid JSON
+
+      - name: Terraform init
+        run: terraform init
+        working-directory: examples/terraform-directory/code
+
+      - name: Terraform plan
+        run: terraform plan -out tfplan.binary
+        working-directory: examples/terraform-directory/code
+
+      - name: Terraform show
+        run: terraform show -json tfplan.binary > plan.json
+        working-directory: examples/terraform-directory/code
 
       - name: Setup Infracost
         uses: infracost/actions/setup@v1
@@ -31,6 +43,6 @@ jobs:
       - name: Post the comment
         uses: infracost/actions/comment@v1
         with:
-          breakdown_json: /tmp/infracost_breakdown.json
+          path: /tmp/infracost_breakdown.json
 ```
 [//]: <> (END EXAMPLE)
