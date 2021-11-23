@@ -14,7 +14,7 @@ Assuming you have [downloaded Infracost](https://www.infracost.io/docs/#quick-st
 
     ```yml
     steps:
-    - uses: infracost/actions/setup@master
+    - uses: infracost/actions/setup@v1
       with:
         api_key: ${{ secrets.INFRACOST_API_KEY }}
     ```
@@ -51,7 +51,7 @@ jobs:
         run: echo '${{ steps.tf_show.outputs.stdout }}' > plan.json # Do not change
 
       - name: Setup Infracost
-        uses: infracost/actions/setup@master
+        uses: infracost/actions/setup@v1
         with:
           api_key: ${{ secrets.INFRACOST_API_KEY }}
 

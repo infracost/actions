@@ -1,16 +1,16 @@
 # Infracost GitHub Actions
 
 [Infracost](https://www.infracost.io/) enables you to see cloud cost estimates for Terraform in pull requests. This project provides a set of GitHub Actions for Infracost:
-- [setup](setup): downloads and installs the Infracost CLI in your GitHub Actions workflow.
-- [comment](comment): adds comments to pull requests.
+- **[setup](setup)**: downloads and installs the Infracost CLI in your GitHub Actions workflow.
+- **[comment](comment)**: adds comments to pull requests.
 
-The [examples](examples) directory demonstrates how these actions can be used in different workflows, including how it can be used with:
+The **[examples](examples)** directory demonstrates how these actions can be used in different workflows, including:
   - [Terraform directory](examples/terraform-directory): a Terraform directory containing HCL code
   - [Terraform plan JSON](examples/terraform-plan-json): a Terraform plan JSON file
   - [Terragrunt](examples/terragrunt): a Terragrunt project
-  - [Multi-project using config file](examples/multi-project/README.md#using-an-infracost-config-file): multiple Terraform projects using the Infracost config file
+  - [Multi-project using config file](examples/multi-project/README.md#using-an-infracost-config-file): multiple Terraform projects using the Infracost [config file](https://www.infracost.io/docs/multi_project/config_file)
   - [Multi-project using build matrix](examples/multi-project/README.md#using-github-actions-build-matrix): multiple Terraform projects using GitHub Actions build matrix
-  - [Multi-Terraform workspace](examples/multi-terraform-workspace): multiple Terraform workspaces using the Infracost config file
+  - [Multi-Terraform workspace](examples/multi-terraform-workspace): multiple Terraform workspaces using the Infracost [config file](https://www.infracost.io/docs/multi_project/config_file)
 
 ## Usage
 
@@ -24,7 +24,7 @@ Assuming you [downloaded Infracost](https://www.infracost.io/docs/#quick-start) 
 
     ```yml
     steps:
-    - uses: infracost/actions/setup@master
+    - uses: infracost/actions/setup@v1
       with:
         api_key: ${{ secrets.INFRACOST_API_KEY }}
     ```
@@ -63,7 +63,7 @@ Assuming you [downloaded Infracost](https://www.infracost.io/docs/#quick-start) 
             working-directory: path/to/my-terraform
 
           - name: Setup Infracost
-            uses: infracost/actions/setup@master
+            uses: infracost/actions/setup@v1
             with:
               api_key: ${{ secrets.INFRACOST_API_KEY }}
 
