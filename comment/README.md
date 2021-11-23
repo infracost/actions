@@ -10,17 +10,16 @@ Assuming you have [downloaded Infracost](https://www.infracost.io/docs/#quick-st
 
 1. [Add repo secrets](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets#creating-encrypted-secrets-for-a-repository) for `INFRACOST_API_KEY` and any other required credentials to your GitHub repo (e.g. `AWS_ACCESS_KEY_ID`).
 
-2. By default, the latest version of the Infracost CLI is installed; you can override that using the `version` input.
+2. Install the Infracost CLI; this action uses the `infracost output` command to generate the comment markdown from a terraform plan file.
 
     ```yml
     steps:
     - uses: infracost/actions/setup@master
       with:
         api_key: ${{ secrets.INFRACOST_API_KEY }}
-        version: latest # See https://github.com/infracost/infracost/releases for other versions
     ```
 
-3. Create a new file in `.github/workflows/infracost.yml` in your repo with the following content. Typically this action will be used in conjunction with the [setup-terraform](https://github.com/hashicorp/setup-terraform) action. The GitHub Actions [docs](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#on) describe other options for `on`, though `pull_request` is probably what you want.
+3. Create a new file in `.github/workflows/infracost.yml` in your repo with the following content. Typically this action will be use the [setup-terraform](https://github.com/hashicorp/setup-terraform) action to generate a plan.json file.
 
 ```yaml
 on: [pull_request]
@@ -55,7 +54,6 @@ jobs:
         uses: infracost/actions/setup@master
         with:
           api_key: ${{ secrets.INFRACOST_API_KEY }}
-          version: latest
 
       - name: Infracost breakdown
         run: infracost breakdown --path plan.json --format json --out-file infracost.json
@@ -72,9 +70,13 @@ The action supports the following inputs:
 
 - `path`: Required. The path to the infracost breakdown json that will be passed to infracost output. For multiple paths, pass a glob pattern or a JSON array of paths.
 
-- `behavior`: Optional, defaults to `update`. The behavior to use when posting comments. Must be one of `update` | `delete_and_new` | `hide_and_new` | `new`.  
+- `behavior`: Optional, defaults to `update`. The behavior to use when posting cost estimate comments. Must be one of the following:  
+  - `update`:  Use a single comment to display cost estimates, creating one if none exist. The GitHub comments UI can be used to see when/what has changed when a comment is updated. PR followers will only be notified on the comment create (not update), and the comment will stay at the same location in the comment history.
+  - `delete_and_new`: Delete previous cost estimate comments and create a new one. PR followers will be notified on each comment.
+  - `hide_and_new`: Minimize previous cost estimate comments and create a new one. PR followers will be notified on each comment.
+  - `new`:  Create a new cost estimate comment. PR followers will be notified on each comment.
 
-- `target`: Optional. Which objects should be commented on. May be 'pr' or 'commit'.
+- `targetType`: Optional. Which objects should be commented on. May be 'pr' or 'commit'.
 
 - `GITHUB_TOKEN`: Optional, default to `${{ github.token }}`.
 
