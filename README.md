@@ -56,7 +56,6 @@ Assuming you [downloaded Infracost](https://www.infracost.io/docs/#quick-start) 
             working-directory: path/to/my-terraform
 
           - name: Terraform show
-            id: tf_show
             run: terraform show -json plan.tfplan > plan.json
             working-directory: path/to/my-terraform
 
