@@ -31,11 +31,11 @@ jobs:
           api_key: ${{ secrets.INFRACOST_API_KEY }}
           
       - name: Run Infracost
-        run: infracost breakdown --path=examples/terragrunt/code --format=json --out-file=/tmp/infracost_breakdown.json
+        run: infracost breakdown --path=examples/terragrunt/code --format=json --out-file=/tmp/infracost.json
         
       - name: Post the comment
         uses: infracost/actions/comment@v1
         with:
-          breakdown_json: /tmp/infracost_breakdown.json
+          path: /tmp/infracost.json
 ```
 [//]: <> (END EXAMPLE)

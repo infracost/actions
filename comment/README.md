@@ -11,7 +11,7 @@ steps:
   - name: Infracost comment
     uses: infracost/actions/comment@v1
     with: 
-      path: infracost.json
+      path: /tmp/infracost.json
 ```
 
 ## Inputs
@@ -28,7 +28,7 @@ The action supports the following inputs:
 
 - `targetType`: Optional. Which objects should be commented on, either `pr` (for pull requests) or `commit`.
 
-- `GITHUB_TOKEN`: Optional, default to `${{ github.token }}` (the default GitHub token available to actions). GitHub token used to post comments.
+- `GITHUB_TOKEN`: Optional, default to `${{ github.token }}`. This is the default GitHub token available to actions and is used to post comments.
 
 ## Outputs
 
