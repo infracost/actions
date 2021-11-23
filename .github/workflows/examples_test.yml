@@ -16,7 +16,7 @@ jobs:
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_wrapper: false
+          terraform_wrapper: false # This is required so the `terraform show` command outputs valid JSON
       - name: Setup Infracost
         uses: ./setup
         with:
@@ -53,7 +53,7 @@ jobs:
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_wrapper: false
+          terraform_wrapper: false # This is required so the `terraform show` command outputs valid JSON
       - name: Setup Infracost
         uses: ./setup
         with:
@@ -109,7 +109,7 @@ jobs:
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_wrapper: false
+          terraform_wrapper: false # This is required so the `terraform show` command outputs valid JSON
       - name: Setup Infracost
         uses: ./setup
         with:
@@ -141,7 +141,7 @@ jobs:
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_wrapper: false
+          terraform_wrapper: false # This is required so the `terraform show` command outputs valid JSON
       - name: Setup Infracost
         uses: ./setup
         with:
@@ -199,7 +199,7 @@ jobs:
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_wrapper: false
+          terraform_wrapper: false # This is required so the `terraform show` command outputs valid JSON
       - name: Setup Terragrunt
         uses: autero1/action-terragrunt@v1.1.0
         with:

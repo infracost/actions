@@ -48,7 +48,7 @@ Assuming you [downloaded Infracost](https://www.infracost.io/docs/#quick-start) 
           - name: Install terraform
             uses: hashicorp/setup-terraform@v1
             with:
-              terraform_wrapper: false
+              terraform_wrapper: false # This is required so the `terraform show` command outputs valid JSON
 
           - name: Terraform init
             run: terraform init

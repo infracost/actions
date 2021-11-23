@@ -18,7 +18,7 @@ jobs:
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_wrapper: false # This is required so that Terraform binary outputs valid JSON
+          terraform_wrapper: false # This is required so the `terraform show` command outputs valid JSON
 
       - name: Setup Infracost
         uses: infracost/actions/setup@v1

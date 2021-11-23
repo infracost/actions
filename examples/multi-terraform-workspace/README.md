@@ -1,6 +1,6 @@
 # Multi-Terraform workspace
 
-These examples shows how to run Infracost actions against a Terraform project that uses multiple workspaces using an [Infracost config file](https://www.infracost.io/docs/multi_project/config_file).
+This example shows how to run Infracost actions against a Terraform project that uses multiple workspaces using an [Infracost config file](https://www.infracost.io/docs/multi_project/config_file).
 
 [//]: <> (BEGIN EXAMPLE)
 ```yml
@@ -18,7 +18,7 @@ jobs:
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_wrapper: false # This is required so that Terraform binary outputs valid JSON
+          terraform_wrapper: false # This is required so the `terraform show` command outputs valid JSON
 
       - name: Setup Infracost
         uses: infracost/actions/setup@v1

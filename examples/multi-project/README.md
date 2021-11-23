@@ -1,6 +1,6 @@
 # Multi-project
 
-These examples shows how to run Infracost actions against a multi-project setup using either an [Infracost config file](https://www.infracost.io/docs/multi_project/config_file) or a GitHub Actions build matrix.
+These examples show how to run Infracost actions against a multi-project setup using either an [Infracost config file](https://www.infracost.io/docs/multi_project/config_file) or a GitHub Actions build matrix.
 
 ## Using an Infracost config file
 
@@ -22,7 +22,7 @@ jobs:
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_wrapper: false # This is required so that Terraform binary outputs valid JSON
+          terraform_wrapper: false # This is required so the `terraform show` command outputs valid JSON
 
       - name: Setup Infracost
         uses: infracost/actions/setup@v1
@@ -41,7 +41,7 @@ jobs:
 
 ## Using GitHub Actions build matrix 
 
-This example shows how to run Infracost actions with multiple Terraform projects using a GitHub Actions build matrix. The first job uses a build matrix to generate multiple Infracost output JSONs and upload them as artifacts. The second job downloads these JSONs, combines them and posts a comment.
+This example shows how to run Infracost actions with multiple Terraform projects using a GitHub Actions build matrix. The first job uses a build matrix to generate multiple Infracost output JSON files and upload them as artifacts. The second job downloads these JSON files, combines them using `infracost output`, and posts a comment.
 
 [//]: <> (BEGIN EXAMPLE)
 ```yml
@@ -63,7 +63,7 @@ jobs:
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_wrapper: false # This is required so that Terraform binary outputs valid JSON
+          terraform_wrapper: false # This is required so the `terraform show` command outputs valid JSON
 
       - name: Setup Infracost
         uses: infracost/actions/setup@v1
