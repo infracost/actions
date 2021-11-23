@@ -2,7 +2,7 @@
 
 Infracost enables you to see cloud cost estimates for Terraform in pull requests.
 
-This GitHub Action takes infracost "breakdown" json output and posts it as a GitHub comment.  It assumes the infracost binary has already been installed using `infracost/actions/setup`.
+This GitHub Action takes infracost "breakdown" json output and posts it as a GitHub comment. It assumes the infracost binary has already been installed using `infracost/actions/setup`.
 
 ## Usage
 
