@@ -44,4 +44,4 @@ jobs:
         uses: ./comment
         with:
           path: '["./testdata/comment/simple_breakdown.json", "./testdata/comment/simple_breakdown.json"]'
-          targetType: commit
+          target-type: commit

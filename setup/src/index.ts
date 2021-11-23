@@ -81,7 +81,7 @@ async function getVersion(): Promise<string> {
 }
 
 async function getAllVersions(): Promise<string[]> {
-  const githubToken = core.getInput('GITHUB_TOKEN', { required: true });
+  const githubToken = core.getInput('github-token', { required: true });
   const octokit = github.getOctokit(githubToken);
 
   const allVersions: string[] = [];

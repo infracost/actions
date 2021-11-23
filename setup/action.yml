@@ -15,7 +15,7 @@ inputs:
   pricing_api_endpoint:
     description: For self-hosted (https://www.infracost.io/docs/cloud_pricing_api/self_hosted) users, endpoint of the Cloud Pricing API, e.g. https://cloud-pricing-api.
     required: false
-  GITHUB_TOKEN:
+  github-token:
     description: 'The GitHub access token (e.g. secrets.GITHUB_TOKEN) used to get the list of Infracost CLI versions. This defaults to {{ github.token }}.'
     default: '${{ github.token }}'
     required: false
