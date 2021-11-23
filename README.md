@@ -50,7 +50,7 @@ The following steps assume a simple Terraform directory is being used, we recomm
       working-directory: path/to/my-terraform
 
     - name: Terraform show
-      run: terraform show -json tfplan.binary > plan.json
+      run: terraform show -json tfplan.binary > /tmp/plan.json
       working-directory: path/to/my-terraform
     ```
 
@@ -71,7 +71,7 @@ The following steps assume a simple Terraform directory is being used, we recomm
 
     ```yaml
     - name: Infracost breakdown
-      run: infracost breakdown --path plan.json --format json --out-file infracost.json
+      run: infracost breakdown --path /tmp/plan.json --format json --out-file /tmp/infracost.json
     ```
 
     You might find the following Infracost CLI [docs](https://www.infracost.io/docs/ ) pages useful:
@@ -84,7 +84,7 @@ The following steps assume a simple Terraform directory is being used, we recomm
     - name: Infracost comment
       uses: infracost/actions/comment@v1
       with: 
-        path: infracost.json
+        path: /tmp/infracost.json
     ```
 
     An optional `behavior` input is available, which can be used to control how a comment is posted and updated. See the [comment](comment) action readme for other options such as `targetType`.
