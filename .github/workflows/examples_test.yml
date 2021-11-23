@@ -16,7 +16,7 @@ jobs:
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_wrapper: false # This is required so the `terraform show` command outputs valid JSON
+          terraform_wrapper: false
       - name: Setup Infracost
         uses: ./setup
         with:
@@ -25,11 +25,11 @@ jobs:
         run: >-
           infracost breakdown
           --config-file=examples/multi-project/code/infracost.yml --format=json
-          --out-file=/tmp/infracost_breakdown.json
+          --out-file=/tmp/infracost.json
       - name: Generate Infracost comment
         run: >-
-          infracost output --path=/tmp/infracost_breakdown.json
-          --format=github-comment --out-file=/tmp/infracost_comment.md
+          infracost output --path=/tmp/infracost.json --format=github-comment
+          --out-file=/tmp/infracost_comment.md
       - name: Check the comment
         run: >-
           diff /tmp/infracost_comment.md
@@ -53,7 +53,7 @@ jobs:
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_wrapper: false # This is required so the `terraform show` command outputs valid JSON
+          terraform_wrapper: false
       - name: Setup Infracost
         uses: ./setup
         with:
@@ -61,13 +61,12 @@ jobs:
       - name: Run Infracost
         run: >-
           infracost breakdown --path=examples/multi-project/code/${{ matrix.dir
-          }} --format=json --out-file=/tmp/infracost_breakdown_${{ matrix.dir
-          }}.json
+          }} --format=json --out-file=/tmp/infracost_${{ matrix.dir }}.json
       - name: Upload Infracost breakdown
         uses: actions/upload-artifact@v2
         with:
-          name: infracost_breakdowns
-          path: /tmp/infracost_breakdown_${{ matrix.dir }}.json
+          name: infracost_jsons
+          path: /tmp/infracost_${{ matrix.dir }}.json
   multi_project_matrix_merge:
     name: Multi-project matrix merge
     runs-on: ubuntu-latest
@@ -85,11 +84,11 @@ jobs:
           api_key: ${{ secrets.INFRACOST_API_KEY }}
       - name: Combine the results
         run: >
-          infracost output --path="/tmp/infracost_breakdowns/*.json"
-          --format=json --out-file=/tmp/infracost_breakdown.json
+          infracost output --path="/tmp/infracost_jsons/*.json" --format=json
+          --out-file=/tmp/infracost_combined.json
       - name: Generate Infracost comment
         run: >-
-          infracost output --path=/tmp/infracost_breakdown.json
+          infracost output --path=/tmp/infracost_combined.json
           --format=github-comment --out-file=/tmp/infracost_comment.md
       - name: Check the comment
         run: >-
@@ -109,7 +108,7 @@ jobs:
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_wrapper: false # This is required so the `terraform show` command outputs valid JSON
+          terraform_wrapper: false
       - name: Setup Infracost
         uses: ./setup
         with:
@@ -118,11 +117,11 @@ jobs:
         run: >-
           infracost breakdown
           --config-file=examples/multi-terraform-workspace/code/infracost.yml
-          --format=json --out-file=/tmp/infracost_breakdown.json
+          --format=json --out-file=/tmp/infracost.json
       - name: Generate Infracost comment
         run: >-
-          infracost output --path=/tmp/infracost_breakdown.json
-          --format=github-comment --out-file=/tmp/infracost_comment.md
+          infracost output --path=/tmp/infracost.json --format=github-comment
+          --out-file=/tmp/infracost_comment.md
       - name: Check the comment
         run: >-
           diff /tmp/infracost_comment.md
@@ -138,10 +137,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Install Terraform
+      - name: Install terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_wrapper: false # This is required so the `terraform show` command outputs valid JSON
+          terraform_wrapper: false
       - name: Setup Infracost
         uses: ./setup
         with:
@@ -149,11 +148,11 @@ jobs:
       - name: Run Infracost
         run: >-
           infracost breakdown --path=examples/terraform-directory/code
-          --format=json --out-file=/tmp/infracost_breakdown.json
+          --format=json --out-file=/tmp/infracost.json
       - name: Generate Infracost comment
         run: >-
-          infracost output --path=/tmp/infracost_breakdown.json
-          --format=github-comment --out-file=/tmp/infracost_comment.md
+          infracost output --path=/tmp/infracost.json --format=github-comment
+          --out-file=/tmp/infracost_comment.md
       - name: Check the comment
         run: >-
           diff /tmp/infracost_comment.md
@@ -176,11 +175,11 @@ jobs:
       - name: Run Infracost
         run: >-
           infracost breakdown --path=examples/terraform-plan-json/code/plan.json
-          --format=json --out-file=/tmp/infracost_breakdown.json
+          --format=json --out-file=/tmp/infracost.json
       - name: Generate Infracost comment
         run: >-
-          infracost output --path=/tmp/infracost_breakdown.json
-          --format=github-comment --out-file=/tmp/infracost_comment.md
+          infracost output --path=/tmp/infracost.json --format=github-comment
+          --out-file=/tmp/infracost_comment.md
       - name: Check the comment
         run: >-
           diff /tmp/infracost_comment.md
@@ -199,7 +198,7 @@ jobs:
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_wrapper: false # This is required so the `terraform show` command outputs valid JSON
+          terraform_wrapper: false
       - name: Setup Terragrunt
         uses: autero1/action-terragrunt@v1.1.0
         with:
@@ -211,11 +210,11 @@ jobs:
       - name: Run Infracost
         run: >-
           infracost breakdown --path=examples/terragrunt/code --format=json
-          --out-file=/tmp/infracost_breakdown.json
+          --out-file=/tmp/infracost.json
       - name: Generate Infracost comment
         run: >-
-          infracost output --path=/tmp/infracost_breakdown.json
-          --format=github-comment --out-file=/tmp/infracost_comment.md
+          infracost output --path=/tmp/infracost.json --format=github-comment
+          --out-file=/tmp/infracost_comment.md
       - name: Check the comment
         run: diff /tmp/infracost_comment.md ./testdata/terragrunt_comment_golden.md
         if: env.UPDATE_GOLDEN_FILES != 'true'

@@ -80,13 +80,13 @@ function fixupExamples(examples) {
 
       for (const step of job.steps) {
         if (step.uses && step.uses.startsWith('infracost/actions/comment')) {
-          const breakdownPath = step.with.breakdown_json;
+          const path = step.with.path;
           const goldenFilePath = `./testdata/${jobKey}_comment_golden.md`;
 
           steps.push(
             {
               name: 'Generate Infracost comment',
-              run: `infracost output --path=${breakdownPath} --format=github-comment --out-file=/tmp/infracost_comment.md`,
+              run: `infracost output --path=${path} --format=github-comment --out-file=/tmp/infracost_comment.md`,
             },
             {
               name: 'Check the comment',

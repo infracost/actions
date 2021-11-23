@@ -30,12 +30,12 @@ jobs:
           api_key: ${{ secrets.INFRACOST_API_KEY }}
 
       - name: Run Infracost
-        run: infracost breakdown --config-file=examples/multi-project/code/infracost.yml --format=json --out-file=/tmp/infracost_breakdown.json
+        run: infracost breakdown --config-file=examples/multi-project/code/infracost.yml --format=json --out-file=/tmp/infracost.json
 
       - name: Post the comment
         uses: infracost/actions/comment@v1
         with:
-          breakdown_json: /tmp/infracost_breakdown.json
+          path: /tmp/infracost.json
 ```
 [//]: <> (END EXAMPLE)
 
@@ -71,13 +71,13 @@ jobs:
           api_key: ${{ secrets.INFRACOST_API_KEY }}
           
       - name: Run Infracost
-        run: infracost breakdown --path=examples/multi-project/code/${{ matrix.dir }} --format=json --out-file=/tmp/infracost_breakdown_${{ matrix.dir }}.json
+        run: infracost breakdown --path=examples/multi-project/code/${{ matrix.dir }} --format=json --out-file=/tmp/infracost_${{ matrix.dir }}.json
         
       - name: Upload Infracost breakdown
         uses: actions/upload-artifact@v2
         with:
-          name: infracost_breakdowns
-          path: /tmp/infracost_breakdown_${{ matrix.dir }}.json
+          name: infracost_jsons
+          path: /tmp/infracost_${{ matrix.dir }}.json
     
   multi_project_matrix_merge:
     name: Multi-project matrix merge
@@ -99,11 +99,11 @@ jobs:
           
       - name: Combine the results
         run: |
-          infracost output --path="/tmp/infracost_breakdowns/*.json" --format=json --out-file=/tmp/infracost_breakdown.json
+          infracost output --path="/tmp/infracost_jsons/*.json" --format=json --out-file=/tmp/infracost_combined.json
           
       - name: Post the comment
         uses: infracost/actions/comment@v1
         with:
-          breakdown_json: /tmp/infracost_breakdown.json
+          path: /tmp/infracost_combined.json
 ```
 [//]: <> (END EXAMPLE)
