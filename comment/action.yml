@@ -1,5 +1,5 @@
 name: "Infracost Comment"
-description: Posts a comment to the github pullrequest showing cloud cost estimates for Terraform. Requires infracost/actions/setup to have been run.
+description: Posts a comment to the GitHub pull request showing cloud cost estimates for Terraform. Requires infracost/actions/setup to have been run.
 inputs:
   path:
     description: The path to the infracost breakdown json that will be passed to infracost output. For multiple paths, pass a glob pattern or a JSON array of paths.
