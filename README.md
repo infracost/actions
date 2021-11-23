@@ -91,7 +91,7 @@ The following steps assume a simple Terraform directory is being used, we recomm
 
 8. Send a new pull request to change something in Terraform that costs money and you should see a pull request comment as shown below. See [examples/terraform-directory](examples/terraform-directory) for the full example GitHub Action yaml. Check the GitHub Actions logs and [this page](https://www.infracost.io/docs/integrations/cicd#cicd-troubleshooting) if there are issues.
 
-<img src="https://raw.githubusercontent.com/infracost/infracost-gh-action/master/screenshot.png" width=480 alt="Example usage" />
+    <img src="https://raw.githubusercontent.com/infracost/infracost-gh-action/master/screenshot.png" width=480 alt="Example usage" />
 
 ## Contributing
 
