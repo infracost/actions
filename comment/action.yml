@@ -8,10 +8,10 @@ inputs:
     description: The behavior to use when posting cost estimate comments. Must be one of 'update' | 'delete_and_new' | 'hide_and_new' | 'new'.
     required: false
     default: update
-  targetType:
+  target-type:
     description: Which objects should be commented on, either `pr` (for pull requests) or `commit`.
     required: false
-  GITHUB_TOKEN:
+  github-token:
     description: 'Default to {{ github.token }}. This is the default GitHub token available to actions and is used to post comments.'
     default: '${{ github.token }}'
     required: false
@@ -33,7 +33,7 @@ runs:
 
         infracost output $paths --format github-comment --show-skipped --out-file comment.md
 
-        if [ "${{ inputs.targetType }}" != "commit" ]; then
+        if [ "${{ inputs.target-type }}" != "commit" ]; then
           if [ "${{ inputs.behavior }}" = "update" ]; then
             printf "\nThis comment will be updated when the cost estimate changes.\n\n" >> comment.md
           elif [ "${{ inputs.behavior }}" = "delete_and_new" ]; then
@@ -49,7 +49,7 @@ runs:
       with:
         bodyFile: comment.md
         behavior: ${{ inputs.behavior }}
-        targetType: ${{ inputs.targetType }}
-        GITHUB_TOKEN: ${{ github.token }}
+        targetType: ${{ inputs.target-type }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
 
 
