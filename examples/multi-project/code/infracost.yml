@@ -1,0 +1,5 @@
+version: 0.1
+
+projects:
+  - path: examples/multi-project/code/dev
+  - path: examples/multi-project/code/prod

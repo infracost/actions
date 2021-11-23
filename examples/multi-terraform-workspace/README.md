@@ -1,15 +1,15 @@
-# Terraform directory
+# Multi-Terraform workspace
 
-This example shows how to run Infracost actions with a Terraform project containing HCL code.
+This example shows how to run Infracost actions against a Terraform project that uses multiple workspaces using an [Infracost config file](https://www.infracost.io/docs/multi_project/config_file).
 
 [//]: <> (BEGIN EXAMPLE)
 ```yml
-name: Terraform directory
+name: Multi-terraform workspace config file
 on: [pull_request]
 
 jobs:
-  terraform-directory:
-    name: Terraform directory
+  multi_terraform_workspace_config_file:
+    name: Multi-Terraform workspace config file
     runs-on: ubuntu-latest
 
     steps:
@@ -24,10 +24,10 @@ jobs:
         uses: infracost/actions/setup@v1
         with:
           api_key: ${{ secrets.INFRACOST_API_KEY }}
-          
+
       - name: Run Infracost
-        run: infracost breakdown --path=examples/terraform-directory/code --format=json --out-file=/tmp/infracost_breakdown.json
-        
+        run: infracost breakdown --config-file=examples/multi-terraform-workspace/code/infracost.yml --format=json --out-file=/tmp/infracost_breakdown.json
+
       - name: Post the comment
         uses: infracost/actions/comment@v1
         with:
