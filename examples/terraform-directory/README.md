@@ -20,18 +20,6 @@ jobs:
         with:
           terraform_wrapper: false # This is required so the `terraform show` command outputs valid JSON
 
-      - name: Terraform init
-        run: terraform init
-        working-directory: examples/terraform-directory/code
-
-      - name: Terraform plan
-        run: terraform plan -out tfplan.binary
-        working-directory: examples/terraform-directory/code
-
-      - name: Terraform show
-        run: terraform show -json tfplan.binary > plan.json
-        working-directory: examples/terraform-directory/code
-
       - name: Setup Infracost
         uses: infracost/actions/setup@v1
         with:
