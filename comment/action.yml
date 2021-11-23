@@ -38,7 +38,7 @@ runs:
         else
           paths="--path ${{ inputs.path }}"
         fi
-        echo "::info::Using paths: $paths"
+        echo "::notice::Using paths: $paths"
 
         export INFRACOST_CI_POST_CONDITION=${{ inputs.behavior }}
 
