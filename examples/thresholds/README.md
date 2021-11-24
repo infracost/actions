@@ -21,7 +21,7 @@ jobs:
           api_key: ${{ secrets.INFRACOST_API_KEY }}
           
       - name: Run Infracost
-        run: infracost breakdown --path=examples/thresholds/code/plan.json --format=json --out-file=/tmp/infracost.json.json
+        run: infracost breakdown --path=examples/thresholds/code/plan.json --format=json --out-file=/tmp/infracost.json
         
       - name: Calculate Cost Change
         id: cost-change
@@ -29,7 +29,7 @@ jobs:
         with:
           script: |
             // Read the breakdown JSON and get the past and current total monthly costs
-            const breakdown = require('/tmp/infracost.json.json');
+            const breakdown = require('/tmp/infracost.json');
             const past = breakdown.pastTotalMonthlyCost;
             const current = breakdown.totalMonthlyCost;
             
@@ -49,6 +49,6 @@ jobs:
         if: ${{ steps.cost-change.outputs.absolute-percent-change > 1 }} # Only comment if cost changed by more than 1%
         # if: ${{ steps.cost-change.outputs.absolute-cost-change > 100 }} # Only comment if cost changed by more than $100 
         with:
-          path: /tmp/infracost.json.json
+          path: /tmp/infracost.json
 ```
 [//]: <> (END EXAMPLE)

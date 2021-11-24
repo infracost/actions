@@ -233,7 +233,7 @@ jobs:
       - name: Run Infracost
         run: >-
           infracost breakdown --path=examples/thresholds/code/plan.json
-          --format=json --out-file=/tmp/infracost.json.json
+          --format=json --out-file=/tmp/infracost.json
       - name: Calculate Cost Change
         id: cost-change
         uses: actions/github-script@v5
@@ -242,7 +242,7 @@ jobs:
             // Read the breakdown JSON and get the past and current total
             monthly costs
 
-            const breakdown = require('/tmp/infracost.json.json');
+            const breakdown = require('/tmp/infracost.json');
 
             const past = breakdown.pastTotalMonthlyCost;
 
@@ -269,8 +269,8 @@ jobs:
             core.setOutput('absolute-cost-change', absoluteCostChange);
       - name: Generate Infracost comment
         run: >-
-          infracost output --path=/tmp/infracost.json.json
-          --format=github-comment --out-file=/tmp/infracost_comment.md
+          infracost output --path=/tmp/infracost.json --format=github-comment
+          --out-file=/tmp/infracost_comment.md
       - name: Check the comment
         run: diff /tmp/infracost_comment.md ./testdata/thresholds_comment_golden.md
         if: env.UPDATE_GOLDEN_FILES != 'true'
