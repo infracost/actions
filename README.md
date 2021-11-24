@@ -18,7 +18,7 @@ The following steps assume a simple Terraform directory is being used, we recomm
 
     ```yaml
     # The GitHub Actions docs (https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#on)
-    # describe other options for `on`, `pull_request` is a good default.
+    # describe other options for 'on', 'pull_request' is a good default.
     on: [pull_request]
     jobs:
       infracost:
@@ -67,12 +67,11 @@ The following steps assume a simple Terraform directory is being used, we recomm
             uses: infracost/actions/comment@v1
             with:
               path: /tmp/infracost.json
-                    
-              # Choose the commenting behavior that best suits your needs:
-              behavior: update # Use a single comment to display, creating one if none exist.  The "quietest" option.                 
+              # Choose the commenting behavior, 'update' is a good default:
+              behavior: update # Create a single comment and update it. The "quietest" option.                 
               # behavior: delete_and_new # Delete previous comments and create a new one.
               # behavior: hide_and_new # Minimize previous comments and create a new one.
-              # behavior: new # Create a new cost estimate comment every time.
+              # behavior: new # Create a new cost estimate comment on every push.
     ```
 
 4. Send a new pull request to change something in Terraform that costs money. You should see a pull request comment that gets updated as new changes are pushed. Check the GitHub Actions logs and [this page](https://www.infracost.io/docs/integrations/cicd#cicd-troubleshooting) if there are issues.

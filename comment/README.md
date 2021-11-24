@@ -21,10 +21,10 @@ The action supports the following inputs:
 - `path`: Required. The path to the `infracost breakdown` JSON that will be passed to `infracost output`. For multiple paths, pass a glob pattern (e.g. "infracost_*.json", glob needs quotes) or a JSON array of paths.
 
 - `behavior`: Optional, defaults to `update`. The behavior to use when posting cost estimate comments. Must be one of the following:  
-  - `update`:  Use a single comment to display cost estimates, creating one if none exist. The GitHub comments UI can be used to see when/what has changed when a comment is updated. Pull request followers will only be notified on the comment create (not update), and the comment will stay at the same location in the comment history.
+  - `update`: Create a single comment and update it on changes. This is the "quietest" option. The GitHub comments UI shows what/when changed when the comment is updated. Pull request followers will only be notified on the comment create (not updates), and the comment will stay at the same location in the comment history.
   - `delete_and_new`: Delete previous cost estimate comments and create a new one. Pull request followers will be notified on each comment.
   - `hide_and_new`: Minimize previous cost estimate comments and create a new one. Pull request followers will be notified on each comment.
-  - `new`:  Create a new cost estimate comment. Pull request followers will be notified on each comment.
+  - `new`: Create a new cost estimate comment. Pull request followers will be notified on each comment.
 
 - `target-type`: Optional. Which objects should be commented on, either `pull_request` or `commit`.
 
