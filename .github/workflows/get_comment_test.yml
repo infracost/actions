@@ -39,11 +39,11 @@ jobs:
       - name: Check comment
         shell: bash
         run: |
-          expected=$(cat <<EOF
+          expected=$(cat <<\EOF
           ${{ steps.post-comment.outputs.body }}
           EOF
           )
-          actual=$(cat <<EOF
+          actual=$(cat <<\EOF
           ${{ steps.get-comment.outputs.body }}
           EOF
           )
