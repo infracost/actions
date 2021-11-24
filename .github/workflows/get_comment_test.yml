@@ -40,7 +40,7 @@ jobs:
         shell: bash
         run: |
           expected=$(echo "${{ steps.post-comment.outputs.body }}")
-          actual=$(echo "${{ steps.get_comment.outputs.body }}")
+          actual=$(echo "${{ steps.get-comment.outputs.body }}")
           if [ "$actual" != "$expected" ]; then
             echo "error::Expected comment '$expected' got '$actual'"
             exit 1
