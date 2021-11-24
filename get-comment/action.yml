@@ -11,7 +11,7 @@ inputs:
 outputs:
   body:
     description: 'The body of the latest matching comment.'
-    value: ${{ steps.get-comment.outputs.latest }}
+    value: ${{ steps.get-comment.outputs.body }}
 runs:
   using: "composite"
   steps:

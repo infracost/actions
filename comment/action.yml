@@ -18,13 +18,13 @@ inputs:
 outputs:
   body:
     description: 'The body of comment that was posted.'
-    value: ${{ steps.run-infracost-output.outputs.body }}
+    value: ${{ steps.compost-comment.outputs.body }}
 runs:
   using: "composite"
   steps:
     - name: Run infracost output
       shell: bash
-      id: run-infracost-output
+
       run: |
         # validate inputs
         if [ "${{ inputs.target-type }}" = "commit" ]; then
@@ -59,9 +59,8 @@ runs:
         printf "<sub>\n" >> comment.md
         printf "  Is this comment useful? <a href=\"https://www.infracost.io/feedback/submit/?value=yes\" rel=\"noopener noreferrer\" target=\"_blank\">Yes</a>, <a href=\"https://www.infracost.io/feedback/submit/?value=no\" rel=\"noopener noreferrer\" target=\"_blank\">No</a>\n" >> comment.md
         printf "</sub>\n" >> comment.md
-
-        echo "::set-output name=body::$(cat comment.md)"
     - name: Comment
+      id: compost-comment
       uses: infracost/compost-action@master
       with:
         bodyFile: comment.md
