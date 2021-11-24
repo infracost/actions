@@ -39,8 +39,15 @@ jobs:
       - name: Check comment
         shell: bash
         run: |
-          expected=$(echo "${{ steps.post-comment.outputs.body }}")
-          actual=$(echo "${{ steps.get-comment.outputs.body }}")
+          expected=$(cat <<EOF
+          ${{ steps.post-comment.outputs.body }}
+          EOF
+          )
+          actual=$(cat <<EOF
+          ${{ steps.get-comment.outputs.body }}
+          EOF
+          )
+
           if [ "$actual" != "$expected" ]; then
             echo "error::Expected comment '$expected' got '$actual'"
             exit 1
