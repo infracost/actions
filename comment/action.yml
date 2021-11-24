@@ -15,6 +15,10 @@ inputs:
     description: 'Default to {{ github.token }}. This is the default GitHub token available to actions and is used to post comments.'
     default: '${{ github.token }}'
     required: false
+outputs:
+  body:
+    description: 'The body of comment that was posted.'
+    value: ${{ steps.run-infracost-output.outputs.body }}
 runs:
   using: "composite"
   steps:
@@ -55,6 +59,8 @@ runs:
         printf "<sub>\n" >> comment.md
         printf "  Is this comment useful? <a href=\"https://www.infracost.io/feedback/submit/?value=yes\" rel=\"noopener noreferrer\" target=\"_blank\">Yes</a>, <a href=\"https://www.infracost.io/feedback/submit/?value=no\" rel=\"noopener noreferrer\" target=\"_blank\">No</a>\n" >> comment.md
         printf "</sub>\n" >> comment.md
+
+        echo "::set-output name=body::$(cat comment.md)"
     - name: Comment
       uses: infracost/compost-action@master
       with:
