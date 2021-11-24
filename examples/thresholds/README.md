@@ -8,7 +8,7 @@ name: Thresholds
 on: [pull_request]
 
 jobs:
-  terraform-plan-json:
+  thresholds:
     name: Thresholds
     runs-on: ubuntu-latest
 
@@ -21,7 +21,7 @@ jobs:
           api_key: ${{ secrets.INFRACOST_API_KEY }}
           
       - name: Run Infracost
-        run: infracost breakdown --path=examples/terraform-plan-json/code/plan.json --format=json --out-file=/tmp/infracost.json.json
+        run: infracost breakdown --path=examples/thresholds/code/plan.json --format=json --out-file=/tmp/infracost.json.json
         
       - name: Calculate Cost Change
         id: cost-change
