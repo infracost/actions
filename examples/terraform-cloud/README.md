@@ -1,4 +1,8 @@
-# Terraform cloud
+# Terraform Cloud/Enterprise
+
+This example shows how to run Infracost actions with Terraform Cloud and Terraform Enterprise. It assumes you have set a GitHub repo secret for the Terraform Cloud token (`TFC_TOKEN`). This token is used by the Infracost CLI to fetch the plan JSON from Terraform Cloud and use it to generate the cost estimate comment.
+
+In the future, we'll add an example of how you can trigger the Infracost actions from Terraform Cloud's GitHub status checks.
 
 [//]: <> (BEGIN EXAMPLE)
 ```yml
