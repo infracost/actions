@@ -22,6 +22,7 @@ jobs:
         with:
           terraform_wrapper: false # This is required so the `terraform show` command outputs valid JSON
           cli_config_credentials_token: $${{ secrets.TFC_TOKEN }}
+          # cli_config_credentials_hostname: https://my_tfe_host.com # For Terraform Enterprise users only
 
       - name: Setup Infracost
         uses: infracost/actions/setup@v1
