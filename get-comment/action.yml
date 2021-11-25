@@ -22,7 +22,7 @@ runs:
         # validate inputs
         if [ "${{ inputs.target-type }}" = "commit" ]; then
           echo '::set-output name=target-type::commit'
-        elif [ "${{ inputs.target-type }}" != "pull_request" ]; then
+        elif [ "${{ inputs.target-type }}" = "pull_request" ]; then
           echo '::set-output name=target-type::pr'
         else
           echo "::error::Invalid target-type '${{ inputs.target-type }}'.  Must be commit or pull_request."
