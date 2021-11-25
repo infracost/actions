@@ -29,7 +29,7 @@ jobs:
       - name: Generate Infracost comment
         run: >-
           infracost output --path=/tmp/infracost.json --format=github-comment
-          --out-file=/tmp/infracost_comment.md
+          --show-skipped --out-file=/tmp/infracost_comment.md
       - name: Check the comment
         run: >-
           diff /tmp/infracost_comment.md
@@ -89,7 +89,8 @@ jobs:
       - name: Generate Infracost comment
         run: >-
           infracost output --path=/tmp/infracost_combined.json
-          --format=github-comment --out-file=/tmp/infracost_comment.md
+          --format=github-comment --show-skipped
+          --out-file=/tmp/infracost_comment.md
       - name: Check the comment
         run: >-
           diff /tmp/infracost_comment.md
@@ -121,7 +122,7 @@ jobs:
       - name: Generate Infracost comment
         run: >-
           infracost output --path=/tmp/infracost.json --format=github-comment
-          --out-file=/tmp/infracost_comment.md
+          --show-skipped --out-file=/tmp/infracost_comment.md
       - name: Check the comment
         run: >-
           diff /tmp/infracost_comment.md
@@ -131,6 +132,40 @@ jobs:
         run: >-
           cp /tmp/infracost_comment.md
           ./testdata/multi_terraform_workspace_config_file_comment_golden.md
+        if: env.UPDATE_GOLDEN_FILES == 'true'
+  terraform-cloud-enterprise:
+    name: Terraform Cloud/Enterprise
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_wrapper: false
+          cli_config_credentials_token: $${{ secrets.TFC_TOKEN }}
+      - name: Setup Infracost
+        uses: ./setup
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+      - name: Run Infracost
+        run: >-
+          infracost breakdown --path=examples/terraform-cloud-enterprise/code
+          --format=json --out-file=/tmp/infracost.json
+        env:
+          INFRACOST_TERRAFORM_CLOUD_TOKEN: ${{ secrets.TFC_TOKEN }}
+      - name: Generate Infracost comment
+        run: >-
+          infracost output --path=/tmp/infracost.json --format=github-comment
+          --show-skipped --out-file=/tmp/infracost_comment.md
+      - name: Check the comment
+        run: >-
+          diff /tmp/infracost_comment.md
+          ./testdata/terraform-cloud-enterprise_comment_golden.md
+        if: env.UPDATE_GOLDEN_FILES != 'true'
+      - name: Update the golden comment file
+        run: >-
+          cp /tmp/infracost_comment.md
+          ./testdata/terraform-cloud-enterprise_comment_golden.md
         if: env.UPDATE_GOLDEN_FILES == 'true'
   terraform-directory:
     name: Terraform directory
@@ -152,7 +187,7 @@ jobs:
       - name: Generate Infracost comment
         run: >-
           infracost output --path=/tmp/infracost.json --format=github-comment
-          --out-file=/tmp/infracost_comment.md
+          --show-skipped --out-file=/tmp/infracost_comment.md
       - name: Check the comment
         run: >-
           diff /tmp/infracost_comment.md
@@ -179,7 +214,7 @@ jobs:
       - name: Generate Infracost comment
         run: >-
           infracost output --path=/tmp/infracost.json --format=github-comment
-          --out-file=/tmp/infracost_comment.md
+          --show-skipped --out-file=/tmp/infracost_comment.md
       - name: Check the comment
         run: >-
           diff /tmp/infracost_comment.md
@@ -214,7 +249,7 @@ jobs:
       - name: Generate Infracost comment
         run: >-
           infracost output --path=/tmp/infracost.json --format=github-comment
-          --out-file=/tmp/infracost_comment.md
+          --show-skipped --out-file=/tmp/infracost_comment.md
       - name: Check the comment
         run: diff /tmp/infracost_comment.md ./testdata/terragrunt_comment_golden.md
         if: env.UPDATE_GOLDEN_FILES != 'true'
@@ -268,7 +303,7 @@ jobs:
       - name: Generate Infracost comment
         run: >-
           infracost output --path=/tmp/infracost.json --format=github-comment
-          --out-file=/tmp/infracost_comment.md
+          --show-skipped --out-file=/tmp/infracost_comment.md
       - name: Check the comment
         run: diff /tmp/infracost_comment.md ./testdata/thresholds_comment_golden.md
         if: env.UPDATE_GOLDEN_FILES != 'true'

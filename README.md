@@ -95,6 +95,7 @@ The [examples](examples) directory demonstrates how these actions can be used in
   - [Terraform directory](examples/terraform-directory): a Terraform directory containing HCL code
   - [Terraform plan JSON](examples/terraform-plan-json): a Terraform plan JSON file
   - [Terragrunt](examples/terragrunt): a Terragrunt project
+  - [Terraform Cloud/Enterprise](terraform-cloud-enterprise): a Terraform project using Terraform Cloud/Enterprise
   - [Multi-project using config file](examples/multi-project/README.md#using-an-infracost-config-file): multiple Terraform projects using the Infracost [config file](https://www.infracost.io/docs/multi_project/config_file)
   - [Multi-project using build matrix](examples/multi-project/README.md#using-github-actions-build-matrix): multiple Terraform projects using GitHub Actions build matrix
   - [Multi-Terraform workspace](examples/multi-terraform-workspace): multiple Terraform workspaces using the Infracost [config file](https://www.infracost.io/docs/multi_project/config_file)

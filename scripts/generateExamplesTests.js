@@ -1,4 +1,4 @@
-#!/usr/local/env node
+#!/usr/bin/env node
 
 // This file generates a GitHub action to test the examples by extracting the
 // examples from each README file, modifying them slightly and then writing
@@ -86,7 +86,7 @@ function fixupExamples(examples) {
           steps.push(
             {
               name: 'Generate Infracost comment',
-              run: `infracost output --path=${path} --format=github-comment --out-file=/tmp/infracost_comment.md`,
+              run: `infracost output --path=${path} --format=github-comment --show-skipped --out-file=/tmp/infracost_comment.md`,
             },
             {
               name: 'Check the comment',

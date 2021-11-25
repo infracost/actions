@@ -9,7 +9,7 @@
   </thead>
   <tbody>
     <tr>
-      <td>infracost/actions/examples/thresholds/code/plan.json</td>
+      <td>infracost/actions/examples/terraform-cloud-enterprise/code</td>
       <td align="right">$0</td>
       <td align="right">$743</td>
       <td>+$743</td>
@@ -21,7 +21,7 @@
 <summary><strong>Infracost output</strong></summary>
 
 ```
-Project: infracost/actions/examples/thresholds/code/plan.json
+Project: infracost/actions/examples/terraform-cloud-enterprise/code
 
 + aws_instance.web_app
   +$743
@@ -53,7 +53,7 @@ Project: infracost/actions/examples/thresholds/code/plan.json
       Monthly cost depends on usage
         +$0.0000166667 per GB-seconds
 
-Monthly cost change for infracost/actions/examples/thresholds/code/plan.json
+Monthly cost change for infracost/actions/examples/terraform-cloud-enterprise/code
 Amount:  +$743 ($0.00 → $743)
 
 ──────────────────────────────────
