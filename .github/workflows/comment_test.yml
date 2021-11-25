@@ -24,7 +24,7 @@ jobs:
         uses: ./setup
         with:
           version: 0.9.13
-          api_key: abcdefg123456
+          api-key: abcdefg123456
       - name: Infracost comment
         uses: ./comment
         with:
@@ -39,7 +39,7 @@ jobs:
         uses: ./setup
         with:
           version: 0.9.13
-          api_key: abcdefg123456
+          api-key: abcdefg123456
       - name: Infracost comment
         uses: ./comment
         with:
