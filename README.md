@@ -82,8 +82,8 @@ The following steps assume a simple Terraform directory is being used, we recomm
               path: /tmp/infracost.json
               # Choose the commenting behavior, 'update' is a good default:
               behavior: update # Create a single comment and update it. The "quietest" option.                 
-              # behavior: delete_and_new # Delete previous comments and create a new one.
-              # behavior: hide_and_new # Minimize previous comments and create a new one.
+              # behavior: delete-and-new # Delete previous comments and create a new one.
+              # behavior: hide-and-new # Minimize previous comments and create a new one.
               # behavior: new # Create a new cost estimate comment on every push.
     ```
 
