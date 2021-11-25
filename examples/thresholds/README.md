@@ -28,26 +28,38 @@ jobs:
         uses: actions/github-script@v5
         with:
           script: |
-            // Read the breakdown JSON and get the past and current total monthly costs
+            // Read the breakdown JSON and get costs
             const breakdown = require('/tmp/infracost.json');
             const past = breakdown.pastTotalMonthlyCost;
             const current = breakdown.totalMonthlyCost;
+            const costChange = breakdown.diffTotalMonthlyCost;
+
+            console.log(`past: ${past}`);
+            console.log(`current: ${current}`);
+            console.log(`costChange: ${costChange}`);
             
-            // Calculate the percent and $ diffs
-            let absolutePercentChange = 0;
-            let absoluteCostChange = 0         ;   
-            if (past != 0) {
-              absolutePercentChange = 100 * Math.abs((current - past) / past);
+            // Calculate the percent change
+            let percentChange = 0;
+            let absolutePercentChange = 0;               
+            if (past !== "0") {
+              percentChange = 100 * ((current - past) / past);
+              absolutePercentChange = Math.abs(percentChange);
             }            
-            absoluteCostChange = Math.abs(past - current);
+
+            console.log(`percent-change: ${percentChange}`);
+            console.log(`cost-change: ${costChange}`); 
             
             // Set the calculated diffs as outputs to be used in future steps
             core.setOutput('absolute-percent-change', absolutePercentChange);
-            core.setOutput('absolute-cost-change', absoluteCostChange);
+            core.setOutput('percent-change', percentChange);
+            core.setOutput('absolute-cost-change', Math.abs(costChange) );
+            core.setOutput('cost-change', costChange);
       - name: Post the comment
         uses: infracost/actions/comment@v1
         if: ${{ steps.cost-change.outputs.absolute-percent-change > 1 }} # Only comment if cost changed by more than 1%
-        # if: ${{ steps.cost-change.outputs.absolute-cost-change > 100 }} # Only comment if cost changed by more than $100 
+        # if: ${{ steps.cost-change.outputs.percent-change > 1 }} # Only comment if cost increased by more than 1%
+        # if: ${{ steps.cost-change.outputs.absolute-cost-change > 100 }} # Only comment if cost changed by more than $100
+        # if: ${{ steps.cost-change.outputs.cost-change > 100 }} # Only comment if cost increased by more than $100
         with:
           path: /tmp/infracost.json
 ```
