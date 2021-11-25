@@ -1,4 +1,4 @@
-#!/usr/local/env node
+#!/usr/bin/env node
 
 // This file generates a GitHub action to test the examples by extracting the
 // examples from each README file, modifying them slightly and then writing

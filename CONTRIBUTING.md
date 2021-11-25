@@ -19,11 +19,7 @@ To extract the examples, the `npm run examples:generate_tests` script loops thro
 [//]: <> (BEGIN EXAMPLE)
 ```yml
 name: My Example
-on:
-  push:
-    branches:
-      - master
-  pull_request:
+on: [pull_request]
 
 jobs:
   my_example:
@@ -54,10 +50,16 @@ Install packages:
 npm install
 ```
 
+Setup required environment variables
+
+```
+cp .env.example .env
+# Edit .env to add any required environment variables.
+```
+
 Then run (with `act`, select the Medium size image):
 
 ```sh
-export GITHUB_TOKEN=<GITHUB_PERSONAL_ACCESS_TOKEN>
 npm run examples:test
 ```
 

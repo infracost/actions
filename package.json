@@ -15,11 +15,14 @@
     "scripts": "scripts"
   },
   "scripts": {
-    "examples:generate_tests": "node scripts/generateExamplesTests.js",
-    "examples:test": "act -W .github/workflows/examples_test.yml -s GITHUB_TOKEN=$GITHUB_TOKEN -s INFRACOST_API_KEY=$(infracost configure get api_key) --artifact-server-path=.act/artifacts",
-    "examples:update_golden": "act -W .github/workflows/examples_test.yml -s GITHUB_TOKEN=$GITHUB_TOKEN -s INFRACOST_API_KEY=$(infracost configure get api_key) --artifact-server-path=.act/artifacts --env UPDATE_GOLDEN_FILES=true -b && rm -rf workflow"
+    "examples:generate_tests": "./scripts/generateExamplesTests.js",
+    "examples:test": "./scripts/testExamples.js",
+    "examples:update_golden": "./scripts/testExamples.js true && rm -rf workflow"
   },
   "devDependencies": {
+    "dotenv": "^10.0.0",
     "js-yaml": "^4.1.0"
+  },
+  "dependencies": {
   }
 }
