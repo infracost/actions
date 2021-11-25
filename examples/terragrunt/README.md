@@ -25,6 +25,8 @@ jobs:
         with:
           terragrunt_version: 0.35.9
 
+      # IMPORTANT: add any required steps here to setup cloud credentials so Terraform/Terragrunt can run
+
       - name: Setup Infracost
         uses: infracost/actions/setup@v1
         with:

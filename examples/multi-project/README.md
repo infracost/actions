@@ -24,6 +24,8 @@ jobs:
         with:
           terraform_wrapper: false # This is required so the `terraform show` command outputs valid JSON
 
+      # IMPORTANT: add any required steps here to setup cloud credentials so Terraform can run
+
       - name: Setup Infracost
         uses: infracost/actions/setup@v1
         with:
@@ -64,6 +66,8 @@ jobs:
         uses: hashicorp/setup-terraform@v1
         with:
           terraform_wrapper: false # This is required so the `terraform show` command outputs valid JSON
+
+      # IMPORTANT: add any required steps here to setup cloud credentials so Terraform can run
 
       - name: Setup Infracost
         uses: infracost/actions/setup@v1

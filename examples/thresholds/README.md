@@ -1,6 +1,6 @@
 # Cost Threshholds Example
 
-This example shows how to set thresholds that limit when a comment is posted.  For simplicity, this is based off the terraform-plan-json example which does not require Terraform to be installed.
+This example shows how to set thresholds that limit when a comment is posted. For simplicity, this is based off the terraform-plan-json example, which does not require Terraform to be installed.
 
 [//]: <> (BEGIN EXAMPLE)
 ```yml
@@ -19,7 +19,7 @@ jobs:
         uses: infracost/actions/setup@v1
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
-          
+
       - name: Run Infracost
         run: infracost breakdown --path=examples/thresholds/code/plan.json --format=json --out-file=/tmp/infracost.json
         
@@ -40,15 +40,15 @@ jobs:
             
             // Calculate the percent change
             let percentChange = 0;
-            let absolutePercentChange = 0;               
+            let absolutePercentChange = 0;
             if (past !== "0") {
               percentChange = 100 * ((current - past) / past);
               absolutePercentChange = Math.abs(percentChange);
-            }            
+            }
 
             console.log(`percent-change: ${percentChange}`);
             console.log(`cost-change: ${costChange}`); 
-            
+
             // Set the calculated diffs as outputs to be used in future steps
             core.setOutput('absolute-percent-change', absolutePercentChange);
             core.setOutput('percent-change', percentChange);

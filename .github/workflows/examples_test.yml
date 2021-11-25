@@ -286,11 +286,11 @@ jobs:
 
             // Calculate the percent change
             let percentChange = 0;
-            let absolutePercentChange = 0;               
+            let absolutePercentChange = 0;
             if (past !== "0") {
               percentChange = 100 * ((current - past) / past);
               absolutePercentChange = Math.abs(percentChange);
-            }            
+            }
 
             console.log(`percent-change: ${percentChange}`);
             console.log(`cost-change: ${costChange}`); 
