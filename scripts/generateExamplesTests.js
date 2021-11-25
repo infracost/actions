@@ -86,7 +86,7 @@ function fixupExamples(examples) {
           steps.push(
             {
               name: 'Generate Infracost comment',
-              run: `infracost output --path=${path} --format=github-comment --out-file=/tmp/infracost_comment.md`,
+              run: `infracost output --path=${path} --format=github-comment --show-skipped --out-file=/tmp/infracost_comment.md`,
             },
             {
               name: 'Check the comment',
