@@ -27,7 +27,7 @@ jobs:
       - name: Setup Infracost
         uses: infracost/actions/setup@v1
         with:
-          api_key: ${{ secrets.INFRACOST_API_KEY }}
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
 
       - name: Run Infracost
         run: infracost breakdown --config-file=examples/multi-project/code/infracost.yml --format=json --out-file=/tmp/infracost.json
@@ -68,7 +68,7 @@ jobs:
       - name: Setup Infracost
         uses: infracost/actions/setup@v1
         with:
-          api_key: ${{ secrets.INFRACOST_API_KEY }}
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
           
       - name: Run Infracost
         run: infracost breakdown --path=examples/multi-project/code/${{ matrix.dir }} --format=json --out-file=/tmp/infracost_${{ matrix.dir }}.json
@@ -95,7 +95,7 @@ jobs:
       - name: Setup Infracost
         uses: infracost/actions/setup@v1
         with:
-          api_key: ${{ secrets.INFRACOST_API_KEY }}
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
           
       - name: Combine the results
         run: |

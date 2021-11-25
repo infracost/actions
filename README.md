@@ -50,11 +50,11 @@ The following steps assume a simple Terraform directory is being used, we recomm
             working-directory: PATH/TO/MY_CODE
 
           # Install the Infracost CLI, see https://github.com/infracost/actions/tree/master/setup
-          # for other inputs such as version, and pricing_api_endpoint (for self-hosted users).
+          # for other inputs such as version, and pricing-api-endpoint (for self-hosted users).
           - name: Setup Infracost
             uses: infracost/actions/setup@v1
             with:
-              api_key: ${{ secrets.INFRACOST_API_KEY }}
+              api-key: ${{ secrets.INFRACOST_API_KEY }}
 
           # Generate Infracost JSON output, the following docs might be useful:
           # https://www.infracost.io/docs/multi_project/config_file for multi-project/workspaces.

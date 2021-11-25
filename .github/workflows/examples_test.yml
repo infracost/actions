@@ -20,7 +20,7 @@ jobs:
       - name: Setup Infracost
         uses: ./setup
         with:
-          api_key: ${{ secrets.INFRACOST_API_KEY }}
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
       - name: Run Infracost
         run: >-
           infracost breakdown
@@ -57,7 +57,7 @@ jobs:
       - name: Setup Infracost
         uses: ./setup
         with:
-          api_key: ${{ secrets.INFRACOST_API_KEY }}
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
       - name: Run Infracost
         run: >-
           infracost breakdown --path=examples/multi-project/code/${{ matrix.dir
@@ -81,7 +81,7 @@ jobs:
       - name: Setup Infracost
         uses: ./setup
         with:
-          api_key: ${{ secrets.INFRACOST_API_KEY }}
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
       - name: Combine the results
         run: >
           infracost output --path="/tmp/infracost_jsons/*.json" --format=json
@@ -112,7 +112,7 @@ jobs:
       - name: Setup Infracost
         uses: ./setup
         with:
-          api_key: ${{ secrets.INFRACOST_API_KEY }}
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
       - name: Run Infracost
         run: >-
           infracost breakdown
@@ -144,7 +144,7 @@ jobs:
       - name: Setup Infracost
         uses: ./setup
         with:
-          api_key: ${{ secrets.INFRACOST_API_KEY }}
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
       - name: Run Infracost
         run: >-
           infracost breakdown --path=examples/terraform-directory/code
@@ -171,7 +171,7 @@ jobs:
       - name: Setup Infracost
         uses: ./setup
         with:
-          api_key: ${{ secrets.INFRACOST_API_KEY }}
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
       - name: Run Infracost
         run: >-
           infracost breakdown --path=examples/terraform-plan-json/code/plan.json
@@ -206,7 +206,7 @@ jobs:
       - name: Setup Infracost
         uses: ./setup
         with:
-          api_key: ${{ secrets.INFRACOST_API_KEY }}
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
       - name: Run Infracost
         run: >-
           infracost breakdown --path=examples/terragrunt/code --format=json
@@ -229,7 +229,7 @@ jobs:
       - name: Setup Infracost
         uses: ./setup
         with:
-          api_key: ${{ secrets.INFRACOST_API_KEY }}
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
       - name: Run Infracost
         run: >-
           infracost breakdown --path=examples/thresholds/code/plan.json
