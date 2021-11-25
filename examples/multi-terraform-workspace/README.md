@@ -23,7 +23,7 @@ jobs:
       - name: Setup Infracost
         uses: infracost/actions/setup@v1
         with:
-          api_key: ${{ secrets.INFRACOST_API_KEY }}
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
 
       - name: Run Infracost
         run: infracost breakdown --config-file=examples/multi-terraform-workspace/code/infracost.yml --format=json --out-file=/tmp/infracost.json

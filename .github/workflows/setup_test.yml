@@ -28,9 +28,9 @@ jobs:
         uses: ./setup
         with:
           version: ${{ matrix.version }}
-          api_key: abcdefg123456
+          api-key: abcdefg123456
           currency: GBP
-          pricing_api_endpoint: https://test.test
+          pricing-api-endpoint: https://test.test
 
       - name: Get expected version
         run: |
@@ -59,7 +59,7 @@ jobs:
             exit 1;
           fi
           if [ "abcdefg123456" != "$CONFIGURED_API_KEY" ]; then
-            echo "Unexpected api_key, got: $CONFIGURED_API_KEY"
+            echo "Unexpected api-key, got: $CONFIGURED_API_KEY"
             exit 1;
           fi
           if [ "GBP" != "$CONFIGURED_CURRENCY" ]; then
@@ -67,7 +67,7 @@ jobs:
             exit 1;
           fi
           if [ "https://test.test" != "$CONFIGURED_PRICING_API_ENDPOINT" ]; then
-            echo "Unexpected pricing_api_endpoint, got: $CONFIGURED_PRICING_API_ENDPOINT"
+            echo "Unexpected pricing-api-endpoint, got: $CONFIGURED_PRICING_API_ENDPOINT"
             exit 1;
           fi
           if [ "$INFRACOST_GITHUB_ACTION" != "true" ]; then

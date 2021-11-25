@@ -15356,7 +15356,7 @@ function setup() {
             // Expose the tool by adding it to the PATH
             core.addPath(pathToCLI);
             // Set configure options
-            const apiKey = core.getInput('api_key');
+            const apiKey = core.getInput('api-key');
             if (apiKey) {
                 const returnCode = yield exec.exec('infracost', [
                     'configure',
@@ -15380,7 +15380,7 @@ function setup() {
                     throw new Error(`Error running infracost configure set currency: ${returnCode}`);
                 }
             }
-            const pricingApiEndpoint = core.getInput('pricing_api_endpoint');
+            const pricingApiEndpoint = core.getInput('pricing-api-endpoint');
             if (pricingApiEndpoint) {
                 const returnCode = yield exec.exec('infracost', [
                     'configure',

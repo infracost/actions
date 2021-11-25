@@ -140,7 +140,7 @@ async function setup(): Promise<void> {
     core.addPath(pathToCLI);
 
     // Set configure options
-    const apiKey = core.getInput('api_key');
+    const apiKey = core.getInput('api-key');
     if (apiKey) {
       const returnCode = await exec.exec('infracost', [
         'configure',
@@ -170,7 +170,7 @@ async function setup(): Promise<void> {
       }
     }
 
-    const pricingApiEndpoint = core.getInput('pricing_api_endpoint');
+    const pricingApiEndpoint = core.getInput('pricing-api-endpoint');
     if (pricingApiEndpoint) {
       const returnCode = await exec.exec('infracost', [
         'configure',
