@@ -34,5 +34,6 @@ jobs:
         uses: infracost/actions/comment@v1
         with:
           path: /tmp/infracost.json
+          behavior: update # Create a single comment and update it. The "quietest" option.
 ```
 [//]: <> (END EXAMPLE)
