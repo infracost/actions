@@ -32,7 +32,9 @@ jobs:
       - name: Run Infracost
         run: infracost breakdown --path=examples/terraform-cloud/code --format=json --out-file=/tmp/infracost.json
         env:
-          INFRACOST_TERRAFORM_CLOUD_TOKEN: ${{ secrets.TFC_TOKEN }} # TODO: can be removed once https://github.com/infracost/infracost/pull/1148 is released
+          # TODO: the following two envs be removed once https://github.com/infracost/infracost/pull/1148 is released in v0.9.14 of the CLI (https://github.com/infracost/infracost/releases)
+          INFRACOST_TERRAFORM_CLOUD_TOKEN: ${{ secrets.TFC_TOKEN }} 
+          # INFRACOST_TERRAFORM_CLOUD_HOST: https://my_tfe_host.com # For Terraform Enterprise users only.
         
       - name: Post the comment
         uses: infracost/actions/comment@v1
