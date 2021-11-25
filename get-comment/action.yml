@@ -1,0 +1,39 @@
+name: "Infracost Get Comment"
+description: Gets the latest comment posted by infracost/actions/comment.
+inputs:
+  target-type:
+    description: The target-type set when the comment was posted (if any), either `pull_request` or `commit`.
+    required: false
+  github-token:
+    description: 'Default to {{ github.token }}. This is the default GitHub token available to actions and is used to get comments.'
+    default: '${{ github.token }}'
+    required: false
+outputs:
+  body:
+    description: 'The body of the latest matching comment.'
+    value: ${{ steps.get-comment.outputs.body }}
+runs:
+  using: "composite"
+  steps:
+    - name: Map target-type
+      shell: bash
+      id: map-target-type
+      run: |
+        # validate inputs
+        if [ "${{ inputs.target-type }}" = "commit" ]; then
+          echo '::set-output name=target-type::commit'
+        elif [ "${{ inputs.target-type }}" != "pull_request" ]; then
+          echo '::set-output name=target-type::pr'
+        else
+          echo "::error::Invalid target-type '${{ inputs.target-type }}'.  Must be commit or pull_request."
+          exit 1
+        fi
+    - name: Get Comment
+      id: get-comment
+      uses: infracost/compost-action@master
+      with:
+        behavior: latest
+        targetType: ${{ steps.map-target-type.outputs.target-type }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+
+

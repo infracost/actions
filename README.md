@@ -3,6 +3,7 @@
 [Infracost](https://www.infracost.io/) enables you to see cloud cost estimates for Terraform in pull requests. This project provides a set of GitHub Actions for Infracost:
 - **[setup](setup)**: downloads and installs the Infracost CLI in your GitHub Actions workflow.
 - **[comment](comment)**: adds comments to pull requests.
+- **[get-comment](get-comment)**: reads a comment from a pull requests.
 
     <img src="https://raw.githubusercontent.com/infracost/infracost-gh-action/master/screenshot.png" width=480 alt="Example usage" />
 
@@ -85,7 +86,7 @@ The [examples](examples) directory demonstrates how these actions can be used in
   - [Multi-project using config file](examples/multi-project/README.md#using-an-infracost-config-file): multiple Terraform projects using the Infracost [config file](https://www.infracost.io/docs/multi_project/config_file)
   - [Multi-project using build matrix](examples/multi-project/README.md#using-github-actions-build-matrix): multiple Terraform projects using GitHub Actions build matrix
   - [Multi-Terraform workspace](examples/multi-terraform-workspace): multiple Terraform workspaces using the Infracost [config file](https://www.infracost.io/docs/multi_project/config_file)
-
+  - [Thresholds](examples/thresholds): only post a comment when cost thresholds are exceeded
 ## Contributing
 
 Issues and pull requests are welcome! For development details, see the [contributing](CONTRIBUTING.md) guide. For major changes, including interface changes, please open an issue first to discuss what you would like to change. [Join our community Slack channel](https://www.infracost.io/community-chat), we are a friendly bunch and happy to help you get started :)

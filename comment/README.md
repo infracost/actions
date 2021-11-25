@@ -32,4 +32,7 @@ The action supports the following inputs:
 
 ## Outputs
 
-This action does not set any direct outputs.
+This action sets the following output:
+
+- `body`: The body of comment that was posted.
+

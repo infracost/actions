@@ -1,0 +1,55 @@
+name: Test Comment
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "get-comment/**"
+  pull_request:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test_get_comment:
+    name: Test Get Comment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup infracost
+        uses: ./setup
+        with:
+          version: 0.9.13
+          api_key: abcdefg123456
+
+      - name: Infracost comment
+        id: post-comment
+        uses: ./comment
+        with:
+          path: ./testdata/comment/simple_breakdown.json
+
+      - name: Infracost get comment
+        id: get-comment
+        uses: ./get-comment
+
+      - name: Check comment
+        shell: bash
+        run: |
+          expected=$(cat <<\EOF
+          ${{ steps.post-comment.outputs.body }}
+          EOF
+          )
+          actual=$(cat <<\EOF
+          ${{ steps.get-comment.outputs.body }}
+          EOF
+          )
+
+          if [ "$actual" != "$expected" ]; then
+            echo "error::Expected comment '$expected' got '$actual'"
+            exit 1
+          fi
+

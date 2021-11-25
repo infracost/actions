@@ -221,3 +221,57 @@ jobs:
       - name: Update the golden comment file
         run: cp /tmp/infracost_comment.md ./testdata/terragrunt_comment_golden.md
         if: env.UPDATE_GOLDEN_FILES == 'true'
+  thresholds:
+    name: Thresholds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Infracost
+        uses: ./setup
+        with:
+          api_key: ${{ secrets.INFRACOST_API_KEY }}
+      - name: Run Infracost
+        run: >-
+          infracost breakdown --path=examples/thresholds/code/plan.json
+          --format=json --out-file=/tmp/infracost.json
+      - name: Calculate Cost Change
+        id: cost-change
+        uses: actions/github-script@v5
+        with:
+          script: |
+            // Read the breakdown JSON and get costs
+            const breakdown = require('/tmp/infracost.json');
+            const past = breakdown.pastTotalMonthlyCost;
+            const current = breakdown.totalMonthlyCost;
+            const costChange = breakdown.diffTotalMonthlyCost;
+
+            console.log(`past: ${past}`);
+            console.log(`current: ${current}`);
+            console.log(`costChange: ${costChange}`);
+
+            // Calculate the percent change
+            let percentChange = 0;
+            let absolutePercentChange = 0;               
+            if (past !== "0") {
+              percentChange = 100 * ((current - past) / past);
+              absolutePercentChange = Math.abs(percentChange);
+            }            
+
+            console.log(`percent-change: ${percentChange}`);
+            console.log(`cost-change: ${costChange}`); 
+
+            // Set the calculated diffs as outputs to be used in future steps
+            core.setOutput('absolute-percent-change', absolutePercentChange);
+            core.setOutput('percent-change', percentChange);
+            core.setOutput('absolute-cost-change', Math.abs(costChange) );
+            core.setOutput('cost-change', costChange);
+      - name: Generate Infracost comment
+        run: >-
+          infracost output --path=/tmp/infracost.json --format=github-comment
+          --out-file=/tmp/infracost_comment.md
+      - name: Check the comment
+        run: diff /tmp/infracost_comment.md ./testdata/thresholds_comment_golden.md
+        if: env.UPDATE_GOLDEN_FILES != 'true'
+      - name: Update the golden comment file
+        run: cp /tmp/infracost_comment.md ./testdata/thresholds_comment_golden.md
+        if: env.UPDATE_GOLDEN_FILES == 'true'
