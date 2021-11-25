@@ -1,6 +1,6 @@
 # Infracost GitHub Actions
 
-[Infracost](https://www.infracost.io/) enables you to see cloud cost estimates for Terraform in pull requests. This project provides a set of GitHub Actions for Infracost:
+[Infracost](https://www.infracost.io/) enables you to see cloud cost estimates for Terraform in pull requests 💰 This project provides a set of GitHub Actions for Infracost:
 - **[setup](setup)**: downloads and installs the Infracost CLI in your GitHub Actions workflow.
 - **[comment](comment)**: adds comments to pull requests.
 - **[get-comment](get-comment)**: reads a comment from a pull requests.
@@ -13,9 +13,16 @@ The following steps assume a simple Terraform directory is being used, we recomm
 
 1. Retrieve your Infracost API key by running `infracost configure get api_key`. If you don't have one, [download Infracost](https://www.infracost.io/docs/#quick-start) and run `infracost register` to get a free API key.
 
-2. [Add repo secrets](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets#creating-encrypted-secrets-for-a-repository) for `INFRACOST_API_KEY` and any other required credentials to your GitHub repo (e.g. `AWS_ACCESS_KEY_ID`).
+2. [Create a repo secret](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets#creating-encrypted-secrets-for-a-repository) called `INFRACOST_API_KEY` with your API key.
 
-3. Create a new file in `.github/workflows/infracost.yml` in your repo with the following content.
+3. Create required repo secrets for any cloud credentials that are needed for Terraform to run. If you have multiple projects/workspaces, consider using an Infracost [config-file](https://www.infracost.io/docs/multi_project/config_file) to define the projects.
+
+    - Terraform Cloud/Enterprise users: if you use Remote Execution Mode, you should follow [setup-terraform](https://github.com/hashicorp/setup-terraform) instructions to set the inputs `cli_config_credentials_token`, and `cli_config_credentials_hostname` for Terraform Enterprise.
+    - AWS users: use [aws-actions/configure-aws-credentials](https://github.com/aws-actions/configure-aws-credentials), the [Terraform docs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs#environment-variables) explains other options.
+    - Azure users: the [Terraform docs](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_secret) explain the options. The [Azure/login](https://github.com/Azure/login) GitHub Actions might also be useful; we haven't tested these with Terraform.
+    - Google users: the [Terraform docs](https://registry.terraform.io/providers/hashicorp/google/latest/docs/guides/provider_reference#full-reference) explain the options, e.g. using `GOOGLE_CREDENTIALS`.
+
+4. Create a new file in `.github/workflows/infracost.yml` in your repo with the following content.
 
     ```yaml
     # The GitHub Actions docs (https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#on)
@@ -37,6 +44,8 @@ The following steps assume a simple Terraform directory is being used, we recomm
             with:
               terraform_wrapper: false # This is required so the `terraform show` command outputs valid JSON
 
+          # Add any required steps here to setup cloud credentials so Terraform can run
+
           - name: Terraform init
             run: terraform init
             working-directory: PATH/TO/MY_CODE
@@ -57,10 +66,13 @@ The following steps assume a simple Terraform directory is being used, we recomm
               api_key: ${{ secrets.INFRACOST_API_KEY }}
 
           # Generate Infracost JSON output, the following docs might be useful:
-          # https://www.infracost.io/docs/multi_project/config_file for multi-project/workspaces.
-          # https://www.infracost.io/docs/multi_project/report to combine Infracost JSON files.
+          # Multi-project/workspaces: https://www.infracost.io/docs/multi_project/config_file
+          # Combine Infracost JSON files: https://www.infracost.io/docs/multi_project/report
           - name: Generate Infracost JSON
             run: infracost breakdown --path /tmp/plan.json --format json --out-file /tmp/infracost.json
+            # Env vars can be set using the usual GitHub Actions syntax
+            # env:
+            #   MY_ENV: ${{ secrets.MY_ENV }}
 
           # See https://github.com/infracost/actions/tree/master/comment
           # for other inputs such as target-type.
@@ -75,7 +87,7 @@ The following steps assume a simple Terraform directory is being used, we recomm
               # behavior: new # Create a new cost estimate comment on every push.
     ```
 
-4. Send a new pull request to change something in Terraform that costs money. You should see a pull request comment that gets updated as new changes are pushed. Check the GitHub Actions logs and [this page](https://www.infracost.io/docs/integrations/cicd#cicd-troubleshooting) if there are issues.
+4. Send a new pull request to change something in Terraform that costs money. You should see a pull request comment that gets updated, e.g. the 📉 and 📈 emojis will update as changes are pushed! Check the GitHub Actions logs and [this page](https://www.infracost.io/docs/integrations/cicd#cicd-troubleshooting) if there are issues.
 
 ## Examples
 

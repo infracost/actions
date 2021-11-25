@@ -54,11 +54,12 @@ jobs:
             core.setOutput('percent-change', percentChange);
             core.setOutput('absolute-cost-change', Math.abs(costChange) );
             core.setOutput('cost-change', costChange);
+
       - name: Post the comment
         uses: infracost/actions/comment@v1
-        if: ${{ steps.cost-change.outputs.absolute-percent-change > 1 }} # Only comment if cost changed by more than 1%
+        if: ${{ steps.cost-change.outputs.absolute-percent-change > 1 }} # Only comment if cost changed by more than plus or minus 1%
         # if: ${{ steps.cost-change.outputs.percent-change > 1 }} # Only comment if cost increased by more than 1%
-        # if: ${{ steps.cost-change.outputs.absolute-cost-change > 100 }} # Only comment if cost changed by more than $100
+        # if: ${{ steps.cost-change.outputs.absolute-cost-change > 100 }} # Only comment if cost changed by more than plus or minus $100
         # if: ${{ steps.cost-change.outputs.cost-change > 100 }} # Only comment if cost increased by more than $100
         with:
           path: /tmp/infracost.json

@@ -78,7 +78,7 @@ jobs:
         with:
           name: infracost_jsons
           path: /tmp/infracost_${{ matrix.dir }}.json
-    
+
   multi_project_matrix_merge:
     name: Multi-project matrix merge
     runs-on: ubuntu-latest
