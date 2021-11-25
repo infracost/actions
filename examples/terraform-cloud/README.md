@@ -22,7 +22,7 @@ jobs:
         with:
           terraform_wrapper: false # This is required so the `terraform show` command outputs valid JSON
           cli_config_credentials_token: $${{ secrets.TFC_TOKEN }}
-          # cli_config_credentials_hostname: https://my_tfe_host.com # For Terraform Enterprise users only
+          # cli_config_credentials_hostname: my-tfe-host.com # For Terraform Enterprise users only
 
       - name: Setup Infracost
         uses: infracost/actions/setup@v1
@@ -34,7 +34,7 @@ jobs:
         env:
           # TODO: the following two envs be removed once https://github.com/infracost/infracost/pull/1148 is released in v0.9.14 of the CLI (https://github.com/infracost/infracost/releases)
           INFRACOST_TERRAFORM_CLOUD_TOKEN: ${{ secrets.TFC_TOKEN }} 
-          # INFRACOST_TERRAFORM_CLOUD_HOST: https://my_tfe_host.com # For Terraform Enterprise users only.
+          # INFRACOST_TERRAFORM_CLOUD_HOST: my-tfe-host.com # For Terraform Enterprise users only.
         
       - name: Post the comment
         uses: infracost/actions/comment@v1
