@@ -5,11 +5,11 @@ inputs:
     description: The path to the `infracost breakdown` JSON that will be passed to `infracost output`. For multiple paths, pass a glob pattern (e.g. "infracost_*.json", glob needs quotes) or a JSON array of paths.
     required: true
   behavior:
-    description: The behavior to use when posting cost estimate comments. Must be one of 'update' | 'delete_and_new' | 'hide_and_new' | 'new'.
+    description: The behavior to use when posting cost estimate comments. Must be one of 'update' | 'delete_and_new' | 'hide-and-new' | 'new'.
     required: false
     default: update
   target-type:
-    description: Which objects should be commented on, either `pull_request` or `commit`.
+    description: Which objects should be commented on, either `pull-request` or `commit`.
     required: false
   github-token:
     description: 'Default to {{ github.token }}. This is the default GitHub token available to actions and is used to post comments.'
@@ -26,13 +26,6 @@ runs:
       shell: bash
 
       run: |
-        # validate inputs
-        if [ "${{ inputs.target-type }}" = "commit" ]; then
-          echo '::set-output name=target-type::commit'
-        elif [ "${{ inputs.target-type }}" = "pull_request" ]; then
-          echo '::set-output name=target-type::pr'
-        fi
-
         # handle multiple paths
         if jq . >/dev/null 2>&1 <<< '${{ inputs.path }}'; then
           paths=$(jq -r 'if type == "array" then map("--path " + .) | join(" ") else . end' <<< '${{ inputs.path }}')
@@ -48,7 +41,7 @@ runs:
         if [ "${{ inputs.target-type }}" != "commit" ]; then
           if [ "${{ inputs.behavior }}" = "update" ]; then
             printf "\nThis comment will be updated when the cost estimate changes.\n\n" >> comment.md
-          elif [ "${{ inputs.behavior }}" = "delete_and_new" ]; then
+          elif [ "${{ inputs.behavior }}" = "delete-and-new" ]; then
             printf "\nThis comment will be replaced when the cost estimate changes.\n\n" >> comment.md
           fi
         fi
@@ -60,9 +53,9 @@ runs:
       id: compost-comment
       uses: infracost/compost-action@master
       with:
-        bodyFile: comment.md
+        body-file: comment.md
         behavior: ${{ inputs.behavior }}
-        targetType: ${{ steps.run-infracost-output.outputs.target-type }}
-        GITHUB_TOKEN: ${{ inputs.github-token }}
+        target-type: ${{ inputs.target-type }}
+        github-token: ${{ inputs.github-token }}
 
 

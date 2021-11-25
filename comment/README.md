@@ -22,11 +22,11 @@ The action supports the following inputs:
 
 - `behavior`: Optional, defaults to `update`. The behavior to use when posting cost estimate comments. Must be one of the following:  
   - `update`: Create a single comment and update it on changes. This is the "quietest" option. The GitHub comments UI shows what/when changed when the comment is updated. Pull request followers will only be notified on the comment create (not updates), and the comment will stay at the same location in the comment history.
-  - `delete_and_new`: Delete previous cost estimate comments and create a new one. Pull request followers will be notified on each comment.
-  - `hide_and_new`: Minimize previous cost estimate comments and create a new one. Pull request followers will be notified on each comment.
+  - `delete-and-new`: Delete previous cost estimate comments and create a new one. Pull request followers will be notified on each comment.
+  - `hide-and-new`: Minimize previous cost estimate comments and create a new one. Pull request followers will be notified on each comment.
   - `new`: Create a new cost estimate comment. Pull request followers will be notified on each comment.
 
-- `target-type`: Optional. Which objects should be commented on, either `pull_request` or `commit`.
+- `target-type`: Optional. Which objects should be commented on, either `pull-request` or `commit`.
 
 - `github-token`: Optional, default to `${{ github.token }}`. This is the default GitHub token available to actions and is used to post comments.
 
