@@ -38,7 +38,7 @@ jobs:
         uses: infracost/actions/comment@v1
         with:
           path: /tmp/infracost.json
-          behavior: update # Create a single comment and update it. The "quietest" option.
+          behavior: update # Create a single comment and update it. See https://github.com/infracost/actions/tree/master/comment for other options
 ```
 [//]: <> (END EXAMPLE)
 
@@ -110,6 +110,6 @@ jobs:
         uses: infracost/actions/comment@v1
         with:
           path: /tmp/infracost_combined.json
-          behavior: update # Create a single comment and update it. The "quietest" option.
+          behavior: update # Create a single comment and update it. See https://github.com/infracost/actions/tree/master/comment for other options
 ```
 [//]: <> (END EXAMPLE)
