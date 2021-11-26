@@ -3,7 +3,7 @@
 [Infracost](https://www.infracost.io/) enables you to see cloud cost estimates for Terraform in pull requests 💰 This project provides a set of GitHub Actions for Infracost:
 - **[setup](setup)**: downloads and installs the Infracost CLI in your GitHub Actions workflow.
 - **[comment](comment)**: adds comments to pull requests.
-- **[get-comment](get-comment)**: reads a comment from a pull requests.
+- **[get-comment](get-comment)**: reads a comment from a pull request.
 
     <img src="https://raw.githubusercontent.com/infracost/infracost-gh-action/master/screenshot.png" width=480 alt="Example usage" />
 
