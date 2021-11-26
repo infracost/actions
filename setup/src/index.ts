@@ -108,11 +108,11 @@ function exportEnvVars(): void {
   const pullRequestUrl = github.context.payload.pull_request?.html_url;
 
   if (repoUrl) {
-    core.exportVariable('VCS_REPO_URL', repoUrl);
+    core.exportVariable('INFRACOST_VCS_REPOSITORY_URL', repoUrl);
   }
 
   if (pullRequestUrl) {
-    core.exportVariable('VCS_PULL_REQUEST_URL', pullRequestUrl);
+    core.exportVariable('INFRACOST_VCS_PULL_REQUEST_URL', pullRequestUrl);
   }
 
   core.exportVariable('INFRACOST_LOG_LEVEL', core.isDebug() ? 'debug' : 'info');

@@ -15332,10 +15332,10 @@ function exportEnvVars() {
         `${github.context.serverUrl}/${github.context.repo.owner}/${github.context.repo.repo}`;
     const pullRequestUrl = (_b = github.context.payload.pull_request) === null || _b === void 0 ? void 0 : _b.html_url;
     if (repoUrl) {
-        core.exportVariable('VCS_REPO_URL', repoUrl);
+        core.exportVariable('INFRACOST_VCS_REPOSITORY_URL', repoUrl);
     }
     if (pullRequestUrl) {
-        core.exportVariable('VCS_PULL_REQUEST_URL', pullRequestUrl);
+        core.exportVariable('INFRACOST_VCS_PULL_REQUEST_URL', pullRequestUrl);
     }
     core.exportVariable('INFRACOST_LOG_LEVEL', core.isDebug() ? 'debug' : 'info');
 }
