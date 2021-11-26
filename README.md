@@ -55,7 +55,7 @@ The following steps assume a simple Terraform directory is being used, we recomm
             working-directory: PATH/TO/MY_CODE
 
           - name: Terraform show
-            run: terraform show -json tfplan.binary > /tmp/plan.json
+            run: terraform show -json tfplan.binary > plan.json
             working-directory: PATH/TO/MY_CODE
 
           # Install the Infracost CLI, see https://github.com/infracost/actions/tree/master/setup
@@ -69,7 +69,7 @@ The following steps assume a simple Terraform directory is being used, we recomm
           # Multi-project/workspaces: https://www.infracost.io/docs/multi_project/config_file
           # Combine Infracost JSON files: https://www.infracost.io/docs/multi_project/report
           - name: Generate Infracost JSON
-            run: infracost breakdown --path /tmp/plan.json --format json --out-file /tmp/infracost.json
+            run: infracost breakdown --path PATH/TO/MY_CODE/plan.json --format json --out-file /tmp/infracost.json
             # Env vars can be set using the usual GitHub Actions syntax
             # env:
             #   MY_ENV: ${{ secrets.MY_ENV }}
