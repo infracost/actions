@@ -10,7 +10,7 @@ The action can be used as follows.
 steps:
   - name: Infracost get comment
     id: get-comment
-    uses: ./get-comment
+    uses: infracost/actions/get-comment@v1
   
   - name: Show comment
     run: echo "${{ steps.get-comment.outputs.body }}"
