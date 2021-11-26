@@ -63,6 +63,6 @@ jobs:
         # if: ${{ steps.cost-change.outputs.cost-change > 100 }} # Only comment if cost increased by more than $100
         with:
           path: /tmp/infracost.json
-          behavior: update # Create a single comment and update it. The "quietest" option.
+          behavior: update # Create a single comment and update it. See https://github.com/infracost/actions/tree/master/comment for other options
 ```
 [//]: <> (END EXAMPLE)
