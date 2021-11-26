@@ -109,7 +109,7 @@ The [examples](examples) directory demonstrates how these actions can be used in
 We recommend you use the above [quick start](#quick-start) guide and examples, which combine the following individual actions:
 - [setup](setup): downloads and installs the Infracost CLI in your GitHub Actions workflow.
 - [comment](comment): adds comments to pull requests.
-- [get-comment](get-comment): reads a comment from a pull requests.
+- [get-comment](get-comment): reads a comment from a pull request.
 
 ## Contributing
 
