@@ -8,10 +8,12 @@ The action can be used as follows.
 
 ```yml
 steps:
-  - name: Infracost comment
-    uses: infracost/actions/get-comment@v1
-    with: 
-      path: /tmp/infracost.json
+  - name: Infracost get comment
+    id: get-comment
+    uses: ./get-comment
+  
+  - name: Show comment
+    run: echo "${{ steps.get-comment.outputs.body }}"
 ```
 
 ## Inputs
