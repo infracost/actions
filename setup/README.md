@@ -4,7 +4,7 @@ This GitHub Action downloads and installs the [Infracost CLI](https://github.com
 
 ## Usage
 
-The action can be used as follows. You probably want to run Infracost CLI commands then use the [comment](../comment) action to post comments! See the [top-level readme](../) for examples of how these actions can be combined.
+The action can be used as follows. You probably want to run Infracost CLI commands then use the [comment](../comment) action to post comments! See the [top-level readme](https://github.com/infracost/actions) for examples of how these actions can be combined.
 
 ```yml
 steps:
