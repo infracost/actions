@@ -5,7 +5,7 @@
 - **[comment](comment)**: adds comments to pull requests.
 - **[get-comment](get-comment)**: reads a comment from a pull request.
 
-    <img src="https://raw.githubusercontent.com/infracost/infracost-gh-action/master/screenshot.png" width=480 alt="Example usage" />
+<img src=".github/assets/screenshot.png" alt="Example screenshot" />
 
 ## Usage
 
