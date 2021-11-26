@@ -9,9 +9,9 @@ The action can be used as follows:
 ```yml
 steps:
   - name: Setup Infracost
-  uses: infracost/actions/setup@v1
-  with:
-    api-key: ${{ secrets.INFRACOST_API_KEY }}
+    uses: infracost/actions/setup@v1
+    with:
+      api-key: ${{ secrets.INFRACOST_API_KEY }}
 ```
 
 ## Inputs
