@@ -1,13 +1,10 @@
 # Infracost GitHub Actions
 
-[Infracost](https://www.infracost.io/) enables you to see cloud cost estimates for Terraform in pull requests 💰 This project provides a set of GitHub Actions for Infracost:
-- **[setup](setup)**: downloads and installs the Infracost CLI in your GitHub Actions workflow.
-- **[comment](comment)**: adds comments to pull requests.
-- **[get-comment](get-comment)**: reads a comment from a pull requests.
+This project provides a set of GitHub Actions for Infracost, so you can see cloud cost estimates for Terraform in pull requests 💰 
 
-    <img src="https://raw.githubusercontent.com/infracost/infracost-gh-action/master/screenshot.png" width=480 alt="Example usage" />
+<img src="https://raw.githubusercontent.com/infracost/infracost-gh-action/master/screenshot.png" width=480 alt="Example usage" />
 
-## Usage
+## Quick start
 
 The following steps assume a simple Terraform directory is being used, we recommend you use a more relevant [example](examples) if required.
 
@@ -30,14 +27,17 @@ The following steps assume a simple Terraform directory is being used, we recomm
     on: [pull_request]
     jobs:
       infracost:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-latest # The following are JavaScript actions (not Docker)
+        env:
+          working-directory: PATH/TO/TERRAFORM/CODE
+
         name: Run Infracost
         steps:
           - name: Check out repository
             uses: actions/checkout@v2
 
           # Typically the Infracost actions will be used in conjunction with
-          # https://github.com/hashicorp/setup-terraform. Subsequent steps in
+          # https://github.com/hashicorp/setup-terraform. Subsequent steps
           # can run Terraform commands as they would in the shell.
           - name: Install terraform
             uses: hashicorp/setup-terraform@v1
@@ -48,15 +48,15 @@ The following steps assume a simple Terraform directory is being used, we recomm
 
           - name: Terraform init
             run: terraform init
-            working-directory: PATH/TO/MY_CODE
+            working-directory: ${{ env.working-directory }}
 
           - name: Terraform plan
             run: terraform plan -out tfplan.binary
-            working-directory: PATH/TO/MY_CODE
+            working-directory: ${{ env.working-directory }}
 
           - name: Terraform show
             run: terraform show -json tfplan.binary > plan.json
-            working-directory: PATH/TO/MY_CODE
+            working-directory: ${{ env.working-directory }}
 
           # Install the Infracost CLI, see https://github.com/infracost/actions/tree/master/setup
           # for other inputs such as version, and pricing-api-endpoint (for self-hosted users).
@@ -69,7 +69,8 @@ The following steps assume a simple Terraform directory is being used, we recomm
           # Multi-project/workspaces: https://www.infracost.io/docs/multi_project/config_file
           # Combine Infracost JSON files: https://www.infracost.io/docs/multi_project/report
           - name: Generate Infracost JSON
-            run: infracost breakdown --path PATH/TO/MY_CODE/plan.json --format json --out-file /tmp/infracost.json
+            run: infracost breakdown --path plan.json --format json --out-file /tmp/infracost.json
+            working-directory: ${{ env.working-directory }}
             # Env vars can be set using the usual GitHub Actions syntax
             # env:
             #   MY_ENV: ${{ secrets.MY_ENV }}
@@ -87,7 +88,9 @@ The following steps assume a simple Terraform directory is being used, we recomm
               # behavior: new # Create a new cost estimate comment on every push.
     ```
 
-4. Send a new pull request to change something in Terraform that costs money. You should see a pull request comment that gets updated, e.g. the 📉 and 📈 emojis will update as changes are pushed! Check the GitHub Actions logs and [this page](https://www.infracost.io/docs/integrations/cicd#cicd-troubleshooting) if there are issues.
+4. Send a new pull request to change something in Terraform that costs money. You should see a pull request comment that gets updated, e.g. the 📉 and 📈 emojis will update as changes are pushed!
+
+    If there are issues, check the GitHub Actions logs and [this page](https://www.infracost.io/docs/integrations/cicd#cicd-troubleshooting).
 
 ## Examples
 
@@ -100,6 +103,14 @@ The [examples](examples) directory demonstrates how these actions can be used in
   - [Multi-project using build matrix](examples/multi-project/README.md#using-github-actions-build-matrix): multiple Terraform projects using GitHub Actions build matrix
   - [Multi-Terraform workspace](examples/multi-terraform-workspace): multiple Terraform workspaces using the Infracost [config file](https://www.infracost.io/docs/multi_project/config_file)
   - [Thresholds](examples/thresholds): only post a comment when cost thresholds are exceeded
+
+## Actions
+
+We recommend you use the above quick start guide and examples, which combine the following individual actions:
+- [setup](setup): downloads and installs the Infracost CLI in your GitHub Actions workflow.
+- [comment](comment): adds comments to pull requests.
+- [get-comment](get-comment): reads a comment from a pull requests.
+
 ## Contributing
 
 Issues and pull requests are welcome! For development details, see the [contributing](CONTRIBUTING.md) guide. For major changes, including interface changes, please open an issue first to discuss what you would like to change. [Join our community Slack channel](https://www.infracost.io/community-chat), we are a friendly bunch and happy to help you get started :)
