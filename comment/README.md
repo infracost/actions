@@ -4,7 +4,7 @@ This GitHub Action takes `infracost breakdown` JSON output and posts it as a Git
 
 ## Usage
 
-The action can be used as follows:
+The action can be used as follows. See the [top-level readme](../) for examples of how this actions can be combined with the setup action to run Infracost.
 
 ```yml
 steps:

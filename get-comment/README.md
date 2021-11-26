@@ -4,7 +4,7 @@ This GitHub Action retrieves the body of the latest Github comment posted using 
 
 ## Usage
 
-The action can be used as follows:
+The action can be used as follows.
 
 ```yml
 steps:
