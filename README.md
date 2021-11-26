@@ -6,7 +6,7 @@ This project provides a set of GitHub Actions for Infracost, so you can see clou
 
 ## Quick start
 
-The following steps assume a simple Terraform directory is being used, we recommend you use a more relevant [example](examples) if required.
+The following steps assume a simple Terraform directory is being used, we recommend you use a more relevant [example](#examples) if required.
 
 1. Retrieve your Infracost API key by running `infracost configure get api_key`. If you don't have one, [download Infracost](https://www.infracost.io/docs/#quick-start) and run `infracost register` to get a free API key.
 
@@ -29,7 +29,7 @@ The following steps assume a simple Terraform directory is being used, we recomm
       infracost:
         runs-on: ubuntu-latest # The following are JavaScript actions (not Docker)
         env:
-          working-directory: PATH/TO/TERRAFORM/CODE
+          working-directory: PATH/TO/TERRAFORM/CODE # Update this!
 
         name: Run Infracost
         steps:
@@ -88,7 +88,7 @@ The following steps assume a simple Terraform directory is being used, we recomm
               # behavior: new # Create a new cost estimate comment on every push.
     ```
 
-4. Send a new pull request to change something in Terraform that costs money. You should see a pull request comment that gets updated, e.g. the 📉 and 📈 emojis will update as changes are pushed!
+4. 🎉 That's it! Send a new pull request to change something in Terraform that costs money. You should see a pull request comment that gets updated, e.g. the 📉 and 📈 emojis will update as changes are pushed!
 
     If there are issues, check the GitHub Actions logs and [this page](https://www.infracost.io/docs/integrations/cicd#cicd-troubleshooting).
 
