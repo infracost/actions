@@ -1,6 +1,6 @@
 # Infracost Get Comment Action
 
-This GitHub Action retrieves the body of the latest Github comment posted using the `infracost/actions/comment` action.
+This GitHub Action retrieves the body of the latest Github comment posted using the `infracost/actions/comment` action. We're still developing the use-cases for this action.
 
 ## Usage
 
