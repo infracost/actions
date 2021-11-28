@@ -1,6 +1,6 @@
 # Infracost Comment Action
 
-This GitHub Action takes `infracost breakdown` JSON output and posts it as a GitHub comment. It assumes the `infracost` binary has already been installed using the [setup](../setup) action. It uses the default GitHub token, which is available for actions, to post comments (you can override it with inputs).
+This GitHub Action takes `infracost breakdown` JSON output and posts it as a GitHub comment. It assumes the `infracost` binary has already been installed using the [setup](../setup) action. It uses the default GitHub token, which is available for actions, to post comments (you can override it with inputs). This action uses the [compost](https://github.com/infracost/compost) CLI tool internally.
 
 ## Usage
 
