@@ -9,16 +9,16 @@
   </thead>
   <tbody>
     <tr>
-      <td>infracost/actions/examples/terragrunt/code/prod</td>
-      <td align="right">$0</td>
-      <td align="right">$748</td>
-      <td>+$748</td>
-    </tr>
-    <tr>
       <td>infracost/actions/examples/terragrunt/code/dev</td>
       <td align="right">$0</td>
       <td align="right">$51.97</td>
       <td>+$51.97</td>
+    </tr>
+    <tr>
+      <td>infracost/actions/examples/terragrunt/code/prod</td>
+      <td align="right">$0</td>
+      <td align="right">$748</td>
+      <td>+$748</td>
     </tr>
     <tr>
       <td>All projects</td>
@@ -33,42 +33,6 @@
 <summary><strong>Infracost output</strong></summary>
 
 ```
-Project: infracost/actions/examples/terragrunt/code/prod
-
-+ aws_instance.web_app
-  +$748
-
-    + Instance usage (Linux/UNIX, on-demand, m5.4xlarge)
-      +$561
-
-    + root_block_device
-    
-        + Storage (general purpose SSD, gp2)
-          +$10.00
-
-    + ebs_block_device[0]
-    
-        + Storage (provisioned IOPS SSD, io1)
-          +$125
-    
-        + Provisioned IOPS
-          +$52.00
-
-+ aws_lambda_function.hello_world
-  Monthly cost depends on usage
-
-    + Requests
-      Monthly cost depends on usage
-        +$0.20 per 1M requests
-
-    + Duration
-      Monthly cost depends on usage
-        +$0.0000166667 per GB-seconds
-
-Monthly cost change for infracost/actions/examples/terragrunt/code/prod
-Amount:  +$748 ($0.00 → $748)
-
-──────────────────────────────────
 Project: infracost/actions/examples/terragrunt/code/dev
 
 + aws_instance.web_app
@@ -103,6 +67,42 @@ Project: infracost/actions/examples/terragrunt/code/dev
 
 Monthly cost change for infracost/actions/examples/terragrunt/code/dev
 Amount:  +$51.97 ($0.00 → $51.97)
+
+──────────────────────────────────
+Project: infracost/actions/examples/terragrunt/code/prod
+
++ aws_instance.web_app
+  +$748
+
+    + Instance usage (Linux/UNIX, on-demand, m5.4xlarge)
+      +$561
+
+    + root_block_device
+    
+        + Storage (general purpose SSD, gp2)
+          +$10.00
+
+    + ebs_block_device[0]
+    
+        + Storage (provisioned IOPS SSD, io1)
+          +$125
+    
+        + Provisioned IOPS
+          +$52.00
+
++ aws_lambda_function.hello_world
+  Monthly cost depends on usage
+
+    + Requests
+      Monthly cost depends on usage
+        +$0.20 per 1M requests
+
+    + Duration
+      Monthly cost depends on usage
+        +$0.0000166667 per GB-seconds
+
+Monthly cost change for infracost/actions/examples/terragrunt/code/prod
+Amount:  +$748 ($0.00 → $748)
 
 ──────────────────────────────────
 Key: ~ changed, + added, - removed
