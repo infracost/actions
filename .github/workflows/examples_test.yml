@@ -133,6 +133,44 @@ jobs:
           cp /tmp/infracost_comment.md
           ./testdata/multi_terraform_workspace_config_file_comment_golden.md
         if: env.UPDATE_GOLDEN_FILES == 'true'
+  slack:
+    name: Slack
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Infracost
+        uses: ./setup
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+      - name: Generate Infracost JSON
+        id: infracost-commands
+        run: >
+          infracost breakdown --path=examples/thresholds/code/plan.json --format
+          json --out-file /tmp/infracost.json
+
+          echo "::set-output name=slack-message::$(infracost output --path
+          /tmp/infracost.json --format slack-message --show-skipped)"
+
+          echo "::set-output name=diffTotalMonthlyCost::$(jq
+          '(.diffTotalMonthlyCost // 0) | tonumber' /tmp/infracost.json)"
+      - name: Generate Infracost comment
+        run: >-
+          infracost output --path=/tmp/infracost.json --format=github-comment
+          --show-skipped --out-file=/tmp/infracost_comment.md
+      - name: Check the comment
+        run: diff /tmp/infracost_comment.md ./testdata/slack_comment_golden.md
+        if: env.UPDATE_GOLDEN_FILES != 'true'
+      - name: Update the golden comment file
+        run: cp /tmp/infracost_comment.md ./testdata/slack_comment_golden.md
+        if: env.UPDATE_GOLDEN_FILES == 'true'
+      - name: Send cost estimate to Slack
+        uses: slackapi/slack-github-action@v1
+        if: ${{ steps.infracost-commands.outputs.diffTotalMonthlyCost > 0 }}
+        with:
+          payload: ${{ steps.infracost-commands.outputs.slack-message }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
   terraform-cloud-enterprise:
     name: Terraform Cloud/Enterprise
     runs-on: ubuntu-latest
