@@ -139,6 +139,8 @@ async function setup(): Promise<void> {
     // Expose the tool by adding it to the PATH
     core.addPath(pathToCLI);
 
+    core.notice(`Setup Infracost CLI version ${version}`);
+
     // Set configure options
     const apiKey = core.getInput('api-key');
     if (apiKey) {
