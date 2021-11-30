@@ -1,4 +1,4 @@
-name: "Infracost Actions"
+name: Infracost
 description: See cloud cost estimates for Terraform in pull requests.
 
 author: infracost
