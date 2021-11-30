@@ -20,7 +20,6 @@ runs:
     # Combine Infracost JSON files: https://www.infracost.io/docs/multi_project/report
     - name: Generate Infracost JSON
       run: infracost breakdown --path plan.json --format json --out-file /tmp/infracost.json
-      working-directory: ${{ env.working-directory }}
       # Env vars can be set using the usual GitHub Actions syntax
       # env:
       #   MY_ENV: ${{ secrets.MY_ENV }}
