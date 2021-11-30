@@ -27,6 +27,7 @@ runs:
     # Multi-project/workspaces: https://www.infracost.io/docs/multi_project/config_file
     # Combine Infracost JSON files: https://www.infracost.io/docs/multi_project/report
     - name: Generate Infracost JSON
+      shell: bash
       run: infracost breakdown --path ${{ inputs.path }} --format json --out-file /tmp/infracost.json
       # Env vars can be set using the usual GitHub Actions syntax
       # env:
