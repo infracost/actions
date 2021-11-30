@@ -184,16 +184,9 @@ jobs:
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
       - name: Generate Infracost JSON
-        id: infracost-commands
-        run: >
+        run: >-
           infracost breakdown --path=examples/thresholds/code/plan.json --format
           json --out-file /tmp/infracost.json
-
-          echo "::set-output name=slack-message::$(infracost output --path
-          /tmp/infracost.json --format slack-message --show-skipped)"
-
-          echo "::set-output name=diffTotalMonthlyCost::$(jq
-          '(.diffTotalMonthlyCost // 0) | tonumber' /tmp/infracost.json)"
       - name: Generate Infracost comment
         run: >-
           infracost output --path=/tmp/infracost.json --format=github-comment
@@ -204,11 +197,19 @@ jobs:
       - name: Update the golden comment file
         run: cp /tmp/infracost_comment.md ./testdata/slack_comment_golden.md
         if: env.UPDATE_GOLDEN_FILES == 'true'
+      - name: Generate Slack message
+        id: infracost-slack
+        run: >
+          echo "::set-output name=slack-message::$(infracost output --path
+          /tmp/infracost.json --format slack-message --show-skipped)"
+
+          echo "::set-output name=diffTotalMonthlyCost::$(jq
+          '(.diffTotalMonthlyCost // 0) | tonumber' /tmp/infracost.json)"
       - name: Send cost estimate to Slack
         uses: slackapi/slack-github-action@v1
-        if: ${{ steps.infracost-commands.outputs.diffTotalMonthlyCost > 0 }}
+        if: ${{ steps.infracost-slack.outputs.diffTotalMonthlyCost > 0 }}
         with:
-          payload: ${{ steps.infracost-commands.outputs.slack-message }}
+          payload: ${{ steps.infracost-slack.outputs.slack-message }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
