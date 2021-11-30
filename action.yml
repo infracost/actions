@@ -1,0 +1,35 @@
+name: "Infracost Actions"
+description: See cloud cost estimates for Terraform in pull requests.  Requires hashicorp/setup-terraform@v1.
+inputs:
+  behavior:
+    description: The behavior to use when posting cost estimate comments. Must be one of 'update' | 'delete_and_new' | 'hide-and-new' | 'new'.
+    required: false
+    default: update
+runs:
+  using: "composite"
+  steps:
+    # Install the Infracost CLI, see https://github.com/infracost/actions/tree/master/setup
+    # for other inputs such as version, and pricing-api-endpoint (for self-hosted users).
+    - name: Setup Infracost
+      uses: infracost/actions/setup@v1
+      with:
+        api-key: ${{ secrets.INFRACOST_API_KEY }}
+
+    # Generate Infracost JSON output, the following docs might be useful:
+    # Multi-project/workspaces: https://www.infracost.io/docs/multi_project/config_file
+    # Combine Infracost JSON files: https://www.infracost.io/docs/multi_project/report
+    - name: Generate Infracost JSON
+      run: infracost breakdown --path plan.json --format json --out-file /tmp/infracost.json
+      working-directory: ${{ env.working-directory }}
+      # Env vars can be set using the usual GitHub Actions syntax
+      # env:
+      #   MY_ENV: ${{ secrets.MY_ENV }}
+
+    # See https://github.com/infracost/actions/tree/master/comment
+    # for other inputs such as target-type.
+    - name: Post Infracost comment
+      uses: infracost/actions/comment@v1
+      with:
+        path: /tmp/infracost.json
+        # Choose the commenting behavior, 'update' is a good default:
+        behavior: ${{ inputs.behavior }}
