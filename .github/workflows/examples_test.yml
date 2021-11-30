@@ -205,14 +205,20 @@ jobs:
 
           echo "::set-output name=diffTotalMonthlyCost::$(jq
           '(.diffTotalMonthlyCost // 0) | tonumber' /tmp/infracost.json)"
-      - name: Send cost estimate to Slack
-        uses: slackapi/slack-github-action@v1
-        if: ${{ steps.infracost-slack.outputs.diffTotalMonthlyCost > 0 }}
-        with:
-          payload: ${{ steps.infracost-slack.outputs.slack-message }}
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+      - name: Generate Slack message
+        run: >-
+          infracost output --path=/tmp/infracost.json --format=slack-message
+          --show-skipped --out-file=/tmp/infracost_slack_message.json
+      - name: Check the Slack message
+        run: >-
+          diff /tmp/infracost_slack_message.json
+          ./testdata/slack_slack_message_golden.json
+        if: env.UPDATE_GOLDEN_FILES != 'true'
+      - name: Update the golden Slack message file
+        run: >-
+          cp /tmp/infracost_slack_message.json
+          ./testdata/slack_slack_message_golden.json
+        if: env.UPDATE_GOLDEN_FILES == 'true'
   terraform-cloud-enterprise:
     name: Terraform Cloud/Enterprise
     runs-on: ubuntu-latest
