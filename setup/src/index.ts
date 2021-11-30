@@ -101,6 +101,7 @@ async function getAllVersions(): Promise<string[]> {
 
 function exportEnvVars(): void {
   core.exportVariable('INFRACOST_GITHUB_ACTION', true);
+  core.exportVariable('INFRACOST_SKIP_UPDATE_CHECK', true);
 
   const repoUrl =
     github.context.payload.repository?.html_url ||

@@ -15328,6 +15328,7 @@ function getAllVersions() {
 function exportEnvVars() {
     var _a, _b;
     core.exportVariable('INFRACOST_GITHUB_ACTION', true);
+    core.exportVariable('INFRACOST_SKIP_UPDATE_CHECK', true);
     const repoUrl = ((_a = github.context.payload.repository) === null || _a === void 0 ? void 0 : _a.html_url) ||
         `${github.context.serverUrl}/${github.context.repo.owner}/${github.context.repo.repo}`;
     const pullRequestUrl = (_b = github.context.payload.pull_request) === null || _b === void 0 ? void 0 : _b.html_url;
