@@ -17,7 +17,7 @@
   "scripts": {
     "examples:generate_tests": "./scripts/generateExamplesTests.js",
     "examples:test": "./scripts/testExamples.js",
-    "examples:update_golden": "./scripts/testExamples.js true && rm -rf workflow"
+    "examples:update_golden": "./scripts/testExamples.js true"
   },
   "devDependencies": {
     "dotenv": "^10.0.0",
