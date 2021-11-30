@@ -1,3 +1,4 @@
+# This is a placeholder action, see https://github.com/infracost/actions/ for the Infracost actions and examples of how to use them.
 name: Infracost
 description: See cloud cost estimates for Terraform in pull requests.
 
