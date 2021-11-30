@@ -1,6 +1,10 @@
 name: "Infracost Actions"
 description: See cloud cost estimates for Terraform in pull requests.
 
+author: infracost
+branding:
+  icon: trending-up
+  color: yellow
 inputs:
   path:
     description: The path that will be passed to `infracost breakdown`. This may be a path to a Terraform plan JSON or a Terraform project. Project support requires Terraform to have been installed with hashicorp/setup-terraform@v1.
