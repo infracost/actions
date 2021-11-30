@@ -36,7 +36,9 @@ child.on('exit', () => {
     for (const dir of ['.ssh', 'workflow']) {
       try {
         console.log(`Cleaning up: ${dir}`)
-        fs.rmSync(dir, { recursive: true });
+        if (fs.existsSync(dir)) {
+          fs.rmSync(dir, { recursive: true });
+        }
       } catch (err) {
         console.error(`Error while deleting ${dir}: ${err}`);
       }

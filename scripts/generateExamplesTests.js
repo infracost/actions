@@ -99,6 +99,27 @@ function fixupExamples(examples) {
               if: `env.UPDATE_GOLDEN_FILES == 'true'`,
             }
           );
+        } else if  (step.uses && step.uses.startsWith('slackapi/slack-github-action')) {
+          // Assume this path for now. If we add our own Slack action we can get this easier from an input
+          const path = '/tmp/infracost.json';
+          const goldenFilePath = `./testdata/${jobKey}_slack_message_golden.json`;
+
+          steps.push(
+            {
+              name: 'Generate Slack message',
+              run: `infracost output --path=${path} --format=slack-message --show-skipped --out-file=/tmp/infracost_slack_message.json`,
+            },
+            {
+              name: 'Check the Slack message',
+              run: `diff /tmp/infracost_slack_message.json ${goldenFilePath}`,
+              if: `env.UPDATE_GOLDEN_FILES != 'true'`,
+            },
+            {
+              name: 'Update the golden Slack message file',
+              run: `cp /tmp/infracost_slack_message.json ${goldenFilePath}`,
+              if: `env.UPDATE_GOLDEN_FILES == 'true'`,
+            }
+          );
         } else {
           // Replace infracost/actions steps with the local path
           steps.push({
