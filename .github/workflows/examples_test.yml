@@ -133,6 +133,47 @@ jobs:
           cp /tmp/infracost_comment.md
           ./testdata/multi_terraform_workspace_config_file_comment_golden.md
         if: env.UPDATE_GOLDEN_FILES == 'true'
+  private-terraform-module:
+    name: Private Terraform module
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_wrapper: false
+      - name: add GIT_SSH_KEY
+        run: >
+          mkdir -p .ssh
+
+          echo "${{ secrets.GIT_SSH_KEY }}" > .ssh/git_ssh_key
+
+          chmod 400 .ssh/git_ssh_key
+
+          echo "GIT_SSH_COMMAND=ssh -i $(pwd)/.ssh/git_ssh_key -o
+          'StrictHostKeyChecking=no'" >> $GITHUB_ENV
+      - name: Setup Infracost
+        uses: ./setup
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+      - name: Run Infracost
+        run: >-
+          infracost breakdown --path=examples/private-terraform-module/code
+          --format=json --out-file=/tmp/infracost.json
+      - name: Generate Infracost comment
+        run: >-
+          infracost output --path=/tmp/infracost.json --format=github-comment
+          --show-skipped --out-file=/tmp/infracost_comment.md
+      - name: Check the comment
+        run: >-
+          diff /tmp/infracost_comment.md
+          ./testdata/private-terraform-module_comment_golden.md
+        if: env.UPDATE_GOLDEN_FILES != 'true'
+      - name: Update the golden comment file
+        run: >-
+          cp /tmp/infracost_comment.md
+          ./testdata/private-terraform-module_comment_golden.md
+        if: env.UPDATE_GOLDEN_FILES == 'true'
   slack:
     name: Slack
     runs-on: ubuntu-latest

@@ -9,8 +9,7 @@
 
 # Act artifacts
 .act
-
-# Act workflow
+.ssh
 /workflow
 
 # Logs
