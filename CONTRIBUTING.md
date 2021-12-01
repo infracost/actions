@@ -72,3 +72,11 @@ export GITHUB_TOKEN=<GITHUB_PERSONAL_ACCESS_TOKEN>
 npm run examples:update_golden
 ```
 
+# Releases
+
+One of the Infracost team members should follow these steps to release this repo:
+1. `git checkout master && git pull origin master`
+2. `git tag vX.Y.Z && git push origin vX.Y.Z` (following semantic versioning)
+3. `git tag -f v1 && git push origin v1 -f` (assuming the new release is backward compatible with v1)
+4. Confirm that the [repo tags](https://github.com/infracost/actions/tags) show matching git SHAs for vX.Y.X and v1.
+5. Create a release for v.X.Y.Z and publish it in the [GitHub Marketplace](https://github.com/marketplace/actions/infracost-actions).
