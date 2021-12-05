@@ -5,7 +5,7 @@ inputs:
     description: Your Infracost API key. It can be retrieved by running `infracost configure get api_key`. If you don't have one, download Infracost (https://www.infracost.io/docs/#quick-start) and run `infracost register` to get a free API key.
     required: true
   version:
-    description: Version of Infracost CLI to install. Semver Ranges (https://www.npmjs.com/package/semver#ranges) are supported.
+    description: Version of Infracost CLI to install. SemVer ranges (https://www.npmjs.com/package/semver#ranges) are supported.
     required: false
     default: 0.9.x
   currency:
