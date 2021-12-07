@@ -18,7 +18,7 @@ jobs:
       - name: Install terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_wrapper: false # This is required so the `terraform show` command outputs valid JSON
+          terraform_wrapper: false # This is recommended so the `terraform show` command outputs valid JSON
 
       # IMPORTANT: add any required steps here to setup cloud credentials so Terraform can run
 
