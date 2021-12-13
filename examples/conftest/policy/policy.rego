@@ -36,8 +36,7 @@ deny_instanceCost[msg] {
 	iopsHourlyCost > baseHourlyCost
 
 	msg := sprintf(
-		"AWS instance IOPS must cost less than the instance usage " +
-		"(%s IOPS costs $%.2f\\hr, usage costs $%.2f\\hr).",
+		"AWS instance IOPS must cost less than usage (%s IOPS $%.2f\\hr, usage $%.2f\\hr).",
 		[r.name, iopsHourlyCost, baseHourlyCost],
 	)
 }
