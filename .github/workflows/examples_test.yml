@@ -8,6 +8,28 @@ defaults:
   run:
     shell: bash
 jobs:
+  conftest:
+    name: Conftest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Infracost
+        uses: ./setup
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+      - name: Setup Conftest
+        uses: artis3n/setup-conftest@v0
+        with:
+          conftest_wrapper: false
+      - name: Run Infracost
+        run: >-
+          infracost breakdown --path=examples/conftest/code/plan.json
+          --format=json --out-file=/tmp/infracost.json
+      - name: Check Conftest Policies
+        id: conftest
+        run: >-
+          conftest test --policy examples/conftest/policy --output github
+          /tmp/infracost.json > /tmp/conftest.md
   multi_project_config_file:
     name: Multi-project config file
     runs-on: ubuntu-latest
