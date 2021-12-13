@@ -29,7 +29,7 @@ jobs:
         id: conftest
         run: >-
           conftest test --policy examples/conftest/policy --output github
-          /tmp/infracost.json > /tmp/conftest.md
+          /tmp/infracost.json
   multi_project_config_file:
     name: Multi-project config file
     runs-on: ubuntu-latest

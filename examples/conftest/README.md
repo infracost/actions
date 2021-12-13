@@ -68,6 +68,6 @@ jobs:
 
       - name: Check Conftest Policies
         id: conftest
-        run: conftest test --policy examples/conftest/policy --output github /tmp/infracost.json > /tmp/conftest.md                 
+        run: conftest test --policy examples/conftest/policy --output github /tmp/infracost.json             
 ```
 [//]: <> (END EXAMPLE)
