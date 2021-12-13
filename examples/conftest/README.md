@@ -1,8 +1,8 @@
 # Conftest Example
 
-This example shows how to set thresholds and cost policies using conftest.  For simplicity, this is based off the terraform-plan-json example, which does not require Terraform to be installed.
+This example shows how to set cost policies using [Conftest](https://www.conftest.dev/).  For simplicity, this is based off the terraform-plan-json example, which does not require Terraform to be installed.
 
-Create a policy file that checks the infracost JSON: 
+Create a policy file that checks the Infracost JSON: 
 ```rego
 package main
 
@@ -48,7 +48,7 @@ deny_instanceCost[msg] {
 }
 ```
 
-Then use conftest to test check infrastructure cost changes against the policy.
+Then use Conftest to test check infrastructure cost changes against the policy.
 
 [//]: <> (BEGIN EXAMPLE)
 ```yml

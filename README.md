@@ -104,7 +104,7 @@ The [examples](examples) directory demonstrates how these actions can be used in
   - [Multi-Terraform workspace](examples/multi-terraform-workspace): multiple Terraform workspaces using the Infracost [config file](https://www.infracost.io/docs/multi_project/config_file)
   - [Private Terraform module](examples/private-terraform-module): a Terraform project using a private Terraform module
   - [Thresholds](examples/thresholds): only post a comment when cost thresholds are exceeded
-  - [Conftest](examples/conftest): check Infracost cost estimates against OPA policies using Conftest
+  - [Conftest](examples/conftest): check Infracost cost estimates against policies using Conftest
   - [Slack](examples/slack): send cost estimates to Slack
 
 ## Actions
