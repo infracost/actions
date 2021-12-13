@@ -27,9 +27,7 @@ jobs:
           --format=json --out-file=/tmp/infracost.json
       - name: Check Conftest Policies
         id: conftest
-        run: >-
-          conftest test --policy examples/conftest/policy --output github
-          /tmp/infracost.json
+        run: conftest test --policy examples/conftest/policy /tmp/infracost.json
   multi_project_config_file:
     name: Multi-project config file
     runs-on: ubuntu-latest
