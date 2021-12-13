@@ -1,9 +1,10 @@
 package main
 
 deny_totalDiff[msg] {
-  to_number(input.diffTotalMonthlyCost) >= 100
+  maxDiff = 100.0
+  to_number(input.diffTotalMonthlyCost) >= maxDiff
 
-  msg := sprintf("Total monthly cost diff must be < $1500 (actual diff is $%.2f)", [to_number(input.diffTotalMonthlyCost)])
+  msg := sprintf("Total monthly cost diff must be < $%.2f (actual diff is $%.2f)", [maxDiff, to_number(input.diffTotalMonthlyCost)])
 }
 
 deny_instanceCost[msg] {
