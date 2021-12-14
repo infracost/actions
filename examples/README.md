@@ -10,6 +10,7 @@ All examples post a single comment on pull requests, which gets updated as more 
 - [Multi-project using build matrix](multi-project/README.md#using-github-actions-build-matrix): multiple Terraform projects using GitHub Actions build matrix
 - [Multi-Terraform workspace](multi-terraform-workspace): multiple Terraform workspaces using the Infracost config file
 - [Thresholds](thresholds): only post a comment when cost thresholds are exceeded
+- [Conftest](conftest): check Infracost cost estimates against policies using Conftest
 - [Slack](slack): send cost estimates to Slack
 
 See the [contributing](../CONTRIBUTING.md) guide if you'd like to add an example.
