@@ -23,7 +23,7 @@ deny_instanceCost[msg] {
 	)
 }
 
-deny_instanceCost[msg] {
+deny_instanceIOPSCost[msg] {
 	r := input.projects[_].breakdown.resources[_]
 	startswith(r.name, "aws_instance.")
 
