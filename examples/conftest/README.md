@@ -2,6 +2,8 @@
 
 This example shows how to set cost policies using [Conftest](https://www.conftest.dev/).  For simplicity, this is based off the terraform-plan-json example, which does not require Terraform to be installed.
 
+When the policy checks pass, the GitHub Action step called "Check Conftest Policies" passes and outputs `3 tests, 3 passed, 0 warnings, 0 failures, 0 exceptions` in the action logs. When the policy checks fail, that step fails and the action logs show the details of the failing policies.
+
 Create a policy file (e.g. `policy.rego`) that checks the Infracost JSON: 
 ```rego
 package main
