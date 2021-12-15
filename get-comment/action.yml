@@ -4,6 +4,9 @@ inputs:
   target-type:
     description: The target-type set when the comment was posted (if any), either `pull-request` or `commit`.
     required: false
+  tag:
+    description: 'Customize the comment tag. This is added to the comment as a markdown comment to detect the previously posted comments. This is useful if you have multiple workflows that post comments to the same pull request or commit.'
+    required: false
   github-token:
     description: 'Default to {{ github.token }}. This is the default GitHub token available to actions and is used to get comments.'
     default: '${{ github.token }}'
@@ -21,6 +24,7 @@ runs:
       with:
         behavior: latest
         target-type: ${{ inputs.target-type }}
+        tag: ${{ inputs.tag }}
         github-token: ${{ inputs.github-token }}
 
 

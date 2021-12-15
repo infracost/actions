@@ -22,6 +22,8 @@ The action supports the following inputs:
 
 - `target-type`: Optional. The target-type set when the comment was posted (if any), either `pull_request` or `commit`.
 
+- `tag`: Optional. Customize the comment tag. This is added to the comment as a markdown comment to detect the previously posted comments. This is useful if you have multiple workflows that post comments to the same pull request or commit.
+
 - `github-token`: Optional, default to `${{ github.token }}`. This is the default GitHub token available to actions and is used to get comments.
 
 ## Outputs
