@@ -24,6 +24,7 @@ runs:
       with:
         behavior: latest
         target-type: ${{ inputs.target-type }}
+        tag: ${{ inputs.tag }}
         github-token: ${{ inputs.github-token }}
 
 
