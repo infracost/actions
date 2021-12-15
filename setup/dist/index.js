@@ -15327,6 +15327,7 @@ function getAllVersions() {
 }
 function exportEnvVars() {
     var _a, _b;
+    core.exportVariable('INFRACOST_PARALLELISM', 1); // TODO: remove this once we have fixed race conditions https://github.com/infracost/infracost/issues/1202
     core.exportVariable('INFRACOST_GITHUB_ACTION', true);
     core.exportVariable('INFRACOST_SKIP_UPDATE_CHECK', true);
     const repoUrl = ((_a = github.context.payload.repository) === null || _a === void 0 ? void 0 : _a.html_url) ||

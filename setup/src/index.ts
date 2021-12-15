@@ -100,6 +100,7 @@ async function getAllVersions(): Promise<string[]> {
 }
 
 function exportEnvVars(): void {
+  core.exportVariable('INFRACOST_PARALLELISM', 1) // TODO: remove this once we have fixed race conditions https://github.com/infracost/infracost/issues/1202
   core.exportVariable('INFRACOST_GITHUB_ACTION', true);
   core.exportVariable('INFRACOST_SKIP_UPDATE_CHECK', true);
 
