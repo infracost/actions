@@ -26,7 +26,6 @@ jobs:
           infracost breakdown --path=examples/conftest/code/plan.json
           --format=json --out-file=/tmp/infracost.json
       - name: Check Conftest Policies
-        id: conftest
         run: conftest test --policy examples/conftest/policy /tmp/infracost.json
   multi_project_config_file:
     name: Multi-project config file
@@ -399,7 +398,7 @@ jobs:
             }
 
             console.log(`percent-change: ${percentChange}`);
-            console.log(`cost-change: ${costChange}`); 
+            console.log(`cost-change: ${costChange}`);
 
             // Set the calculated diffs as outputs to be used in future steps
             core.setOutput('absolute-percent-change', absolutePercentChange);

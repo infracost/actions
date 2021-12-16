@@ -50,7 +50,7 @@ deny_instanceCost[msg] {
 }
 ```
 
-Then use Conftest to test check infrastructure cost changes against the policy.
+Then use Conftest to test infrastructure cost changes against the policy.
 
 [//]: <> (BEGIN EXAMPLE)
 ```yml
@@ -79,7 +79,6 @@ jobs:
         run: infracost breakdown --path=examples/conftest/code/plan.json --format=json --out-file=/tmp/infracost.json
 
       - name: Check Conftest Policies
-        id: conftest
         run: conftest test --policy examples/conftest/policy /tmp/infracost.json             
 ```
 [//]: <> (END EXAMPLE)

@@ -5,7 +5,7 @@ deny_totalDiff[msg] {
 	to_number(input.diffTotalMonthlyCost) >= maxDiff
 
 	msg := sprintf(
-		"Total monthly cost diff must be < $%.2f (actual diff is $%.2f)",
+		"Total monthly cost diff must be less than $%.2f (actual diff is $%.2f)",
 		[maxDiff, to_number(input.diffTotalMonthlyCost)],
 	)
 }
@@ -36,7 +36,7 @@ deny_instanceIOPSCost[msg] {
 	iopsHourlyCost > baseHourlyCost
 
 	msg := sprintf(
-		"AWS instance IOPS must cost less than usage (%s IOPS $%.2f\\hr, usage $%.2f\\hr).",
+		"AWS instance IOPS must cost less than compute usage (%s IOPS $%.2f\\hr, usage $%.2f\\hr).",
 		[r.name, iopsHourlyCost, baseHourlyCost],
 	)
 }
