@@ -28,8 +28,8 @@ The action supports the following inputs:
 
     ```yml
     steps:
-      - name: Infracost comment
-        uses: infracost/actions/comment@v1
+      - name: Infracost get comment
+        uses: infracost/actions/get-comment@v1
         with:
           ...
         permissions:
