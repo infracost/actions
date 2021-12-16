@@ -28,9 +28,19 @@ The action supports the following inputs:
 
 - `target-type`: Optional. Which objects should be commented on, either `pull-request` or `commit`.
 
-- `tag`: Optional. Customize the comment tag. This is added to the comment as a markdown comment to detect the previously posted comments. This is useful if you have multiple workflows that post comments to the same pull request or commit.
+- `tag`: Optional. Customize the comment tag. This is added to the comment as a markdown comment (hidden) to detect the previously posted comments. This is useful if you have multiple workflows that post comments to the same pull request or commit.
 
-- `github-token`: Optional, default to `${{ github.token }}`. This is the default GitHub token available to actions and is used to post comments.
+- `github-token`: Optional, default to `${{ github.token }}`. This is the default GitHub token available to actions and is used to post comments. The default [token permissions](https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#permissions) work fine; `pull-requests: write` is required if you need to customize these.
+
+    ```yml
+    steps:
+      - name: Infracost comment
+        uses: infracost/actions/comment@v1
+        with:
+          ...
+        permissions:
+          pull-requests: write
+    ```
 
 ## Outputs
 
