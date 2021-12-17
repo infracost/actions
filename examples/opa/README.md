@@ -14,7 +14,7 @@ deny[msg] {
 	to_number(input.diffTotalMonthlyCost) >= maxDiff
 
 	msg := sprintf(
-		"Total monthly cost diff must be < $%.2f (actual diff is $%.2f)",
+		"Total monthly cost diff must be less than $%.2f (actual diff is $%.2f)",
 		[maxDiff, to_number(input.diffTotalMonthlyCost)],
 	)
 }
