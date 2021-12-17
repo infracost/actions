@@ -1,24 +1,26 @@
-# Conftest Example
+# Open Policy Agent Example
 
-This example shows how to set cost policies using [Conftest](https://www.conftest.dev/).  For simplicity, this is based off the terraform-plan-json example, which does not require Terraform to be installed.
+This example shows how to set cost policies using [Open Policy Agent](https://www.openpolicyagent.org/).  For simplicity, this is based off the terraform-plan-json example, which does not require Terraform to be installed.
 
-When the policy checks pass, the GitHub Action step called "Check Conftest Policies" passes and outputs `3 tests, 3 passed, 0 warnings, 0 failures, 0 exceptions` in the action logs. When the policy checks fail, that step fails and the action logs show the details of the failing policies.
+When the policy checks pass, the GitHub Action step called "Check Policies" passes and outputs `Policy check passed.` in the action logs. When the policy checks fail, that step fails and the action logs show the details of the failing policies.
 
 Create a policy file (e.g. `policy.rego`) that checks the Infracost JSON: 
 ```rego
-package main
+package infracost
 
-deny_totalDiff[msg] {
+# totalDiff
+deny[msg] {
 	maxDiff = 1500.0
 	to_number(input.diffTotalMonthlyCost) >= maxDiff
 
 	msg := sprintf(
-		"Total monthly cost diff must be < $%.2f (actual diff is $%.2f)",
+		"Total monthly cost diff must be less than $%.2f (actual diff is $%.2f)",
 		[maxDiff, to_number(input.diffTotalMonthlyCost)],
 	)
 }
 
-deny_instanceCost[msg] {
+# instanceCost
+deny[msg] {
 	r := input.projects[_].breakdown.resources[_]
 	startswith(r.name, "aws_instance.")
 
@@ -31,7 +33,8 @@ deny_instanceCost[msg] {
 	)
 }
 
-deny_instanceCost[msg] {
+# instanceIOPSCost
+deny[msg] {
 	r := input.projects[_].breakdown.resources[_]
 	startswith(r.name, "aws_instance.")
 
@@ -50,16 +53,16 @@ deny_instanceCost[msg] {
 }
 ```
 
-Then use Conftest to test infrastructure cost changes against the policy.
+Then use OPA to test infrastructure cost changes against the policy.
 
 [//]: <> (BEGIN EXAMPLE)
 ```yml
-name: Conftest
+name: Open Policy Agent
 on: [pull_request]
 
 jobs:
-  conftest:
-    name: Conftest
+  open-policy-agent:
+    name: Open Policy Agent
     runs-on: ubuntu-latest
 
     steps:
@@ -70,15 +73,23 @@ jobs:
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
 
-      - name: Setup Conftest
-        uses: artis3n/setup-conftest@v0
-        with:
-          conftest_wrapper: false
+      - name: Setup OPA
+        uses: infracost/setup-opa@v1
 
       - name: Run Infracost
         run: infracost breakdown --path=examples/conftest/code/plan.json --format=json --out-file=/tmp/infracost.json
+        
+      - name: Run OPA
+        run: opa eval --input /tmp/infracost.json -d examples/opa/policy/policy.rego --format pretty "data.infracost.deny" | tee /tmp/opa.out
 
-      - name: Check Conftest Policies
-        run: conftest test --policy examples/conftest/policy /tmp/infracost.json             
+      - name: Check Policies
+        run: |
+          denyReasons=$(</tmp/opa.out)
+          if [ "$denyReasons" != "[]" ]; then
+            echo -e "::error::Policy check failed:\n$denyReasons"
+            exit 1
+          else
+            echo "::info::Policy check passed."
+          fi
 ```
 [//]: <> (END EXAMPLE)

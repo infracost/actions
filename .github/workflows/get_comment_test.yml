@@ -48,7 +48,7 @@ jobs:
           )
 
           if [ "$actual" != "$expected" ]; then
-            echo "error::Expected comment '$expected' got '$actual'"
+            echo "::error::Expected comment '$expected' got '$actual'"
             exit 1
           fi
 

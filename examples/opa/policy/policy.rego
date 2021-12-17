@@ -1,6 +1,7 @@
-package main
+package infracost
 
-deny_totalDiff[msg] {
+# totalDiff
+deny[msg] {
 	maxDiff = 1500.0
 	to_number(input.diffTotalMonthlyCost) >= maxDiff
 
@@ -10,7 +11,8 @@ deny_totalDiff[msg] {
 	)
 }
 
-deny_instanceCost[msg] {
+# instanceCost
+deny[msg] {
 	r := input.projects[_].breakdown.resources[_]
 	startswith(r.name, "aws_instance.")
 
@@ -23,7 +25,8 @@ deny_instanceCost[msg] {
 	)
 }
 
-deny_instanceIOPSCost[msg] {
+# instanceIOPSCost
+deny[msg] {
 	r := input.projects[_].breakdown.resources[_]
 	startswith(r.name, "aws_instance.")
 
