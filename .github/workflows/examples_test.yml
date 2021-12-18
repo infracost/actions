@@ -152,6 +152,35 @@ jobs:
           cp /tmp/infracost_comment.md
           ./testdata/multi_terraform_workspace_config_file_comment_golden.md
         if: env.UPDATE_GOLDEN_FILES == 'true'
+  open-policy-agent:
+    name: Open Policy Agent
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Infracost
+        uses: ./setup
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+      - name: Setup OPA
+        uses: infracost/setup-opa@v1
+      - name: Run Infracost
+        run: >-
+          infracost breakdown --path=examples/conftest/code/plan.json
+          --format=json --out-file=/tmp/infracost.json
+      - name: Run OPA
+        run: >-
+          opa eval --input /tmp/infracost.json -d
+          examples/opa/policy/policy.rego --format pretty "data.infracost.deny"
+          | tee /tmp/opa.out
+      - name: Check Policies
+        run: |
+          denyReasons=$(</tmp/opa.out)
+          if [ "$denyReasons" != "[]" ]; then
+            echo -e "::error::Policy check failed:\n$denyReasons"
+            exit 1
+          else
+            echo "::info::Policy check passed."
+          fi
   private-terraform-module:
     name: Private Terraform module
     runs-on: ubuntu-latest
@@ -193,6 +222,34 @@ jobs:
           cp /tmp/infracost_comment.md
           ./testdata/private-terraform-module_comment_golden.md
         if: env.UPDATE_GOLDEN_FILES == 'true'
+  sentinel:
+    name: Sentinel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Infracost
+        uses: ./setup
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+      - name: Setup Sentinel
+        uses: innovationnorway/setup-sentinel@v1
+      - name: Run Infracost
+        run: >-
+          infracost breakdown --path=examples/sentinel/code/plan.json
+          --format=json --out-file=/tmp/infracost.json
+      - name: Run Sentinel
+        run: >-
+          sentinel apply -global breakdown="$(cat /tmp/infracost.json)"
+          examples/sentinel/policy/policy.policy | tee /tmp/sentinel.out
+      - name: Check Policies
+        run: |
+          result=$(</tmp/sentinel.out)
+          if [ "$result" != "Pass - policy.policy" ]; then
+            echo -e "::error::Policy check failed:\n$result"
+            exit 1
+          else
+            echo "::info::Policy check passed."
+          fi
   slack:
     name: Slack
     runs-on: ubuntu-latest
@@ -398,7 +455,7 @@ jobs:
             }
 
             console.log(`percent-change: ${percentChange}`);
-            console.log(`cost-change: ${costChange}`);
+            console.log(`cost-change: ${costChange}`); 
 
             // Set the calculated diffs as outputs to be used in future steps
             core.setOutput('absolute-percent-change', absolutePercentChange);

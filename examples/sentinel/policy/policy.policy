@@ -1,0 +1,48 @@
+import "strings"
+
+limitTotalDiff = rule {
+    float(breakdown.totalMonthlyCost) < 1500
+}
+
+awsInstances = filter breakdown.projects[0].breakdown.resources as _, resource {
+	strings.split(resource.name, ".")[0] is "aws_instance"
+}
+
+limitInstanceCost = rule {
+  all awsInstances as _, instance {
+  	float(instance.hourlyCost) <= 2.00
+  }
+}
+
+instanceBaseCost = func(instance) {
+  cost = 0.0
+ 	for instance.costComponents as cc {
+    cost += float(cc.hourlyCost)
+  }
+  return cost
+}
+
+instanceIOPSCost = func(instance) {
+  cost = 0.0
+ 	for instance.subresources as sr {
+    for sr.costComponents as cc {
+      if cc.name == "Provisioned IOPS" {
+        cost += float(cc.hourlyCost)
+      }
+    }
+  }
+  return cost
+}
+
+limitInstanceIOPSCost = rule {
+   all awsInstances as _, instance {
+  	instanceIOPSCost(instance) <= instanceBaseCost(instance)
+  }
+}
+
+main = rule {
+    limitTotalDiff and
+    limitInstanceCost and
+    limitInstanceIOPSCost
+}
+

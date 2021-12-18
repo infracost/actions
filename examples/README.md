@@ -12,6 +12,7 @@ All examples post a single comment on pull requests, which gets updated as more 
 - [Thresholds](thresholds): only post a comment when cost thresholds are exceeded
 - [Conftest](conftest): check Infracost cost estimates against policies using Conftest
 - [OPA](opa): check Infracost cost estimates against policies using Open Policy Agent
+- [Sentinel](sentinel): check Infracost cost estimates against policies using Hashicorp's Sentinel 
 - [Slack](slack): send cost estimates to Slack
 
 See the [contributing](../CONTRIBUTING.md) guide if you'd like to add an example.
