@@ -1,6 +1,6 @@
 # Cost Threshholds Example
 
-This example shows how to set thresholds that limit when a comment is posted. For simplicity, this is based off the terraform-plan-json example, which does not require Terraform to be installed.
+This example shows how to set thresholds that limit when a comment is posted. For simplicity, this is based off the terraform-plan-json example, which does not require Terraform to be installed. A similar thing can be done with bash and [jq](https://stedolan.github.io/jq/).
 
 [//]: <> (BEGIN EXAMPLE)
 ```yml

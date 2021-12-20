@@ -9,9 +9,12 @@ All examples post a single comment on pull requests, which gets updated as more 
 - [Multi-project using config file](multi-project/README.md#using-an-infracost-config-file): multiple Terraform projects using the Infracost config file
 - [Multi-project using build matrix](multi-project/README.md#using-github-actions-build-matrix): multiple Terraform projects using GitHub Actions build matrix
 - [Multi-Terraform workspace](multi-terraform-workspace): multiple Terraform workspaces using the Infracost config file
-- [Thresholds](thresholds): only post a comment when cost thresholds are exceeded
+- [Slack](slack): send cost estimates to Slack
+
+Cost policy examples:
+- [Thresholds](thresholds): only post a comment when cost thresholds are exceeded, a similar thing can be done with bash and [jq](https://stedolan.github.io/jq/)
 - [Conftest](conftest): check Infracost cost estimates against policies using Conftest
 - [OPA](opa): check Infracost cost estimates against policies using Open Policy Agent
-- [Slack](slack): send cost estimates to Slack
+- [Sentinel](sentinel): check Infracost cost estimates against policies using Hashicorp's Sentinel 
 
 See the [contributing](../CONTRIBUTING.md) guide if you'd like to add an example.
