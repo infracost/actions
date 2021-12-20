@@ -103,11 +103,13 @@ The [examples](examples) directory demonstrates how these actions can be used in
   - [Multi-project using build matrix](examples/multi-project/README.md#using-github-actions-build-matrix): multiple Terraform projects using GitHub Actions build matrix
   - [Multi-Terraform workspace](examples/multi-terraform-workspace): multiple Terraform workspaces using the Infracost [config file](https://www.infracost.io/docs/multi_project/config_file)
   - [Private Terraform module](examples/private-terraform-module): a Terraform project using a private Terraform module
-  - [Thresholds](examples/thresholds): only post a comment when cost thresholds are exceeded
-  - [Conftest](examples/conftest): check Infracost cost estimates against policies using Conftest
-  - [OPA](examples/opa): check Infracost cost estimates against policies using Open Policy Agent
-  - [Sentinel](examples/sentinel): check Infracost cost estimates against policies using Hashicorp's Sentinel
   - [Slack](examples/slack): send cost estimates to Slack
+
+Cost policy examples:
+  - [Thresholds](examples/thresholds): only post a comment when cost thresholds are exceeded, a similar thing can be done with bash and [jq](https://stedolan.github.io/jq/)
+  - [Conftest](examples/conftest): check Infracost cost estimates against policies using Conftest
+  - [OPA](examples/opa): check Infracost cost estimates against policies using Open Policy Agent (OPA)
+  - [Sentinel](examples/sentinel): check Infracost cost estimates against policies using HashiCorp's Sentinel
 
 ## Actions
 
