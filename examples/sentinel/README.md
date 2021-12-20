@@ -76,7 +76,11 @@ jobs:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
 
       - name: Setup Sentinel
-        uses: innovationnorway/setup-sentinel@v1
+        run: |
+          mkdir /tmp/sentinel
+          curl -o /tmp/sentinel/sentinel.zip https://releases.hashicorp.com/sentinel/0.18.4/sentinel_0.18.4_linux_amd64.zip
+          unzip -d /tmp/sentinel /tmp/sentinel/sentinel.zip
+          echo "/tmp/sentinel" >> $GITHUB_PATH
 
       - name: Run Infracost
         run: infracost breakdown --path=examples/sentinel/code/plan.json --format=json --out-file=/tmp/infracost.json
