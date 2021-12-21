@@ -72,6 +72,7 @@ The following steps assume a simple Terraform directory is being used, we recomm
             run: infracost breakdown --path plan.json --format json --out-file /tmp/infracost.json
             working-directory: ${{ env.working-directory }}
             # Env vars can be set using the usual GitHub Actions syntax
+            # See the list of supported Infracost env vars here: https://www.infracost.io/docs/integrations/environment_variables/
             # env:
             #   MY_ENV: ${{ secrets.MY_ENV }}
 
