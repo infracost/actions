@@ -34,7 +34,7 @@ The examples are then modified in two ways:
 
 All the examples are then added to the `examples_test` GitHub Actions workflow as separate jobs.
 
-The script that handles extracting and modifying the examples is [./scripts/generateExamplesTest.js]()./scripts/generateExamplesTest.js
+The script that handles extracting and modifying the examples is [./scripts/generateExamplesTest.js](./scripts/generateExamplesTest.js)
 
 ### Testing locally
 
