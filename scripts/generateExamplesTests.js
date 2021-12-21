@@ -90,7 +90,7 @@ function fixupExamples(examples) {
             },
             {
               name: 'Check the comment',
-              run: `diff /tmp/infracost_comment.md ${goldenFilePath}`,
+              run: `diff ${goldenFilePath} /tmp/infracost_comment.md`,
               if: `env.UPDATE_GOLDEN_FILES != 'true'`,
             },
             {
@@ -111,7 +111,7 @@ function fixupExamples(examples) {
             },
             {
               name: 'Check the Slack message',
-              run: `diff /tmp/infracost_slack_message.json ${goldenFilePath}`,
+              run: `diff ${goldenFilePath} /tmp/infracost_slack_message.json`,
               if: `env.UPDATE_GOLDEN_FILES != 'true'`,
             },
             {
