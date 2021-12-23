@@ -47,7 +47,7 @@ jobs:
             }
 
             console.log(`percent-change: ${percentChange}`);
-            console.log(`cost-change: ${costChange}`); 
+            console.log(`absolute-percent-change: ${absolutePercentChange}`); 
 
             // Set the calculated diffs as outputs to be used in future steps
             core.setOutput('absolute-percent-change', absolutePercentChange);
