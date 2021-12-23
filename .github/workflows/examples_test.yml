@@ -51,8 +51,8 @@ jobs:
           --show-skipped --out-file=/tmp/infracost_comment.md
       - name: Check the comment
         run: >-
-          diff /tmp/infracost_comment.md
-          ./testdata/multi_project_config_file_comment_golden.md
+          diff ./testdata/multi_project_config_file_comment_golden.md
+          /tmp/infracost_comment.md
         if: env.UPDATE_GOLDEN_FILES != 'true'
       - name: Update the golden comment file
         run: >-
@@ -112,8 +112,8 @@ jobs:
           --out-file=/tmp/infracost_comment.md
       - name: Check the comment
         run: >-
-          diff /tmp/infracost_comment.md
-          ./testdata/multi_project_matrix_merge_comment_golden.md
+          diff ./testdata/multi_project_matrix_merge_comment_golden.md
+          /tmp/infracost_comment.md
         if: env.UPDATE_GOLDEN_FILES != 'true'
       - name: Update the golden comment file
         run: >-
@@ -144,8 +144,9 @@ jobs:
           --show-skipped --out-file=/tmp/infracost_comment.md
       - name: Check the comment
         run: >-
-          diff /tmp/infracost_comment.md
+          diff
           ./testdata/multi_terraform_workspace_config_file_comment_golden.md
+          /tmp/infracost_comment.md
         if: env.UPDATE_GOLDEN_FILES != 'true'
       - name: Update the golden comment file
         run: >-
@@ -214,8 +215,8 @@ jobs:
           --show-skipped --out-file=/tmp/infracost_comment.md
       - name: Check the comment
         run: >-
-          diff /tmp/infracost_comment.md
-          ./testdata/private-terraform-module_comment_golden.md
+          diff ./testdata/private-terraform-module_comment_golden.md
+          /tmp/infracost_comment.md
         if: env.UPDATE_GOLDEN_FILES != 'true'
       - name: Update the golden comment file
         run: >-
@@ -276,7 +277,7 @@ jobs:
           infracost output --path=/tmp/infracost.json --format=github-comment
           --show-skipped --out-file=/tmp/infracost_comment.md
       - name: Check the comment
-        run: diff /tmp/infracost_comment.md ./testdata/slack_comment_golden.md
+        run: diff ./testdata/slack_comment_golden.md /tmp/infracost_comment.md
         if: env.UPDATE_GOLDEN_FILES != 'true'
       - name: Update the golden comment file
         run: cp /tmp/infracost_comment.md ./testdata/slack_comment_golden.md
@@ -295,8 +296,8 @@ jobs:
           --show-skipped --out-file=/tmp/infracost_slack_message.json
       - name: Check the Slack message
         run: >-
-          diff /tmp/infracost_slack_message.json
-          ./testdata/slack_slack_message_golden.json
+          diff ./testdata/slack_slack_message_golden.json
+          /tmp/infracost_slack_message.json
         if: env.UPDATE_GOLDEN_FILES != 'true'
       - name: Update the golden Slack message file
         run: >-
@@ -329,8 +330,8 @@ jobs:
           --show-skipped --out-file=/tmp/infracost_comment.md
       - name: Check the comment
         run: >-
-          diff /tmp/infracost_comment.md
-          ./testdata/terraform-cloud-enterprise_comment_golden.md
+          diff ./testdata/terraform-cloud-enterprise_comment_golden.md
+          /tmp/infracost_comment.md
         if: env.UPDATE_GOLDEN_FILES != 'true'
       - name: Update the golden comment file
         run: >-
@@ -360,8 +361,8 @@ jobs:
           --show-skipped --out-file=/tmp/infracost_comment.md
       - name: Check the comment
         run: >-
-          diff /tmp/infracost_comment.md
-          ./testdata/terraform-directory_comment_golden.md
+          diff ./testdata/terraform-directory_comment_golden.md
+          /tmp/infracost_comment.md
         if: env.UPDATE_GOLDEN_FILES != 'true'
       - name: Update the golden comment file
         run: >-
@@ -387,8 +388,8 @@ jobs:
           --show-skipped --out-file=/tmp/infracost_comment.md
       - name: Check the comment
         run: >-
-          diff /tmp/infracost_comment.md
-          ./testdata/terraform-plan-json_comment_golden.md
+          diff ./testdata/terraform-plan-json_comment_golden.md
+          /tmp/infracost_comment.md
         if: env.UPDATE_GOLDEN_FILES != 'true'
       - name: Update the golden comment file
         run: >-
@@ -421,7 +422,7 @@ jobs:
           infracost output --path=/tmp/infracost.json --format=github-comment
           --show-skipped --out-file=/tmp/infracost_comment.md
       - name: Check the comment
-        run: diff /tmp/infracost_comment.md ./testdata/terragrunt_comment_golden.md
+        run: diff ./testdata/terragrunt_comment_golden.md /tmp/infracost_comment.md
         if: env.UPDATE_GOLDEN_FILES != 'true'
       - name: Update the golden comment file
         run: cp /tmp/infracost_comment.md ./testdata/terragrunt_comment_golden.md
@@ -463,7 +464,7 @@ jobs:
             }
 
             console.log(`percent-change: ${percentChange}`);
-            console.log(`cost-change: ${costChange}`); 
+            console.log(`absolute-percent-change: ${absolutePercentChange}`); 
 
             // Set the calculated diffs as outputs to be used in future steps
             core.setOutput('absolute-percent-change', absolutePercentChange);
@@ -475,7 +476,7 @@ jobs:
           infracost output --path=/tmp/infracost.json --format=github-comment
           --show-skipped --out-file=/tmp/infracost_comment.md
       - name: Check the comment
-        run: diff /tmp/infracost_comment.md ./testdata/thresholds_comment_golden.md
+        run: diff ./testdata/thresholds_comment_golden.md /tmp/infracost_comment.md
         if: env.UPDATE_GOLDEN_FILES != 'true'
       - name: Update the golden comment file
         run: cp /tmp/infracost_comment.md ./testdata/thresholds_comment_golden.md
