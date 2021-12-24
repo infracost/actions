@@ -33,26 +33,26 @@ jobs:
             const past = breakdown.pastTotalMonthlyCost;
             const current = breakdown.totalMonthlyCost;
             const costChange = breakdown.diffTotalMonthlyCost;
+            const absoluteCostChange = Math.abs(costChange);
+
+            // Calculate the percent change
+            let percentChange = 999; // default to a high number so we post a comment if there's no past cost
+            if (past !== "0") {
+              percentChange = 100 * ((current - past) / past);
+            }
+            const absolutePercentChange = Math.abs(percentChange);
 
             console.log(`past: ${past}`);
             console.log(`current: ${current}`);
-            console.log(`costChange: ${costChange}`);
-            
-            // Calculate the percent change
-            let percentChange = 0;
-            let absolutePercentChange = 0;
-            if (past !== "0") {
-              percentChange = 100 * ((current - past) / past);
-              absolutePercentChange = Math.abs(percentChange);
-            }
-
+            console.log(`cost-change: ${costChange}`);
+            console.log(`absolute-cost-change: ${absoluteCostChange}`);
             console.log(`percent-change: ${percentChange}`);
-            console.log(`absolute-percent-change: ${absolutePercentChange}`); 
+            console.log(`absolute-percent-change: ${absolutePercentChange}`);
 
             // Set the calculated diffs as outputs to be used in future steps
             core.setOutput('absolute-percent-change', absolutePercentChange);
             core.setOutput('percent-change', percentChange);
-            core.setOutput('absolute-cost-change', Math.abs(costChange) );
+            core.setOutput('absolute-cost-change', absoluteCostChange );
             core.setOutput('cost-change', costChange);
 
       - name: Post the comment
