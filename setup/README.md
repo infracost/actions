@@ -26,6 +26,8 @@ The action supports the following inputs:
 
 - `pricing-api-endpoint`: Optional. For [self-hosted](https://www.infracost.io/docs/cloud_pricing_api/self_hosted) users, endpoint of the Cloud Pricing API, e.g. https://cloud-pricing-api.
 
+- `enable-dashboard`: Optional, defaults to `false`. Enables [Infracost dashboard features](https://www.infracost.io/docs/features/share_links), not supported for self-hosted Cloud Pricing API.
+
 ## Outputs
 
 This action does not set any direct outputs.
