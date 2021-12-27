@@ -15395,6 +15395,18 @@ function setup() {
                     throw new Error(`Error running infracost configure set pricing_api_endpoint: ${returnCode}`);
                 }
             }
+            const enableDashboard = core.getInput('enable-dashboard');
+            if (enableDashboard) {
+                const returnCode = yield exec.exec('infracost', [
+                    'configure',
+                    'set',
+                    'enable_dashboard',
+                    enableDashboard,
+                ]);
+                if (returnCode !== 0) {
+                    throw new Error(`Error running infracost configure set enable_dashboard: ${returnCode}`);
+                }
+            }
         }
         catch (e) {
             core.setFailed(e);

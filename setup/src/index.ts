@@ -188,6 +188,21 @@ async function setup(): Promise<void> {
         );
       }
     }
+
+    const enableDashboard = core.getInput('enable-dashboard');
+    if (enableDashboard) {
+      const returnCode = await exec.exec('infracost', [
+        'configure',
+        'set',
+        'enable_dashboard',
+        enableDashboard,
+      ]);
+      if (returnCode !== 0) {
+        throw new Error(
+          `Error running infracost configure set enable_dashboard: ${returnCode}`
+        );
+      }
+    }
   } catch (e) {
     core.setFailed(e as string | Error);
   }
