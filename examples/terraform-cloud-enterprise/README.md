@@ -21,7 +21,7 @@ jobs:
         uses: hashicorp/setup-terraform@v1
         with:
           terraform_wrapper: false # This is recommended so the `terraform show` command outputs valid JSON
-          cli_config_credentials_token: $${{ secrets.TFC_TOKEN }}
+          cli_config_credentials_token: ${{ secrets.TFC_TOKEN }}
           # cli_config_credentials_hostname: my-tfe-host.com # For Terraform Enterprise users only
 
       - name: Setup Infracost
