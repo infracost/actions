@@ -20,8 +20,6 @@ jobs:
         with:
           terraform_wrapper: false # This is recommended so the `terraform show` command outputs valid JSON
 
-      # IMPORTANT: add any required steps here to setup cloud credentials so Terraform can run
-
       - name: Setup Infracost
         uses: infracost/actions/setup@v1
         with:
@@ -29,6 +27,12 @@ jobs:
 
       - name: Run Infracost
         run: infracost breakdown --config-file=examples/multi-terraform-workspace/code/infracost.yml --format=json --out-file=/tmp/infracost.json
+        env:
+          # IMPORTANT: add any required secrets to setup cloud credentials so Terraform can run
+          DEV_AWS_ACCESS_KEY_ID: ${{ secrets.EXAMPLE_DEV_AWS_ACCESS_KEY_ID }}
+          DEV_AWS_SECRET_ACCESS_KEY: ${{ secrets.EXAMPLE_DEV_AWS_SECRET_ACCESS_KEY }}
+          PROD_AWS_ACCESS_KEY_ID: ${{ secrets.EXAMPLE_PROD_AWS_ACCESS_KEY_ID }}
+          PROD_AWS_SECRET_ACCESS_KEY: ${{ secrets.EXAMPLE_PROD_AWS_SECRET_ACCESS_KEY }}
 
       - name: Post the comment
         uses: infracost/actions/comment@v1
