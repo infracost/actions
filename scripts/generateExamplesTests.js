@@ -15,8 +15,8 @@ const exampleRegex =
 
 const localSkipJobs = [
   // These jobs are skipped locally until https://github.com/nektos/act/issues/769 is fixed
-  'multi_project_matrix',
-  'multi_project_matrix_merge',
+  'multi-project-matrix',
+  'multi-project-matrix-merge',
 ]
 
 const workflowTemplate = {
