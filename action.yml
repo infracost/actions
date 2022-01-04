@@ -29,7 +29,7 @@ runs:
 
     # Generate Infracost JSON output, the following docs might be useful:
     # Multi-project/workspaces: https://www.infracost.io/docs/multi_project/config_file
-    # Combine Infracost JSON files: https://www.infracost.io/docs/multi_project/report
+    # Combine Infracost JSON files: https://www.infracost.io/docs/features/config_file/
     - name: Generate Infracost JSON
       shell: bash
       run: infracost breakdown --path ${{ inputs.path }} --format json --out-file /tmp/infracost.json

@@ -66,8 +66,8 @@ The following steps assume a simple Terraform directory is being used, we recomm
               api-key: ${{ secrets.INFRACOST_API_KEY }}
 
           # Generate Infracost JSON output, the following docs might be useful:
-          # Multi-project/workspaces: https://www.infracost.io/docs/multi_project/config_file
-          # Combine Infracost JSON files: https://www.infracost.io/docs/multi_project/report
+          # Multi-project/workspaces: https://www.infracost.io/docs/features/config_file
+          # Combine Infracost JSON files: https://www.infracost.io/docs/features/cli_commands/#combined-output-formats
           - name: Generate Infracost JSON
             run: infracost breakdown --path plan.json --format json --out-file /tmp/infracost.json
             working-directory: ${{ env.working-directory }}
