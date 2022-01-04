@@ -12,7 +12,7 @@ name: Multi-project config file
 on: [pull_request]
 
 jobs:
-  multi_project_config_file:
+  multi-project-config-file:
     name: Multi-project config file
     runs-on: ubuntu-latest
 
@@ -56,7 +56,7 @@ name: Multi-project matrix
 on: [pull_request]
 
 jobs:
-  multi_project_matrix:
+  multi-project-matrix:
     name: Multi-project matrix
     runs-on: ubuntu-latest
 
@@ -97,10 +97,10 @@ jobs:
           name: infracost_jsons
           path: /tmp/infracost_${{ matrix.dir }}.json
 
-  multi_project_matrix_merge:
+  multi-project-matrix-merge:
     name: Multi-project matrix merge
     runs-on: ubuntu-latest
-    needs: [multi_project_matrix]
+    needs: [multi-project-matrix]
 
     steps:
       - uses: actions/checkout@v2

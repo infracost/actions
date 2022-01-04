@@ -27,7 +27,7 @@ jobs:
           --format=json --out-file=/tmp/infracost.json
       - name: Check Conftest Policies
         run: conftest test --policy examples/conftest/policy /tmp/infracost.json
-  multi_project_config_file:
+  multi-project-config-file:
     name: Multi-project config file
     runs-on: ubuntu-latest
     steps:
@@ -56,15 +56,15 @@ jobs:
           --show-skipped --out-file=/tmp/infracost_comment.md
       - name: Check the comment
         run: >-
-          diff ./testdata/multi_project_config_file_comment_golden.md
+          diff ./testdata/multi-project-config-file_comment_golden.md
           /tmp/infracost_comment.md
         if: env.UPDATE_GOLDEN_FILES != 'true'
       - name: Update the golden comment file
         run: >-
           cp /tmp/infracost_comment.md
-          ./testdata/multi_project_config_file_comment_golden.md
+          ./testdata/multi-project-config-file_comment_golden.md
         if: env.UPDATE_GOLDEN_FILES == 'true'
-  multi_project_matrix:
+  multi-project-matrix:
     name: Multi-project matrix
     runs-on: ubuntu-latest
     strategy:
@@ -99,11 +99,11 @@ jobs:
           name: infracost_jsons
           path: /tmp/infracost_${{ matrix.dir }}.json
     if: github.actor != 'nektos/act'
-  multi_project_matrix_merge:
+  multi-project-matrix-merge:
     name: Multi-project matrix merge
     runs-on: ubuntu-latest
     needs:
-      - multi_project_matrix
+      - multi-project-matrix
     steps:
       - uses: actions/checkout@v2
       - name: Download all Infracost breakdown files
@@ -125,16 +125,16 @@ jobs:
           --out-file=/tmp/infracost_comment.md
       - name: Check the comment
         run: >-
-          diff ./testdata/multi_project_matrix_merge_comment_golden.md
+          diff ./testdata/multi-project-matrix-merge_comment_golden.md
           /tmp/infracost_comment.md
         if: env.UPDATE_GOLDEN_FILES != 'true'
       - name: Update the golden comment file
         run: >-
           cp /tmp/infracost_comment.md
-          ./testdata/multi_project_matrix_merge_comment_golden.md
+          ./testdata/multi-project-matrix-merge_comment_golden.md
         if: env.UPDATE_GOLDEN_FILES == 'true'
     if: github.actor != 'nektos/act'
-  multi_terraform_workspace_config_file:
+  multi-terraform-workspace-config-file:
     name: Multi-Terraform workspace config file
     runs-on: ubuntu-latest
     steps:
@@ -164,13 +164,13 @@ jobs:
       - name: Check the comment
         run: >-
           diff
-          ./testdata/multi_terraform_workspace_config_file_comment_golden.md
+          ./testdata/multi-terraform-workspace-config-file_comment_golden.md
           /tmp/infracost_comment.md
         if: env.UPDATE_GOLDEN_FILES != 'true'
       - name: Update the golden comment file
         run: >-
           cp /tmp/infracost_comment.md
-          ./testdata/multi_terraform_workspace_config_file_comment_golden.md
+          ./testdata/multi-terraform-workspace-config-file_comment_golden.md
         if: env.UPDATE_GOLDEN_FILES == 'true'
   open-policy-agent:
     name: Open Policy Agent

@@ -8,7 +8,7 @@ name: Multi-terraform workspace config file
 on: [pull_request]
 
 jobs:
-  multi_terraform_workspace_config_file:
+  multi-terraform-workspace-config-file:
     name: Multi-Terraform workspace config file
     runs-on: ubuntu-latest
 
