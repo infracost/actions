@@ -12,6 +12,10 @@ let command = `act \
 -s GIT_SSH_KEY="$GIT_SSH_KEY" \
 -s INFRACOST_API_KEY=$(infracost configure get api_key) \
 -s TFC_TOKEN=$TFC_TOKEN \
+-s EXAMPLE_DEV_AWS_ACCESS_KEY_ID=mock_access_key \
+-s EXAMPLE_DEV_AWS_SECRET_ACCESS_KEY=mock_secret_key \
+-s EXAMPLE_PROD_AWS_ACCESS_KEY_ID=mock_access_key \
+-s EXAMPLE_PROD_AWS_SECRET_ACCESS_KEY=mock_secret_key \
 --artifact-server-path=.act/artifacts`;
 
 if (update) {

@@ -45,6 +45,11 @@ jobs:
           infracost breakdown
           --config-file=examples/multi-project/code/infracost.yml --format=json
           --out-file=/tmp/infracost.json
+        env:
+          DEV_AWS_ACCESS_KEY_ID: ${{ secrets.EXAMPLE_DEV_AWS_ACCESS_KEY_ID }}
+          DEV_AWS_SECRET_ACCESS_KEY: ${{ secrets.EXAMPLE_DEV_AWS_SECRET_ACCESS_KEY }}
+          PROD_AWS_ACCESS_KEY_ID: ${{ secrets.EXAMPLE_PROD_AWS_ACCESS_KEY_ID }}
+          PROD_AWS_SECRET_ACCESS_KEY: ${{ secrets.EXAMPLE_PROD_AWS_SECRET_ACCESS_KEY }}
       - name: Generate Infracost comment
         run: >-
           infracost output --path=/tmp/infracost.json --format=github-comment
@@ -64,9 +69,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        dir:
-          - dev
-          - prod
+        include:
+          - dir: dev
+            aws_access_key_id_secret: EXAMPLE_DEV_AWS_ACCESS_KEY_ID
+            aws_secret_access_key_secret: EXAMPLE_DEV_AWS_SECRET_ACCESS_KEY
+          - dir: prod
+            aws_access_key_id_secret: EXAMPLE_PROD_AWS_ACCESS_KEY_ID
+            aws_secret_access_key_secret: EXAMPLE_PROD_AWS_SECRET_ACCESS_KEY
     steps:
       - uses: actions/checkout@v2
       - name: Install Terraform
@@ -81,6 +90,9 @@ jobs:
         run: >-
           infracost breakdown --path=examples/multi-project/code/${{ matrix.dir
           }} --format=json --out-file=/tmp/infracost_${{ matrix.dir }}.json
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets[matrix.aws_access_key_id_secret] }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets[matrix.aws_secret_access_key_secret] }}
       - name: Upload Infracost breakdown
         uses: actions/upload-artifact@v2
         with:
@@ -138,6 +150,11 @@ jobs:
           infracost breakdown
           --config-file=examples/multi-terraform-workspace/code/infracost.yml
           --format=json --out-file=/tmp/infracost.json
+        env:
+          DEV_AWS_ACCESS_KEY_ID: ${{ secrets.EXAMPLE_DEV_AWS_ACCESS_KEY_ID }}
+          DEV_AWS_SECRET_ACCESS_KEY: ${{ secrets.EXAMPLE_DEV_AWS_SECRET_ACCESS_KEY }}
+          PROD_AWS_ACCESS_KEY_ID: ${{ secrets.EXAMPLE_PROD_AWS_ACCESS_KEY_ID }}
+          PROD_AWS_SECRET_ACCESS_KEY: ${{ secrets.EXAMPLE_PROD_AWS_SECRET_ACCESS_KEY }}
       - name: Generate Infracost comment
         run: >-
           infracost output --path=/tmp/infracost.json --format=github-comment
@@ -313,7 +330,7 @@ jobs:
         uses: hashicorp/setup-terraform@v1
         with:
           terraform_wrapper: false
-          cli_config_credentials_token: $${{ secrets.TFC_TOKEN }}
+          cli_config_credentials_token: ${{ secrets.TFC_TOKEN }}
       - name: Setup Infracost
         uses: ./setup
         with:
