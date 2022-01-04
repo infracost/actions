@@ -98,6 +98,7 @@ jobs:
         with:
           name: infracost_jsons
           path: /tmp/infracost_${{ matrix.dir }}.json
+    if: github.actor != 'nektos/act'
   multi_project_matrix_merge:
     name: Multi-project matrix merge
     runs-on: ubuntu-latest
@@ -132,6 +133,7 @@ jobs:
           cp /tmp/infracost_comment.md
           ./testdata/multi_project_matrix_merge_comment_golden.md
         if: env.UPDATE_GOLDEN_FILES == 'true'
+    if: github.actor != 'nektos/act'
   multi_terraform_workspace_config_file:
     name: Multi-Terraform workspace config file
     runs-on: ubuntu-latest

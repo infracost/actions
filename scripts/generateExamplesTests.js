@@ -6,11 +6,18 @@
 
 const fs = require('fs');
 const yaml = require('js-yaml');
+const { env } = require('process');
 
 const examplesTestWorkflowPath = './.github/workflows/examples_test.yml';
 const examplesDir = 'examples';
 const exampleRegex =
   /\[\/\/\]: <> \(BEGIN EXAMPLE\)\n```.*\n((.|\n)*?)```\n\[\/\/\]: <> \(END EXAMPLE\)/gm;
+
+const localSkipJobs = [
+  // These jobs are skipped locally until https://github.com/nektos/act/issues/769 is fixed
+  'multi_project_matrix',
+  'multi_project_matrix_merge',
+]
 
 const workflowTemplate = {
   name: 'Run examples',
@@ -132,6 +139,10 @@ function fixupExamples(examples) {
       }
 
       job.steps = steps;
+
+      if (localSkipJobs.includes(jobKey)) {
+        job.if = 'github.actor != \'nektos/act\'';
+      }
     }
   }
 
