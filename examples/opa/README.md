@@ -77,7 +77,7 @@ jobs:
         uses: infracost/setup-opa@v1
 
       - name: Run Infracost
-        run: infracost breakdown --path=examples/conftest/code/plan.json --format=json --out-file=/tmp/infracost.json
+        run: infracost breakdown --path=examples/opa/code/plan.json --format=json --out-file=/tmp/infracost.json
         
       - name: Run OPA
         run: opa eval --input /tmp/infracost.json -d examples/opa/policy/policy.rego --format pretty "data.infracost.deny" | tee /tmp/opa.out
