@@ -15356,7 +15356,7 @@ function setup() {
             yield renameBinary(pathToCLI, download.binaryName);
             // Expose the tool by adding it to the PATH
             core.addPath(pathToCLI);
-            core.notice(`Setup Infracost CLI version ${version}`);
+            core.info(`Setup Infracost CLI version ${version}`);
             // Set configure options
             const apiKey = core.getInput('api-key');
             if (apiKey) {
