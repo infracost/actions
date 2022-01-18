@@ -106,7 +106,8 @@ The [examples](examples) directory demonstrates how these actions can be used in
   - [Private Terraform module](examples/private-terraform-module): a Terraform project using a private Terraform module
   - [Slack](examples/slack): send cost estimates to Slack
 
-Cost policy examples:
+### Cost policy examples
+
   - [Thresholds](examples/thresholds): only post a comment when cost thresholds are exceeded, a similar thing can be done with bash and [jq](https://stedolan.github.io/jq/)
   - [Conftest](examples/conftest): check Infracost cost estimates against policies using Conftest
   - [OPA](examples/opa): check Infracost cost estimates against policies using Open Policy Agent (OPA)
