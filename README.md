@@ -108,10 +108,11 @@ The [examples](examples) directory demonstrates how these actions can be used in
 
 ### Cost policy examples
 
-  - [Thresholds](examples/thresholds): only post a comment when cost thresholds are exceeded, a similar thing can be done with bash and [jq](https://stedolan.github.io/jq/)
-  - [Conftest](examples/conftest): check Infracost cost estimates against policies using Conftest
-  - [OPA](examples/opa): check Infracost cost estimates against policies using Open Policy Agent (OPA)
-  - [Sentinel](examples/sentinel): check Infracost cost estimates against policies using HashiCorp's Sentinel
+- [OPA](examples/opa): check Infracost cost estimates against policies using Open Policy Agent
+- [Conftest](examples/conftest): check Infracost cost estimates against policies using Conftest
+- [Sentinel](examples/sentinel): check Infracost cost estimates against policies using HashiCorp Sentinel
+
+If you do not use the above tools, you can still set [thresholds](examples/thresholds) using bash and [jq](https://stedolan.github.io/jq/) so notifications or pull request comments are only sent when cost thresholds are exceeded.
 
 ## Actions
 
