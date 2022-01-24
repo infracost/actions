@@ -74,7 +74,7 @@ jobs:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
 
       - name: Setup OPA
-        uses: infracost/setup-opa@v1
+        uses: open-policy-agent/setup-opa@v1
 
       - name: Run Infracost
         run: infracost breakdown --path=examples/opa/code/plan.json --format=json --out-file=/tmp/infracost.json
