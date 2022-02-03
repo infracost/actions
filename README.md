@@ -91,7 +91,7 @@ The following steps assume a simple Terraform directory is being used, we recomm
 
 4. 🎉 That's it! Send a new pull request to change something in Terraform that costs money. You should see a pull request comment that gets updated, e.g. the 📉 and 📈 emojis will update as changes are pushed!
 
-    If there are issues, check the GitHub Actions logs and [this page](https://www.infracost.io/docs/integrations/cicd#cicd-troubleshooting).
+    If there are issues, check the GitHub Actions logs and [this page](https://www.infracost.io/docs/troubleshooting/).
 
 ## Examples
 
