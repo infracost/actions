@@ -61,5 +61,7 @@ Key: ~ changed, + added, - removed
 
 2 cloud resources were detected:
 ∙ 2 were estimated, 2 include usage-based costs, see https://infracost.io/usage-file
+
+Add cost estimates to your pull requests: https://infracost.io/cicd
 ```
 </details>
