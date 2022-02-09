@@ -8,7 +8,7 @@ branding:
   color: yellow
 inputs:
   api-key:
-    description: Your Infracost API key. It can be retrieved by running `infracost configure get api_key`. If you don't have one, download Infracost (https://www.infracost.io/docs/#quick-start) and run `infracost register` to get a free API key.
+    description: Your Infracost API key. It can be retrieved by running `infracost configure get api_key`. We recommend using your same API key in all environments. If you don't have one, download Infracost (https://www.infracost.io/docs/#quick-start) and run `infracost register` to get a free API key.
     required: true
   path:
     description: The path that will be passed to `infracost breakdown`. This may be a path to a Terraform plan JSON or a Terraform project. Project support requires Terraform to have been installed with hashicorp/setup-terraform@v1.
