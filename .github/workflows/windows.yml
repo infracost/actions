@@ -1,0 +1,32 @@
+name: Chocolatey test
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    name: Build
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Choco install infracost
+        uses: crazy-max/ghaction-chocolatey@v1
+        with:
+          args: install infracost
+      - name: Setup Infracost
+        uses: infracost/actions/setup@v1
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+      - name: Install terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_wrapper: false
+      - name: Run Infracost
+        run: infracost breakdown --path=examples/terraform-directory/code --format=json --out-file=infracost.json
+      - name: Post the comment
+        uses: infracost/actions/comment@v1
+        with:
+          path: infracost.json
+          behavior: new
