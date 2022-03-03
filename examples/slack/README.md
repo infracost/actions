@@ -6,7 +6,7 @@ Slack message blocks have a 3000 char limit so the Infracost CLI automatically t
 
 For simplicity, this is based off the terraform-plan-json example, which does not require Terraform to be installed.
 
-<img src=".github/assets/slack-message.png" alt="Example screenshot" />
+<img src="/.github/assets/slack-message.png" alt="Example screenshot" />
 
 [//]: <> (BEGIN EXAMPLE)
 ```yml
