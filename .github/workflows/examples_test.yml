@@ -315,12 +315,12 @@ jobs:
           --show-skipped --out-file=/tmp/infracost_slack_message.json
       - name: Check the Slack message
         run: >-
-          diff ./testdata/slack_slack_message_golden.json
-          /tmp/infracost_slack_message.json
+          diff -y <(jq --sort-keys . ./testdata/slack_slack_message_golden.json)
+          <(jq --sort-keys . /tmp/infracost_slack_message.json)
         if: env.UPDATE_GOLDEN_FILES != 'true'
       - name: Update the golden Slack message file
         run: >-
-          cp /tmp/infracost_slack_message.json
+          jq --sort-keys . /tmp/infracost_slack_message.json >
           ./testdata/slack_slack_message_golden.json
         if: env.UPDATE_GOLDEN_FILES == 'true'
   terraform-cloud-enterprise:

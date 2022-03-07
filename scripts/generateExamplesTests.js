@@ -118,12 +118,12 @@ function fixupExamples(examples) {
             },
             {
               name: 'Check the Slack message',
-              run: `diff ${goldenFilePath} /tmp/infracost_slack_message.json`,
+              run: `diff -y <(jq --sort-keys . ${goldenFilePath}) <(jq --sort-keys . /tmp/infracost_slack_message.json)`,
               if: `env.UPDATE_GOLDEN_FILES != 'true'`,
             },
             {
               name: 'Update the golden Slack message file',
-              run: `cp /tmp/infracost_slack_message.json ${goldenFilePath}`,
+              run: `jq --sort-keys . /tmp/infracost_slack_message.json > ${goldenFilePath}`,
               if: `env.UPDATE_GOLDEN_FILES == 'true'`,
             }
           );

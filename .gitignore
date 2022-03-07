@@ -1,5 +1,6 @@
 # Infracost cache
 .infracost-cache
+.infracost
 
 # Terraform
 .terraform*
