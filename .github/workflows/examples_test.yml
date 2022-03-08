@@ -8,25 +8,6 @@ defaults:
   run:
     shell: bash
 jobs:
-  conftest:
-    name: Conftest
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Setup Infracost
-        uses: ./setup
-        with:
-          api-key: ${{ secrets.INFRACOST_API_KEY }}
-      - name: Setup Conftest
-        uses: artis3n/setup-conftest@v0
-        with:
-          conftest_wrapper: false
-      - name: Run Infracost
-        run: >-
-          infracost breakdown --path=examples/conftest/code/plan.json
-          --format=json --out-file=/tmp/infracost.json
-      - name: Check Conftest Policies
-        run: conftest test --policy examples/conftest/policy /tmp/infracost.json
   multi-project-config-file:
     name: Multi-project config file
     runs-on: ubuntu-latest
@@ -172,35 +153,6 @@ jobs:
           cp /tmp/infracost_comment.md
           ./testdata/multi-terraform-workspace-config-file_comment_golden.md
         if: env.UPDATE_GOLDEN_FILES == 'true'
-  open-policy-agent:
-    name: Open Policy Agent
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Setup Infracost
-        uses: ./setup
-        with:
-          api-key: ${{ secrets.INFRACOST_API_KEY }}
-      - name: Setup OPA
-        uses: open-policy-agent/setup-opa@v1
-      - name: Run Infracost
-        run: >-
-          infracost breakdown --path=examples/opa/code/plan.json --format=json
-          --out-file=/tmp/infracost.json
-      - name: Run OPA
-        run: >-
-          opa eval --input /tmp/infracost.json -d
-          examples/opa/policy/policy.rego --format pretty "data.infracost.deny"
-          | tee /tmp/opa.out
-      - name: Check Policies
-        run: |
-          denyReasons=$(</tmp/opa.out)
-          if [ "$denyReasons" != "[]" ]; then
-            echo -e "::error::Policy check failed:\n$denyReasons"
-            exit 1
-          else
-            echo "::info::Policy check passed."
-          fi
   private-terraform-module:
     name: Private Terraform module
     runs-on: ubuntu-latest
@@ -289,8 +241,8 @@ jobs:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
       - name: Generate Infracost JSON
         run: >-
-          infracost breakdown --path=examples/thresholds/code/plan.json --format
-          json --out-file /tmp/infracost.json
+          infracost breakdown --path=examples/slack/code/plan.json --format json
+          --out-file /tmp/infracost.json
       - name: Generate Infracost comment
         run: >-
           infracost output --path=/tmp/infracost.json --format=github-comment
@@ -445,79 +397,4 @@ jobs:
         if: env.UPDATE_GOLDEN_FILES != 'true'
       - name: Update the golden comment file
         run: cp /tmp/infracost_comment.md ./testdata/terragrunt_comment_golden.md
-        if: env.UPDATE_GOLDEN_FILES == 'true'
-  thresholds:
-    name: Thresholds
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Setup Infracost
-        uses: ./setup
-        with:
-          api-key: ${{ secrets.INFRACOST_API_KEY }}
-      - name: Run Infracost
-        run: >-
-          infracost breakdown --path=examples/thresholds/code/plan.json
-          --format=json --out-file=/tmp/infracost.json
-      - name: Calculate Cost Change
-        id: cost-change
-        uses: actions/github-script@v5
-        with:
-          script: >
-            // Read the breakdown JSON and get costs
-
-            const breakdown = require('/tmp/infracost.json');
-
-            const past = breakdown.pastTotalMonthlyCost;
-
-            const current = breakdown.totalMonthlyCost;
-
-            const costChange = breakdown.diffTotalMonthlyCost;
-
-            const absoluteCostChange = Math.abs(costChange);
-
-
-            // Calculate the percent change
-
-            let percentChange = 999; // default to a high number so we post a
-            comment if there's no past cost
-
-            if (past !== "0") {
-              percentChange = 100 * ((current - past) / past);
-            }
-
-            const absolutePercentChange = Math.abs(percentChange);
-
-
-            console.log(`past: ${past}`);
-
-            console.log(`current: ${current}`);
-
-            console.log(`cost-change: ${costChange}`);
-
-            console.log(`absolute-cost-change: ${absoluteCostChange}`);
-
-            console.log(`percent-change: ${percentChange}`);
-
-            console.log(`absolute-percent-change: ${absolutePercentChange}`);
-
-
-            // Set the calculated diffs as outputs to be used in future steps
-
-            core.setOutput('absolute-percent-change', absolutePercentChange);
-
-            core.setOutput('percent-change', percentChange);
-
-            core.setOutput('absolute-cost-change', absoluteCostChange );
-
-            core.setOutput('cost-change', costChange);
-      - name: Generate Infracost comment
-        run: >-
-          infracost output --path=/tmp/infracost.json --format=github-comment
-          --show-skipped --out-file=/tmp/infracost_comment.md
-      - name: Check the comment
-        run: diff ./testdata/thresholds_comment_golden.md /tmp/infracost_comment.md
-        if: env.UPDATE_GOLDEN_FILES != 'true'
-      - name: Update the golden comment file
-        run: cp /tmp/infracost_comment.md ./testdata/thresholds_comment_golden.md
         if: env.UPDATE_GOLDEN_FILES == 'true'
