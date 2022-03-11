@@ -108,13 +108,11 @@ The [examples](examples) directory demonstrates how these actions can be used in
 
 ### Cost policies
 
-Use fine-grained policies to set guardrails against cost estimates **before resources are launched**. Infracost PR comments have native support for cost policies written using Open Policy Agent:
+Infracost policies enable centralized teams, who are often helping others with cloud costs, to provide advice before resources are launched, setup guardrails, and prevent human error. Follow [our docs](https://www.infracost.io/docs/features/cost_policies/) to use Infracost's native support for Open Policy Agent (OPA) policies. This enables you to see passing/failing policies in Infracost pull request comments (shown below) without having to install anything else.
 
 ![](.github/assets/policy-passing-github.png)
 
-Integrate cost policies now [following our docs guide](https://www.infracost.io/docs/features/cost_policies/).
-
-Infracost cost estimates can also be configured to work against policies written in [Hashicorp Sentinel](examples/sentinel).
+If you use HashiCorp Sentinel, follow [our example](examples/sentinel) to output the policy pass/fail results into CI/CD logs.
 
 ## Actions
 
