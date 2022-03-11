@@ -63,3 +63,11 @@ Key: ~ changed, + added, - removed
 ∙ 2 were estimated, 2 include usage-based costs, see https://infracost.io/usage-file
 ```
 </details>
+
+This comment will be updated when the cost estimate changes.
+
+<sub>
+  Is this comment useful? <a href="https://www.infracost.io/feedback/submit/?value=yes" rel="noopener noreferrer" target="_blank">Yes</a>, <a href="https://www.infracost.io/feedback/submit/?value=no" rel="noopener noreferrer" target="_blank">No</a>
+</sub>
+
+Comment not posted to GitHub (--dry-run was specified)

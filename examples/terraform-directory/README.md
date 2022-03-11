@@ -30,10 +30,23 @@ jobs:
       - name: Run Infracost
         run: infracost breakdown --path=examples/terraform-directory/code --format=json --out-file=/tmp/infracost.json
         
-      - name: Post the comment
-        uses: infracost/actions/comment@v1
-        with:
-          path: /tmp/infracost.json
-          behavior: update # Create a single comment and update it. See https://github.com/infracost/actions/tree/master/comment for other options
+      - name: Post Infracost comment
+        run: |
+
+          # Posts a comment to the PR using the 'update' behavior.
+          # This creates a single comment and updates it. The "quietest" option.
+          # The other valid behaviors are:
+          #   delete-and-new - Delete previous comments and create a new one.
+          #   hide-and-new - Minimize previous comments and create a new one.
+          #   new - Create a new cost estimate comment on every push.
+          #
+          # See https://www.infracost.io/docs/features/cli_commands/#comment-on-pull-requests
+          # for other inputs such as target-type.
+
+          infracost comment github --path /tmp/infracost.json \
+                                   --repo $GITHUB_REPOSITORY \
+                                   --github-token ${{github.token}} \
+                                   --pull-request ${{github.event.pull_request.number}} \
+                                   --behavior update
 ```
 [//]: <> (END EXAMPLE)
