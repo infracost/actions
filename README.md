@@ -120,8 +120,10 @@ Infracost cost estimates can also be configured to work against policies written
 
 We recommend you use the above [quick start](#quick-start) guide and examples, which combine the following individual actions:
 - [setup](setup): downloads and installs the Infracost CLI in your GitHub Actions workflow.
-- [comment](comment): adds comments to pull requests.
-- [get-comment](get-comment): reads a comment from a pull request.
+
+### Deprecated Actions
+- [comment](comment): adds comments to pull requests. This action is deprecated, please use `infracost comment` directly.
+- [get-comment](get-comment): reads a comment from a pull request. This action is deprecated.
 
 ## Contributing
 
