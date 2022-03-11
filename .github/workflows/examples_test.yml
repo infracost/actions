@@ -101,7 +101,7 @@ jobs:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
       - name: Post Infracost comment
         run: |-
-          infracost comment github --path /tmp/infracost_jsons/*.json \
+          infracost comment github --path "/tmp/infracost_jsons/*.json" \
           --repo $GITHUB_REPOSITORY \
           --github-token ${{github.token}} \
           --pull-request ${{github.event.pull_request.number}} \

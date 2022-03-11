@@ -139,7 +139,7 @@ jobs:
           #   hide-and-new - Minimize previous comments and create a new one.
           #   new - Create a new cost estimate comment on every push.
 
-          infracost comment github --path /tmp/infracost_jsons/*.json \
+          infracost comment github --path "/tmp/infracost_jsons/*.json" \
                                    --repo $GITHUB_REPOSITORY \
                                    --github-token ${{github.token}} \
                                    --pull-request ${{github.event.pull_request.number}} \
