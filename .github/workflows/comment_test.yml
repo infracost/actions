@@ -41,5 +41,5 @@ jobs:
       - name: Infracost comment
         uses: ./comment
         with:
-          path: '["./testdata/comment/simple_breakdown.json", "./testdata/comment/simple_breakdown.json"]'
+          path: "./testdata/comment/*.json"
           target-type: commit
