@@ -29,6 +29,7 @@ jobs:
         with:
           path: ./testdata/comment/simple_breakdown.json
           tag: "infracost-pull-request"
+          behavior: new
   test_commit:
     name: Test Commit Comment
     runs-on: ubuntu-latest
@@ -45,3 +46,4 @@ jobs:
           path: "./testdata/comment/*.json"
           target-type: commit
           tag: "infracost-commit"
+          behavior: new
