@@ -76,18 +76,15 @@ The following steps assume a simple Terraform directory is being used, we recomm
             # env:
             #   MY_ENV: ${{ secrets.MY_ENV }}
 
-          # See https://www.infracost.io/docs/features/cli_commands/#comment-on-pull-requests
-          # for other inputs such as target-type.
+          # See https://www.infracost.io/docs/features/cli_commands/#comment-on-pull-requests for other options.
           - name: Post Infracost comment
             run: |
-
               # Posts a comment to the PR using the 'update' behavior.
               # This creates a single comment and updates it. The "quietest" option.
               # The other valid behaviors are:
               #   delete-and-new - Delete previous comments and create a new one.
               #   hide-and-new - Minimize previous comments and create a new one.
               #   new - Create a new cost estimate comment on every push.
-
               infracost comment github --path /tmp/infracost.json \
                                        --repo $GITHUB_REPOSITORY \
                                        --github-token ${{github.token}} \
