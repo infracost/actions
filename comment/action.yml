@@ -21,7 +21,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Post infracost comment to a github pull-request
+    - name: Post a Infracost comment to a GitHub pull request
       if: ${{ (inputs.target-type != 'commit') && (github.event.pull_request.number != '') }}
       shell: bash
       run: |
@@ -32,7 +32,7 @@ runs:
                                  --pull-request ${{github.event.pull_request.number}} \
                                  --behavior ${{inputs.behavior}}
 
-    - name: Post infracost comment to a commit sha
+    - name: Post a Infracost comment to a commit SHA
       if: ${{ (inputs.target-type == 'commit') }}
       shell: bash
       run: |
