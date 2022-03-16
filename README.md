@@ -106,13 +106,13 @@ The [examples](examples) directory demonstrates how these actions can be used in
   - [Private Terraform module](examples/private-terraform-module): a Terraform project using a private Terraform module
   - [Slack](examples/slack): send cost estimates to Slack
 
-### Cost policy examples
+### Cost policies
 
-- [OPA](examples/opa): check Infracost cost estimates against policies using Open Policy Agent
-- [Conftest](examples/conftest): check Infracost cost estimates against policies using Conftest
-- [Sentinel](examples/sentinel): check Infracost cost estimates against policies using HashiCorp Sentinel
+Infracost policies enable centralized teams, who are often helping others with cloud costs, to provide advice before resources are launched, setup guardrails, and prevent human error. Follow [our docs](https://www.infracost.io/docs/features/cost_policies/) to use Infracost's native support for Open Policy Agent (OPA) policies. This enables you to see passing/failing policies in Infracost pull request comments (shown below) without having to install anything else.
 
-If you do not use the above tools, you can still set [thresholds](examples/thresholds) using bash and [jq](https://stedolan.github.io/jq/) so notifications or pull request comments are only sent when cost thresholds are exceeded.
+![](.github/assets/policy-passing-github.png)
+
+If you use HashiCorp Sentinel, follow [our example](examples/sentinel) to output the policy pass/fail results into CI/CD logs.
 
 ## Actions
 

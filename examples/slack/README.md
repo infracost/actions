@@ -27,7 +27,7 @@ jobs:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
 
       - name: Generate Infracost JSON
-        run: infracost breakdown --path=examples/thresholds/code/plan.json --format json --out-file /tmp/infracost.json
+        run: infracost breakdown --path=examples/slack/code/plan.json --format json --out-file /tmp/infracost.json
 
       - name: Post the comment
         uses: infracost/actions/comment@v1
