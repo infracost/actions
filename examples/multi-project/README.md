@@ -38,17 +38,26 @@ jobs:
           PROD_AWS_ACCESS_KEY_ID: ${{ secrets.EXAMPLE_PROD_AWS_ACCESS_KEY_ID }}
           PROD_AWS_SECRET_ACCESS_KEY: ${{ secrets.EXAMPLE_PROD_AWS_SECRET_ACCESS_KEY }}
 
-      - name: Post the comment
-        uses: infracost/actions/comment@v1
-        with:
-          path: /tmp/infracost.json
-          behavior: update # Create a single comment and update it. See https://github.com/infracost/actions/tree/master/comment for other options
+      - name: Post Infracost comment
+        run: |
+          # Posts a comment to the PR using the 'update' behavior.
+          # This creates a single comment and updates it. The "quietest" option.
+          # The other valid behaviors are:
+          #   delete-and-new - Delete previous comments and create a new one.
+          #   hide-and-new - Minimize previous comments and create a new one.
+          #   new - Create a new cost estimate comment on every push.
+          # See https://www.infracost.io/docs/features/cli_commands/#comment-on-pull-requests for other options.
+          infracost comment github --path /tmp/infracost.json \
+                                   --repo $GITHUB_REPOSITORY \
+                                   --github-token ${{github.token}} \
+                                   --pull-request ${{github.event.pull_request.number}} \
+                                   --behavior update
 ```
 [//]: <> (END EXAMPLE)
 
 ## Using GitHub Actions build matrix 
 
-This example shows how to run Infracost actions with multiple Terraform projects using a GitHub Actions build matrix. The first job uses a build matrix to generate multiple Infracost output JSON files and upload them as artifacts. The second job downloads these JSON files, combines them using `infracost output`, and posts a comment.
+This example shows how to run Infracost actions with multiple Terraform projects using a GitHub Actions build matrix. The first job uses a build matrix to generate multiple Infracost output JSON files and upload them as artifacts. The second job downloads these JSON files and posts a combined comment to the PR using `infracost comment` glob support.
 
 [//]: <> (BEGIN EXAMPLE)
 ```yml
@@ -115,14 +124,19 @@ jobs:
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
           
-      - name: Combine the results
+      - name: Post Infracost comment
         run: |
-          infracost output --path="/tmp/infracost_jsons/*.json" --format=json --out-file=/tmp/infracost_combined.json
-          
-      - name: Post the comment
-        uses: infracost/actions/comment@v1
-        with:
-          path: /tmp/infracost_combined.json
-          behavior: update # Create a single comment and update it. See https://github.com/infracost/actions/tree/master/comment for other options
+          # Posts a comment to the PR using the 'update' behavior.
+          # This creates a single comment and updates it. The "quietest" option.
+          # The other valid behaviors are:
+          #   delete-and-new - Delete previous comments and create a new one.
+          #   hide-and-new - Minimize previous comments and create a new one.
+          #   new - Create a new cost estimate comment on every push.
+          # See https://www.infracost.io/docs/features/cli_commands/#comment-on-pull-requests for other options.
+          infracost comment github --path "/tmp/infracost_jsons/*.json" \
+                                   --repo $GITHUB_REPOSITORY \
+                                   --github-token ${{github.token}} \
+                                   --pull-request ${{github.event.pull_request.number}} \
+                                   --behavior update
 ```
 [//]: <> (END EXAMPLE)

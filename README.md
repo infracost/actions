@@ -76,17 +76,20 @@ The following steps assume a simple Terraform directory is being used, we recomm
             # env:
             #   MY_ENV: ${{ secrets.MY_ENV }}
 
-          # See https://github.com/infracost/actions/tree/master/comment
-          # for other inputs such as target-type.
+          # See https://www.infracost.io/docs/features/cli_commands/#comment-on-pull-requests for other options.
           - name: Post Infracost comment
-            uses: infracost/actions/comment@v1
-            with:
-              path: /tmp/infracost.json
-              # Choose the commenting behavior, 'update' is a good default:
-              behavior: update # Create a single comment and update it. The "quietest" option.                 
-              # behavior: delete-and-new # Delete previous comments and create a new one.
-              # behavior: hide-and-new # Minimize previous comments and create a new one.
-              # behavior: new # Create a new cost estimate comment on every push.
+            run: |
+              # Posts a comment to the PR using the 'update' behavior.
+              # This creates a single comment and updates it. The "quietest" option.
+              # The other valid behaviors are:
+              #   delete-and-new - Delete previous comments and create a new one.
+              #   hide-and-new - Minimize previous comments and create a new one.
+              #   new - Create a new cost estimate comment on every push.
+              infracost comment github --path /tmp/infracost.json \
+                                       --repo $GITHUB_REPOSITORY \
+                                       --github-token ${{github.token}} \
+                                       --pull-request ${{github.event.pull_request.number}} \
+                                       --behavior update
     ```
 
 4. 🎉 That's it! Send a new pull request to change something in Terraform that costs money. You should see a pull request comment that gets updated, e.g. the 📉 and 📈 emojis will update as changes are pushed!
@@ -118,8 +121,10 @@ If you use HashiCorp Sentinel, follow [our example](examples/sentinel) to output
 
 We recommend you use the above [quick start](#quick-start) guide and examples, which combine the following individual actions:
 - [setup](setup): downloads and installs the Infracost CLI in your GitHub Actions workflow.
-- [comment](comment): adds comments to pull requests.
-- [get-comment](get-comment): reads a comment from a pull request.
+
+### Deprecated Actions
+- [comment](comment): adds comments to pull requests. This action is deprecated, please use `infracost comment` directly.
+- [get-comment](get-comment): reads a comment from a pull request. This action is deprecated.
 
 ## Contributing
 

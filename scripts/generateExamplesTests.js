@@ -86,19 +86,22 @@ function fixupExamples(examples) {
       const steps = [];
 
       for (const step of job.steps) {
-        if (step.uses && step.uses.startsWith('infracost/actions/comment')) {
-          const path = step.with.path;
+        if (step.name && step.name.toLowerCase() === 'post infracost comment') {
           const goldenFilePath = `./testdata/${jobKey}_comment_golden.md`;
+          const commentArgs = step.run
+            .replace(/\\/g, '')
+            .split('\n')
+            .map(s => s.trim())
+            .filter(e => !e.startsWith('#') && e !== '')
+
+          commentArgs.push('--dry-run true', '> infracost-comment.md')
+          step.run = commentArgs.join(' \\\n');
 
           steps.push(
+            step,
             {
-              name: 'Generate Infracost comment',
-              run: `infracost output --path=${path} --format=github-comment --show-skipped --out-file=/tmp/infracost_comment.md`,
-            },
-            {
+              run: `diff -y ${goldenFilePath} infracost-comment.md`,
               name: 'Check the comment',
-              run: `diff ${goldenFilePath} /tmp/infracost_comment.md`,
-              if: `env.UPDATE_GOLDEN_FILES != 'true'`,
             },
             {
               name: 'Update the golden comment file',
@@ -106,7 +109,11 @@ function fixupExamples(examples) {
               if: `env.UPDATE_GOLDEN_FILES == 'true'`,
             }
           );
-        } else if  (step.uses && step.uses.startsWith('slackapi/slack-github-action')) {
+
+          continue;
+        }
+
+        if (step.uses && step.uses.startsWith('slackapi/slack-github-action')) {
           // Assume this path for now. If we add our own Slack action we can get this easier from an input
           const path = '/tmp/infracost.json';
           const goldenFilePath = `./testdata/${jobKey}_slack_message_golden.json`;
@@ -127,15 +134,17 @@ function fixupExamples(examples) {
               if: `env.UPDATE_GOLDEN_FILES == 'true'`,
             }
           );
-        } else {
-          // Replace infracost/actions steps with the local path
-          steps.push({
-            ...step,
-            uses:
-              step.uses &&
-              step.uses.replace(/infracost\/actions\/(\w+)(@\w+)?/, './$1'),
-          });
+
+          continue;
         }
+
+        // Replace infracost/actions steps with the local path
+        steps.push({
+          ...step,
+          uses:
+            step.uses &&
+            step.uses.replace(/infracost\/actions\/(\w+)(@\w+)?/, './$1'),
+        });
       }
 
       job.steps = steps;

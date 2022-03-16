@@ -18,48 +18,27 @@ inputs:
     description: 'Default to {{ github.token }}. This is the default GitHub token available to actions and is used to post comments. The default token permissions (https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#permissions) work fine; `pull-requests: write` is required if you need to customize these.'
     default: '${{ github.token }}'
     required: false
-outputs:
-  body:
-    description: 'The body of comment that was posted.'
-    value: ${{ steps.compost-comment.outputs.body }}
 runs:
   using: "composite"
   steps:
-    - name: Run infracost output
+    - name: Post a Infracost comment to a GitHub pull request
+      if: ${{ (inputs.target-type != 'commit') && (github.event.pull_request.number != '') }}
       shell: bash
-
       run: |
-        # handle multiple paths
-        if jq . >/dev/null 2>&1 <<< '${{ inputs.path }}'; then
-          paths=$(jq -r 'if type == "array" then map("--path " + .) | join(" ") else . end' <<< '${{ inputs.path }}')
-        else
-          paths="--path ${{ inputs.path }}"
-        fi
-        echo "::notice::Using paths: $paths"
+        infracost comment github --path ${{inputs.path}} \
+                                 --repo $GITHUB_REPOSITORY \
+                                 --tag "${{inputs.tag}}" \
+                                 --github-token ${{inputs.github-token}} \
+                                 --pull-request ${{github.event.pull_request.number}} \
+                                 --behavior ${{inputs.behavior}}
 
-        export INFRACOST_CI_POST_CONDITION=${{ inputs.behavior }}
-
-        infracost output $paths --format github-comment --show-skipped --out-file comment.md
-
-        if [ "${{ inputs.target-type }}" != "commit" ]; then
-          if [ "${{ inputs.behavior }}" = "update" ]; then
-            printf "\nThis comment will be updated when the cost estimate changes.\n\n" >> comment.md
-          elif [ "${{ inputs.behavior }}" = "delete-and-new" ]; then
-            printf "\nThis comment will be replaced when the cost estimate changes.\n\n" >> comment.md
-          fi
-        fi
-
-        printf "<sub>\n" >> comment.md
-        printf "  Is this comment useful? <a href=\"https://www.infracost.io/feedback/submit/?value=yes\" rel=\"noopener noreferrer\" target=\"_blank\">Yes</a>, <a href=\"https://www.infracost.io/feedback/submit/?value=no\" rel=\"noopener noreferrer\" target=\"_blank\">No</a>\n" >> comment.md
-        printf "</sub>\n" >> comment.md
-    - name: Comment
-      id: compost-comment
-      uses: infracost/compost-action@master
-      with:
-        body-file: comment.md
-        behavior: ${{ inputs.behavior }}
-        target-type: ${{ inputs.target-type }}
-        tag: ${{ inputs.tag }}
-        github-token: ${{ inputs.github-token }}
-
-
+    - name: Post a Infracost comment to a commit SHA
+      if: ${{ (inputs.target-type == 'commit') }}
+      shell: bash
+      run: |
+        infracost comment github --path ${{inputs.path}} \
+                                 --repo $GITHUB_REPOSITORY \
+                                 --tag "${{inputs.tag}}" \
+                                 --github-token ${{inputs.github-token}} \
+                                 --commit $GITHUB_SHA \
+                                 --behavior ${{inputs.behavior}}
