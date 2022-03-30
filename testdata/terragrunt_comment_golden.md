@@ -108,7 +108,7 @@ Amount:  +$748 ($0.00 → $748)
 Key: ~ changed, + added, - removed
 
 4 cloud resources were detected:
-∙ 4 were estimated, 4 include usage-based costs, see https://infracost.io/usage-file
+∙ 4 were estimated, all of which include usage-based costs, see https://infracost.io/usage-file
 ```
 </details>
 

@@ -90,18 +90,20 @@ function fixupExamples(examples) {
           const goldenFilePath = `./testdata/${jobKey}_comment_golden.md`;
           const commentArgs = step.run
             .replace(/\\/g, '')
+            .replace(/--pull-request \$\{\{github\.event\.pull_request\.number\}\}/g, '--pull-request 1')
             .split('\n')
             .map(s => s.trim())
             .filter(e => !e.startsWith('#') && e !== '')
 
-          commentArgs.push('--dry-run true', '> infracost-comment.md')
+          commentArgs.push('--dry-run true', '> /tmp/infracost_comment.md')
           step.run = commentArgs.join(' \\\n');
 
           steps.push(
             step,
             {
-              run: `diff -y ${goldenFilePath} infracost-comment.md`,
+              run: `diff -y ${goldenFilePath} /tmp/infracost_comment.md`,
               name: 'Check the comment',
+              if: `env.UPDATE_GOLDEN_FILES != 'true'`,
             },
             {
               name: 'Update the golden comment file',
