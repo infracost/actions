@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      
+
       - name: Install terraform
         uses: hashicorp/setup-terraform@v1
         with:
@@ -28,14 +28,14 @@ jobs:
         uses: infracost/actions/setup@v1
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
-          
+
       - name: Run Infracost
         run: infracost breakdown --path=examples/terraform-cloud-enterprise/code --format=json --out-file=/tmp/infracost.json
         env:
           # TODO: the following two envs be removed once https://github.com/infracost/infracost/pull/1148 is released in v0.9.14 of the CLI (https://github.com/infracost/infracost/releases)
-          INFRACOST_TERRAFORM_CLOUD_TOKEN: ${{ secrets.TFC_TOKEN }} 
+          INFRACOST_TERRAFORM_CLOUD_TOKEN: ${{ secrets.TFC_TOKEN }}
           # INFRACOST_TERRAFORM_CLOUD_HOST: my-tfe-host.com # For Terraform Enterprise users only.
-        
+
       - name: Post Infracost comment
         run: |
           # Posts a comment to the PR using the 'update' behavior.

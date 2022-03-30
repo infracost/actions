@@ -4,7 +4,7 @@ This example shows how to write [cost policies](https://www.infracost.io/docs/fe
 
 When the policy checks pass, the GitHub Action step called "Check Policies" passes and outputs `Policy check passed.` in the action logs. When the policy checks fail, that step fails and the action logs show the Sentinel output indicating failing policies.
 
-Create a policy file (e.g. `policy.policy) that checks a global parameter 'breakdown' containing the Infracost JSON: 
+Create a policy file (e.g. `policy.policy) that checks a global parameter 'breakdown' containing the Infracost JSON:
 ```policy
 import "strings"
 
@@ -69,7 +69,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      
+
       - name: Setup Infracost
         uses: infracost/actions/setup@v1
         with:
@@ -84,7 +84,7 @@ jobs:
 
       - name: Run Infracost
         run: infracost breakdown --path=examples/sentinel/code/plan.json --format=json --out-file=/tmp/infracost.json
-        
+
       - name: Run Sentinel
         run: sentinel apply -global breakdown="$(cat /tmp/infracost.json)" examples/sentinel/policy/policy.policy | tee /tmp/sentinel.out
 

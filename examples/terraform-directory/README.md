@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      
+
       - name: Install terraform
         uses: hashicorp/setup-terraform@v1
         with:
@@ -26,10 +26,10 @@ jobs:
         uses: infracost/actions/setup@v1
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
-          
+
       - name: Run Infracost
         run: infracost breakdown --path=examples/terraform-directory/code --format=json --out-file=/tmp/infracost.json
-        
+
       - name: Post Infracost comment
         run: |
           # Posts a comment to the PR using the 'update' behavior.
