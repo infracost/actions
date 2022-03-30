@@ -36,14 +36,15 @@ jobs:
           infracost comment github --path /tmp/infracost.json \
           --repo $GITHUB_REPOSITORY \
           --github-token ${{github.token}} \
-          --pull-request ${{github.event.pull_request.number}} \
+          --pull-request 1 \
           --behavior update \
           --dry-run true \
-          > infracost-comment.md
+          > /tmp/infracost_comment.md
       - run: >-
           diff -y ./testdata/multi-project-config-file_comment_golden.md
-          infracost-comment.md
+          /tmp/infracost_comment.md
         name: Check the comment
+        if: env.UPDATE_GOLDEN_FILES != 'true'
       - name: Update the golden comment file
         run: >-
           cp /tmp/infracost_comment.md
@@ -104,14 +105,15 @@ jobs:
           infracost comment github --path "/tmp/infracost_jsons/*.json" \
           --repo $GITHUB_REPOSITORY \
           --github-token ${{github.token}} \
-          --pull-request ${{github.event.pull_request.number}} \
+          --pull-request 1 \
           --behavior update \
           --dry-run true \
-          > infracost-comment.md
+          > /tmp/infracost_comment.md
       - run: >-
           diff -y ./testdata/multi-project-matrix-merge_comment_golden.md
-          infracost-comment.md
+          /tmp/infracost_comment.md
         name: Check the comment
+        if: env.UPDATE_GOLDEN_FILES != 'true'
       - name: Update the golden comment file
         run: >-
           cp /tmp/infracost_comment.md
@@ -146,15 +148,16 @@ jobs:
           infracost comment github --path /tmp/infracost.json \
           --repo $GITHUB_REPOSITORY \
           --github-token ${{github.token}} \
-          --pull-request ${{github.event.pull_request.number}} \
+          --pull-request 1 \
           --behavior update \
           --dry-run true \
-          > infracost-comment.md
+          > /tmp/infracost_comment.md
       - run: >-
           diff -y
           ./testdata/multi-terraform-workspace-config-file_comment_golden.md
-          infracost-comment.md
+          /tmp/infracost_comment.md
         name: Check the comment
+        if: env.UPDATE_GOLDEN_FILES != 'true'
       - name: Update the golden comment file
         run: >-
           cp /tmp/infracost_comment.md
@@ -192,14 +195,15 @@ jobs:
           infracost comment github --path /tmp/infracost.json \
           --repo $GITHUB_REPOSITORY \
           --github-token ${{github.token}} \
-          --pull-request ${{github.event.pull_request.number}} \
+          --pull-request 1 \
           --behavior update \
           --dry-run true \
-          > infracost-comment.md
+          > /tmp/infracost_comment.md
       - run: >-
           diff -y ./testdata/private-terraform-module_comment_golden.md
-          infracost-comment.md
+          /tmp/infracost_comment.md
         name: Check the comment
+        if: env.UPDATE_GOLDEN_FILES != 'true'
       - name: Update the golden comment file
         run: >-
           cp /tmp/infracost_comment.md
@@ -259,12 +263,13 @@ jobs:
           infracost comment github --path /tmp/infracost.json \
           --repo $GITHUB_REPOSITORY \
           --github-token ${{github.token}} \
-          --pull-request ${{github.event.pull_request.number}} \
+          --pull-request 1 \
           --behavior update \
           --dry-run true \
-          > infracost-comment.md
-      - run: diff -y ./testdata/slack_comment_golden.md infracost-comment.md
+          > /tmp/infracost_comment.md
+      - run: diff -y ./testdata/slack_comment_golden.md /tmp/infracost_comment.md
         name: Check the comment
+        if: env.UPDATE_GOLDEN_FILES != 'true'
       - name: Update the golden comment file
         run: cp /tmp/infracost_comment.md ./testdata/slack_comment_golden.md
         if: env.UPDATE_GOLDEN_FILES == 'true'
@@ -315,14 +320,15 @@ jobs:
           infracost comment github --path /tmp/infracost.json \
           --repo $GITHUB_REPOSITORY \
           --github-token ${{github.token}} \
-          --pull-request ${{github.event.pull_request.number}} \
+          --pull-request 1 \
           --behavior update \
           --dry-run true \
-          > infracost-comment.md
+          > /tmp/infracost_comment.md
       - run: >-
           diff -y ./testdata/terraform-cloud-enterprise_comment_golden.md
-          infracost-comment.md
+          /tmp/infracost_comment.md
         name: Check the comment
+        if: env.UPDATE_GOLDEN_FILES != 'true'
       - name: Update the golden comment file
         run: >-
           cp /tmp/infracost_comment.md
@@ -350,14 +356,15 @@ jobs:
           infracost comment github --path /tmp/infracost.json \
           --repo $GITHUB_REPOSITORY \
           --github-token ${{github.token}} \
-          --pull-request ${{github.event.pull_request.number}} \
+          --pull-request 1 \
           --behavior update \
           --dry-run true \
-          > infracost-comment.md
+          > /tmp/infracost_comment.md
       - run: >-
           diff -y ./testdata/terraform-directory_comment_golden.md
-          infracost-comment.md
+          /tmp/infracost_comment.md
         name: Check the comment
+        if: env.UPDATE_GOLDEN_FILES != 'true'
       - name: Update the golden comment file
         run: >-
           cp /tmp/infracost_comment.md
@@ -381,14 +388,15 @@ jobs:
           infracost comment github --path /tmp/infracost.json \
           --repo $GITHUB_REPOSITORY \
           --github-token ${{github.token}} \
-          --pull-request ${{github.event.pull_request.number}} \
+          --pull-request 1 \
           --behavior update \
           --dry-run true \
-          > infracost-comment.md
+          > /tmp/infracost_comment.md
       - run: >-
           diff -y ./testdata/terraform-plan-json_comment_golden.md
-          infracost-comment.md
+          /tmp/infracost_comment.md
         name: Check the comment
+        if: env.UPDATE_GOLDEN_FILES != 'true'
       - name: Update the golden comment file
         run: >-
           cp /tmp/infracost_comment.md
@@ -420,12 +428,15 @@ jobs:
           infracost comment github --path /tmp/infracost.json \
           --repo $GITHUB_REPOSITORY \
           --github-token ${{github.token}} \
-          --pull-request ${{github.event.pull_request.number}} \
+          --pull-request 1 \
           --behavior update \
           --dry-run true \
-          > infracost-comment.md
-      - run: diff -y ./testdata/terragrunt_comment_golden.md infracost-comment.md
+          > /tmp/infracost_comment.md
+      - run: >-
+          diff -y ./testdata/terragrunt_comment_golden.md
+          /tmp/infracost_comment.md
         name: Check the comment
+        if: env.UPDATE_GOLDEN_FILES != 'true'
       - name: Update the golden comment file
         run: cp /tmp/infracost_comment.md ./testdata/terragrunt_comment_golden.md
         if: env.UPDATE_GOLDEN_FILES == 'true'
