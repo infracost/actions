@@ -14,15 +14,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      
+
       - name: Setup Infracost
         uses: infracost/actions/setup@v1
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
-          
+
       - name: Run Infracost
         run: infracost breakdown --path=examples/terraform-plan-json/code/plan.json --format=json --out-file=/tmp/infracost.json
-        
+
       - name: Post Infracost comment
         run: |
           # Posts a comment to the PR using the 'update' behavior.

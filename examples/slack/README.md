@@ -1,6 +1,6 @@
 # Slack Example
 
-This example shows how to send cost estimates to Slack by combining the Infracost actions with the official [slackapi/slack-github-action](https://github.com/slackapi/slack-github-action) repo. 
+This example shows how to send cost estimates to Slack by combining the Infracost actions with the official [slackapi/slack-github-action](https://github.com/slackapi/slack-github-action) repo.
 
 Slack message blocks have a 3000 char limit so the Infracost CLI automatically truncates the middle of `slack-message` output formats.
 
@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      
+
       - name: Setup Infracost
         uses: infracost/actions/setup@v1
         with:
@@ -57,6 +57,6 @@ jobs:
           payload: ${{ steps.infracost-slack.outputs.slack-message }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK          
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 ```
 [//]: <> (END EXAMPLE)

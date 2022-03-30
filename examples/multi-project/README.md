@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      
+
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v1
         with:
@@ -55,7 +55,7 @@ jobs:
 ```
 [//]: <> (END EXAMPLE)
 
-## Using GitHub Actions build matrix 
+## Using GitHub Actions build matrix
 
 This example shows how to run Infracost actions with multiple Terraform projects using a GitHub Actions build matrix. The first job uses a build matrix to generate multiple Infracost output JSON files and upload them as artifacts. The second job downloads these JSON files and posts a combined comment to the PR using `infracost comment` glob support.
 
@@ -75,7 +75,7 @@ jobs:
           # IMPORTANT: add any required secrets to setup cloud credentials so Terraform can run
           - dir: dev
             # GitHub actions doesn't support secrets in matrix values, so we use the name of the secret instead
-            aws_access_key_id_secret: EXAMPLE_DEV_AWS_ACCESS_KEY_ID 
+            aws_access_key_id_secret: EXAMPLE_DEV_AWS_ACCESS_KEY_ID
             aws_secret_access_key_secret: EXAMPLE_DEV_AWS_SECRET_ACCESS_KEY
           - dir: prod
             aws_access_key_id_secret: EXAMPLE_PROD_AWS_ACCESS_KEY_ID
@@ -83,7 +83,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      
+
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v1
         with:
@@ -93,13 +93,13 @@ jobs:
         uses: infracost/actions/setup@v1
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
-          
+
       - name: Run Infracost
         run: infracost breakdown --path=examples/multi-project/code/${{ matrix.dir }} --format=json --out-file=/tmp/infracost_${{ matrix.dir }}.json
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets[matrix.aws_access_key_id_secret] }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets[matrix.aws_secret_access_key_secret] }}
-        
+
       - name: Upload Infracost breakdown
         uses: actions/upload-artifact@v2
         with:
@@ -118,12 +118,12 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           path: /tmp
-        
+
       - name: Setup Infracost
         uses: infracost/actions/setup@v1
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
-          
+
       - name: Post Infracost comment
         run: |
           # Posts a comment to the PR using the 'update' behavior.
