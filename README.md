@@ -107,7 +107,7 @@ The [examples](examples) directory demonstrates how these actions can be used in
   - [Multi-project using build matrix](examples/multi-project/README.md#using-github-actions-build-matrix): multiple Terraform projects using GitHub Actions build matrix
   - [Multi-Terraform workspace](examples/multi-terraform-workspace): multiple Terraform workspaces using the Infracost [config file](https://www.infracost.io/docs/multi_project/config_file)
   - [Private Terraform module](examples/private-terraform-module): a Terraform project using a private Terraform module
-  - [Slack](examples/slack): send cost estimates to Slack
+  - [Slack](examples/slack): [send cost estimates to Slack](examples/slack)
 
 ### Cost policies
 
