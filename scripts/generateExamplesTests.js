@@ -140,6 +140,18 @@ function fixupExamples(examples) {
           continue;
         }
 
+        // Replace master with custom branch with changes
+        if (step.name && step.name.toLowerCase() === 'checkout compare branch') {
+          const withArgs = step.with;
+          withArgs.ref = 'examples/compare-branch';
+          steps.push({
+            ...step,
+            with: withArgs,
+          });
+
+          continue;
+        }
+
         // Replace infracost/actions steps with the local path
         steps.push({
           ...step,
