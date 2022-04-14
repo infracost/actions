@@ -8,7 +8,7 @@ provider "aws" {
 
 resource "aws_instance" "web_app" {
   ami           = "ami-674cbc1e"
-  instance_type = "m5.4xlarge"
+  instance_type = "m5.8xlarge"
 
   root_block_device {
     volume_size = 50
@@ -18,7 +18,7 @@ resource "aws_instance" "web_app" {
     device_name = "my_data"
     volume_type = "io1"
     volume_size = 1000
-    iops        = 800
+    iops        = 400
   }
 }
 
