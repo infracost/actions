@@ -7,7 +7,7 @@ provider "aws" {
 module "base" {
   source                           = "../modules/example"
 
-  instance_type                    = "m5.4xlarge"
+  instance_type                    = "m5.8xlarge"
   root_block_device_volume_size    = 100
   block_device_volume_size         = 1000
   block_device_iops                = 800

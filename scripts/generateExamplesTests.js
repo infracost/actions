@@ -6,7 +6,7 @@
 
 const fs = require('fs');
 const yaml = require('js-yaml');
-const { env } = require('process');
+const {env} = require('process');
 
 const examplesTestWorkflowPath = './.github/workflows/examples_test.yml';
 const examplesDir = 'examples';
@@ -84,8 +84,23 @@ function fixupExamples(examples) {
       const [jobKey, job] = jobEntry;
 
       const steps = [];
-
       for (const step of job.steps) {
+        if (step.name && step.name.toLowerCase() === 'checkout pr branch') {
+          steps.push(
+            step,
+            {
+              name: 'Replace m5 instance',
+              run: `find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i 's/m5\.4xlarge/m5\.8xlarge/g'`
+            },
+            {
+              name: 'Replace t2 instance',
+              run: `find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i 's/t2\.micro/t2\.medium/g'`
+            }
+          )
+
+          continue;
+        }
+
         if (step.name && step.name.toLowerCase() === 'post infracost comment') {
           const goldenFilePath = `./testdata/${jobKey}_comment_golden.md`;
           const commentArgs = step.run
@@ -162,7 +177,7 @@ function fixupExamples(examples) {
 
 // Generate the workflow YAML from the examples
 function generateWorkflow(examples) {
-  const workflow = { ...workflowTemplate };
+  const workflow = {...workflowTemplate};
 
   for (const example of examples) {
     workflow.jobs = {

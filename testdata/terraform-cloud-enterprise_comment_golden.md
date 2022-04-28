@@ -1,5 +1,5 @@
 
-💰 Infracost estimate: **monthly cost will increase by $743 📈**
+💰 Infracost estimate: **monthly cost will increase by $561 (+75%) 📈**
 <table>
   <thead>
     <td>Project</td>
@@ -10,9 +10,9 @@
   <tbody>
     <tr>
       <td>infracost/actions/examples/terraform-cloud-enterprise/code</td>
-      <td align="right">$0</td>
       <td align="right">$743</td>
-      <td>+$743</td>
+      <td align="right">$1,303</td>
+      <td>+$561 (+75%)</td>
     </tr>
   </tbody>
 </table>
@@ -23,38 +23,15 @@
 ```
 Project: infracost/actions/examples/terraform-cloud-enterprise/code
 
-+ aws_instance.web_app
-  +$743
+~ aws_instance.web_app
+  +$561 ($743 → $1,303)
 
-    + Instance usage (Linux/UNIX, on-demand, m5.4xlarge)
-      +$561
-
-    + root_block_device
-    
-        + Storage (general purpose SSD, gp2)
-          +$5.00
-
-    + ebs_block_device[0]
-    
-        + Storage (provisioned IOPS SSD, io1)
-          +$125
-    
-        + Provisioned IOPS
-          +$52.00
-
-+ aws_lambda_function.hello_world
-  Monthly cost depends on usage
-
-    + Requests
-      Monthly cost depends on usage
-        +$0.20 per 1M requests
-
-    + Duration
-      Monthly cost depends on usage
-        +$0.0000166667 per GB-seconds
+    ~ Instance usage (Linux/UNIX, on-demand, m5.4xlarge → m5.8xlarge)
+      +$561 ($561 → $1,121)
 
 Monthly cost change for infracost/actions/examples/terraform-cloud-enterprise/code
-Amount:  +$743 ($0.00 → $743)
+Amount:  +$561 ($743 → $1,303)
+Percent: +75%
 
 ──────────────────────────────────
 Key: ~ changed, + added, - removed

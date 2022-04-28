@@ -20,28 +20,48 @@ inputs:
 runs:
   using: "composite"
   steps:
+    # Checkout the branch you want Infracost to compare costs against, most commonly the target branch.
+    - name: Checkout base branch
+      uses: actions/checkout@v2
+      with:
+        ref: '${{ github.event.pull_request.base.ref }}'
+
     # Install the Infracost CLI, see https://github.com/infracost/actions/tree/master/setup
     # for other inputs such as version, and pricing-api-endpoint (for self-hosted users).
     - name: Setup Infracost
-      uses: infracost/actions/setup@v1
+      uses: infracost/actions/setup@v2
       with:
-        api-key: ${{ inputs.api-key }}
+        api-key: ${{ inputs.api_key }}
 
-    # Generate Infracost JSON output, the following docs might be useful:
-    # Multi-project/workspaces: https://www.infracost.io/docs/multi_project/config_file
-    # Combine Infracost JSON files: https://www.infracost.io/docs/features/config_file/
-    - name: Generate Infracost JSON
-      shell: bash
-      run: infracost breakdown --path ${{ inputs.path }} --format json --out-file /tmp/infracost.json
-      # Env vars can be set using the usual GitHub Actions syntax
-      # env:
-      #   MY_ENV: ${{ secrets.MY_ENV }}
+    # Generate an Infracost output JSON from the comparison branch, so that Infracost can compare the cost difference.
+    - name: Generate Infracost cost snapshot
+      run: |
+        infracost breakdown --path examples/terraform-directory/code \
+                            --format json \
+                            --out-file /tmp/prior.json
 
-    # See https://github.com/infracost/actions/tree/master/comment
-    # for other inputs such as target-type.
+
+    # Checkout the PR branch with your infrastructure changes.
+    - uses: actions/checkout@v2
+
+    - name: Run Infracost
+      run: |
+        infracost breakdown --path examples/terraform-directory/code \
+                            --format json \
+                            --compare-to /tmp/prior.json \
+                            --out-file /tmp/infracost.json
+
     - name: Post Infracost comment
-      uses: infracost/actions/comment@v1
-      with:
-        path: /tmp/infracost.json
-        # Choose the commenting behavior, 'update' is a good default:
-        behavior: ${{ inputs.behavior }}
+      run: |
+        # Posts a comment to the PR using the 'update' behavior.
+        # This creates a single comment and updates it. The "quietest" option.
+        # The other valid behaviors are:
+        #   delete-and-new - Delete previous comments and create a new one.
+        #   hide-and-new - Minimize previous comments and create a new one.
+        #   new - Create a new cost estimate comment on every push.
+        # See https://www.infracost.io/docs/features/cli_commands/#comment-on-pull-requests for other options.
+        infracost comment github --path /tmp/infracost.json \
+                                 --repo $GITHUB_REPOSITORY \
+                                 --github-token ${{github.token}} \
+                                 --pull-request ${{github.event.pull_request.number}} \
+                                 --behavior ${{inputs.behavior}}

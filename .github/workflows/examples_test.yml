@@ -12,25 +12,37 @@ jobs:
     name: Multi-project config file
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Install Terraform
-        uses: hashicorp/setup-terraform@v1
+      - name: Checkout base branch
+        uses: actions/checkout@v2
         with:
-          terraform_wrapper: false
+          ref: ${{ github.event.pull_request.base.ref }}
       - name: Setup Infracost
         uses: ./setup
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
-      - name: Run Infracost
-        run: >-
+      - name: Generate Infracost cost snapshot
+        run: >
           infracost breakdown
-          --config-file=examples/multi-project/code/infracost.yml --format=json
-          --out-file=/tmp/infracost.json
-        env:
-          DEV_AWS_ACCESS_KEY_ID: ${{ secrets.EXAMPLE_DEV_AWS_ACCESS_KEY_ID }}
-          DEV_AWS_SECRET_ACCESS_KEY: ${{ secrets.EXAMPLE_DEV_AWS_SECRET_ACCESS_KEY }}
-          PROD_AWS_ACCESS_KEY_ID: ${{ secrets.EXAMPLE_PROD_AWS_ACCESS_KEY_ID }}
-          PROD_AWS_SECRET_ACCESS_KEY: ${{ secrets.EXAMPLE_PROD_AWS_SECRET_ACCESS_KEY }}
+          --config-file=examples/multi-project/code/infracost.yml \
+                              --format=json \
+                              --out-file=/tmp/prior.json
+      - name: Checkout pr branch
+        uses: actions/checkout@v2
+      - name: Replace m5 instance
+        run: >-
+          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
+          's/m5.4xlarge/m5.8xlarge/g'
+      - name: Replace t2 instance
+        run: >-
+          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
+          's/t2.micro/t2.medium/g'
+      - name: Run Infracost
+        run: >
+          infracost diff --config-file=examples/multi-project/code/infracost.yml
+          \
+                              --format=json \
+                              --compare-to=/tmp/prior.json \
+                              --out-file=/tmp/infracost.json
       - name: Post Infracost comment
         run: |-
           infracost comment github --path /tmp/infracost.json \
@@ -57,28 +69,38 @@ jobs:
       matrix:
         include:
           - dir: dev
-            aws_access_key_id_secret: EXAMPLE_DEV_AWS_ACCESS_KEY_ID
-            aws_secret_access_key_secret: EXAMPLE_DEV_AWS_SECRET_ACCESS_KEY
           - dir: prod
-            aws_access_key_id_secret: EXAMPLE_PROD_AWS_ACCESS_KEY_ID
-            aws_secret_access_key_secret: EXAMPLE_PROD_AWS_SECRET_ACCESS_KEY
     steps:
-      - uses: actions/checkout@v2
-      - name: Install Terraform
-        uses: hashicorp/setup-terraform@v1
+      - name: Checkout base branch
+        uses: actions/checkout@v2
         with:
-          terraform_wrapper: false
+          ref: ${{ github.event.pull_request.base.ref }}
       - name: Setup Infracost
         uses: ./setup
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
-      - name: Run Infracost
-        run: >-
+      - name: Generate Infracost cost snapshot
+        run: >
           infracost breakdown --path=examples/multi-project/code/${{ matrix.dir
-          }} --format=json --out-file=/tmp/infracost_${{ matrix.dir }}.json
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets[matrix.aws_access_key_id_secret] }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets[matrix.aws_secret_access_key_secret] }}
+          }} \
+                              --format=json \
+                              --out-file=/tmp/prior.json
+      - name: Checkout pr branch
+        uses: actions/checkout@v2
+      - name: Replace m5 instance
+        run: >-
+          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
+          's/m5.4xlarge/m5.8xlarge/g'
+      - name: Replace t2 instance
+        run: >-
+          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
+          's/t2.micro/t2.medium/g'
+      - name: Run Infracost
+        run: |
+          infracost diff --path=examples/multi-project/code/${{ matrix.dir }} \
+                              --format json \
+                              --compare-to=/tmp/prior.json \
+                              --out-file=/tmp/infracost_${{ matrix.dir }}.json
       - name: Upload Infracost breakdown
         uses: actions/upload-artifact@v2
         with:
@@ -124,25 +146,37 @@ jobs:
     name: Multi-Terraform workspace config file
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Install Terraform
-        uses: hashicorp/setup-terraform@v1
+      - name: Checkout base branch
+        uses: actions/checkout@v2
         with:
-          terraform_wrapper: false
+          ref: ${{ github.event.pull_request.base.ref }}
       - name: Setup Infracost
         uses: ./setup
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
-      - name: Run Infracost
-        run: >-
+      - name: Generate Infracost cost snapshot
+        run: >
           infracost breakdown
-          --config-file=examples/multi-terraform-workspace/code/infracost.yml
-          --format=json --out-file=/tmp/infracost.json
-        env:
-          DEV_AWS_ACCESS_KEY_ID: ${{ secrets.EXAMPLE_DEV_AWS_ACCESS_KEY_ID }}
-          DEV_AWS_SECRET_ACCESS_KEY: ${{ secrets.EXAMPLE_DEV_AWS_SECRET_ACCESS_KEY }}
-          PROD_AWS_ACCESS_KEY_ID: ${{ secrets.EXAMPLE_PROD_AWS_ACCESS_KEY_ID }}
-          PROD_AWS_SECRET_ACCESS_KEY: ${{ secrets.EXAMPLE_PROD_AWS_SECRET_ACCESS_KEY }}
+          --config-file=examples/multi-terraform-workspace/code/infracost.yml \
+                              --format=json \
+                              --out-file=/tmp/prior.json
+      - name: Checkout pr branch
+        uses: actions/checkout@v2
+      - name: Replace m5 instance
+        run: >-
+          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
+          's/m5.4xlarge/m5.8xlarge/g'
+      - name: Replace t2 instance
+        run: >-
+          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
+          's/t2.micro/t2.medium/g'
+      - name: Run Infracost
+        run: >
+          infracost diff
+          --config-file=examples/multi-terraform-workspace/code/infracost.yml \
+                              --format=json \
+                              --compare-to=/tmp/prior.json \
+                              --out-file=/tmp/infracost.json
       - name: Post Infracost comment
         run: |-
           infracost comment github --path /tmp/infracost.json \
@@ -167,29 +201,45 @@ jobs:
     name: Private Terraform module
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Install terraform
-        uses: hashicorp/setup-terraform@v1
+      - name: Checkout base branch
+        uses: actions/checkout@v2
         with:
-          terraform_wrapper: false
+          ref: ${{ github.event.pull_request.base.ref }}
       - name: add GIT_SSH_KEY
         run: >
-          mkdir -p .ssh
+          mkdir -p ~/.ssh
 
-          echo "${{ secrets.GIT_SSH_KEY }}" > .ssh/git_ssh_key
+          echo "${{ secrets.GIT_SSH_KEY }}" > ~/.ssh/git_ssh_key
 
           chmod 400 .ssh/git_ssh_key
 
-          echo "GIT_SSH_COMMAND=ssh -i $(pwd)/.ssh/git_ssh_key -o
+          echo "GIT_SSH_COMMAND=ssh -i ~/.ssh/git_ssh_key -o
           'StrictHostKeyChecking=no'" >> $GITHUB_ENV
       - name: Setup Infracost
         uses: ./setup
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
-      - name: Run Infracost
+      - name: Generate Infracost cost snapshot
+        run: |
+          infracost breakdown --path examples/private-terraform-module/code \
+                              --format=json \
+                              --out-file /tmp/prior.json
+      - name: Checkout pr branch
+        uses: actions/checkout@v2
+      - name: Replace m5 instance
         run: >-
-          infracost breakdown --path=examples/private-terraform-module/code
-          --format=json --out-file=/tmp/infracost.json
+          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
+          's/m5.4xlarge/m5.8xlarge/g'
+      - name: Replace t2 instance
+        run: >-
+          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
+          's/t2.micro/t2.medium/g'
+      - name: Run Infracost
+        run: |
+          infracost diff --path=examples/private-terraform-module/code \
+                              --format=json \
+                              --compare-to=/tmp/prior.json \
+                              --out-file=/tmp/infracost.json
       - name: Post Infracost comment
         run: |-
           infracost comment github --path /tmp/infracost.json \
@@ -249,15 +299,35 @@ jobs:
     name: Slack
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout base branch
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
       - name: Setup Infracost
         uses: ./setup
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
-      - name: Generate Infracost JSON
+      - name: Generate Infracost cost snapshot
+        run: |
+          infracost breakdown --path examples/slack/code \
+                              --format json \
+                              --out-file /tmp/prior.json
+      - name: Checkout pr branch
+        uses: actions/checkout@v2
+      - name: Replace m5 instance
         run: >-
-          infracost breakdown --path=examples/slack/code/plan.json --format json
-          --out-file /tmp/infracost.json
+          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
+          's/m5.4xlarge/m5.8xlarge/g'
+      - name: Replace t2 instance
+        run: >-
+          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
+          's/t2.micro/t2.medium/g'
+      - name: Run Infracost
+        run: |
+          infracost diff --path examples/slack/code \
+                           --format json \
+                           --compare-to /tmp/prior.json \
+                           --out-file /tmp/infracost.json
       - name: Post Infracost comment
         run: |-
           infracost comment github --path /tmp/infracost.json \
@@ -299,20 +369,37 @@ jobs:
     name: Terraform Cloud/Enterprise
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Install terraform
-        uses: hashicorp/setup-terraform@v1
+      - name: Checkout base branch
+        uses: actions/checkout@v2
         with:
-          terraform_wrapper: false
-          cli_config_credentials_token: ${{ secrets.TFC_TOKEN }}
+          ref: ${{ github.event.pull_request.base.ref }}
       - name: Setup Infracost
         uses: ./setup
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
       - name: Run Infracost
+        run: |
+          infracost breakdown --path=examples/terraform-cloud-enterprise/code \
+                              --format=json \
+                              --out-file=/tmp/prior.json
+        env:
+          INFRACOST_TERRAFORM_CLOUD_TOKEN: ${{ secrets.TFC_TOKEN }}
+      - name: Checkout pr branch
+        uses: actions/checkout@v2
+      - name: Replace m5 instance
         run: >-
-          infracost breakdown --path=examples/terraform-cloud-enterprise/code
-          --format=json --out-file=/tmp/infracost.json
+          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
+          's/m5.4xlarge/m5.8xlarge/g'
+      - name: Replace t2 instance
+        run: >-
+          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
+          's/t2.micro/t2.medium/g'
+      - name: Run Infracost
+        run: |
+          infracost diff --path=examples/terraform-cloud-enterprise/code \
+                              --format=json \
+                              --compare-to=/tmp/prior.json \
+                              --out-file=/tmp/infracost.json
         env:
           INFRACOST_TERRAFORM_CLOUD_TOKEN: ${{ secrets.TFC_TOKEN }}
       - name: Post Infracost comment
@@ -338,19 +425,35 @@ jobs:
     name: Terraform directory
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Install terraform
-        uses: hashicorp/setup-terraform@v1
+      - name: Checkout base branch
+        uses: actions/checkout@v2
         with:
-          terraform_wrapper: false
+          ref: ${{ github.event.pull_request.base.ref }}
       - name: Setup Infracost
         uses: ./setup
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
-      - name: Run Infracost
+      - name: Generate Infracost cost snapshot
+        run: |
+          infracost breakdown --path examples/terraform-directory/code \
+                              --format json \
+                              --out-file /tmp/prior.json
+      - name: Checkout pr branch
+        uses: actions/checkout@v2
+      - name: Replace m5 instance
         run: >-
-          infracost breakdown --path=examples/terraform-directory/code
-          --format=json --out-file=/tmp/infracost.json
+          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
+          's/m5.4xlarge/m5.8xlarge/g'
+      - name: Replace t2 instance
+        run: >-
+          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
+          's/t2.micro/t2.medium/g'
+      - name: Run Infracost
+        run: |
+          infracost diff --path examples/terraform-directory/code \
+                              --format json \
+                              --compare-to /tmp/prior.json \
+                              --out-file /tmp/infracost.json
       - name: Post Infracost comment
         run: |-
           infracost comment github --path /tmp/infracost.json \
@@ -406,23 +509,35 @@ jobs:
     name: Terragrunt
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Install Terraform
-        uses: hashicorp/setup-terraform@v1
+      - name: Checkout base branch
+        uses: actions/checkout@v2
         with:
-          terraform_wrapper: false
-      - name: Setup Terragrunt
-        uses: autero1/action-terragrunt@v1.1.0
-        with:
-          terragrunt_version: 0.35.9
+          ref: ${{ github.event.pull_request.base.ref }}
       - name: Setup Infracost
         uses: ./setup
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
-      - name: Run Infracost
+      - name: Generate Infracost cost snapshot
+        run: |
+          infracost breakdown --path examples/terragrunt/code \
+                              --format json \
+                              --out-file /tmp/prior.json
+      - name: Checkout pr branch
+        uses: actions/checkout@v2
+      - name: Replace m5 instance
         run: >-
-          infracost breakdown --path=examples/terragrunt/code --format=json
-          --out-file=/tmp/infracost.json
+          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
+          's/m5.4xlarge/m5.8xlarge/g'
+      - name: Replace t2 instance
+        run: >-
+          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
+          's/t2.micro/t2.medium/g'
+      - name: Run Infracost
+        run: |
+          infracost diff --path examples/terragrunt/code \
+                           --format json \
+                           --compare-to /tmp/prior.json \
+                           --out-file /tmp/infracost.json
       - name: Post Infracost comment
         run: |-
           infracost comment github --path /tmp/infracost.json \
