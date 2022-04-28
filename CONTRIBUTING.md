@@ -29,7 +29,7 @@ jobs:
 ````
 
 The examples are then modified in two ways:
-1. Use local paths for any Infracost actions, e.g. replace `uses: infracost/actions/setup@v1` with `./setup`.
+1. Use local paths for any Infracost actions, e.g. replace `uses: infracost/actions/setup@v2` with `./setup`.
 2. Replace any `infracost/actions/comment` steps with steps to generate and test the content of the comment using golden files from the [./testdata](./testdata) directory.
 
 All the examples are then added to the `examples_test` GitHub Actions workflow as separate jobs.

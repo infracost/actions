@@ -13,22 +13,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Install terraform
-        uses: hashicorp/setup-terraform@v1
+      # Checkout the branch you want Infracost to compare costs against. This example is using the 
+      # target PR branch.
+      - name: Checkout base branch
+        uses: actions/checkout@v2
         with:
-          terraform_wrapper: false # This is recommended so the `terraform show` command outputs valid JSON
-
-      # IMPORTANT: add any required steps here to setup cloud credentials so Terraform can run
+          ref: '${{ github.event.pull_request.base.ref }}'
 
       - name: Setup Infracost
-        uses: infracost/actions/setup@v1
+        uses: infracost/actions/setup@v2
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
 
+      # Generate an Infracost output JSON from the comparison branch, so that Infracost can compare the cost difference.
+      - name: Generate Infracost cost snapshot
+        run: |
+          infracost breakdown --path examples/terraform-directory/code \
+                              --format json \
+                              --out-file /tmp/prior.json
+          
+      - name: Checkout pr branch
+        uses: actions/checkout@v2
+
       - name: Run Infracost
-        run: infracost breakdown --path=examples/terraform-directory/code --format=json --out-file=/tmp/infracost.json
+        run: |
+          infracost diff --path examples/terraform-directory/code \
+                              --format json \
+                              --compare-to /tmp/prior.json \
+                              --out-file /tmp/infracost.json
 
       - name: Post Infracost comment
         run: |

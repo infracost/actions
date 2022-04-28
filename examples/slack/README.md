@@ -4,8 +4,6 @@ This example shows how to send cost estimates to Slack by combining the Infracos
 
 Slack message blocks have a 3000 char limit so the Infracost CLI automatically truncates the middle of `slack-message` output formats.
 
-For simplicity, this is based off the terraform-plan-json example, which does not require Terraform to be installed.
-
 <img src="/.github/assets/slack-message.png" alt="Example screenshot" />
 
 [//]: <> (BEGIN EXAMPLE)
@@ -19,15 +17,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      # Checkout the branch you want Infracost to compare costs against. This example is using the 
+      # target PR branch.
+      - name: Checkout base branch
+        uses: actions/checkout@v2
+        with:
+          ref: '${{ github.event.pull_request.base.ref }}'
 
       - name: Setup Infracost
-        uses: infracost/actions/setup@v1
+        uses: infracost/actions/setup@v2
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
 
-      - name: Generate Infracost JSON
-        run: infracost breakdown --path=examples/slack/code/plan.json --format json --out-file /tmp/infracost.json
+      # Generate an Infracost output JSON from the comparison branch, so that Infracost can compare the cost difference.
+      - name: Generate Infracost cost snapshot
+        run: |
+          infracost breakdown --path examples/slack/code \
+                              --format json \
+                              --out-file /tmp/prior.json
+
+      - name: Checkout pr branch
+        uses: actions/checkout@v2
+
+      - name: Run Infracost
+        run: |
+          infracost diff --path examples/slack/code \
+                           --format json \
+                           --compare-to /tmp/prior.json \
+                           --out-file /tmp/infracost.json
 
       - name: Post Infracost comment
         run: |

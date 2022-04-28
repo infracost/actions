@@ -15,24 +15,39 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Install terraform
-        uses: hashicorp/setup-terraform@v1
+      # Checkout the branch you want Infracost to compare costs against. This example is using the 
+      # target PR branch.
+      - name: Checkout base branch
+        uses: actions/checkout@v2
         with:
-          terraform_wrapper: false # This is recommended so the `terraform show` command outputs valid JSON
-          cli_config_credentials_token: ${{ secrets.TFC_TOKEN }}
-          # cli_config_credentials_hostname: my-tfe-host.com # For Terraform Enterprise users only
+          ref: '${{ github.event.pull_request.base.ref }}'
 
       - name: Setup Infracost
-        uses: infracost/actions/setup@v1
+        uses: infracost/actions/setup@v2
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
 
       - name: Run Infracost
-        run: infracost breakdown --path=examples/terraform-cloud-enterprise/code --format=json --out-file=/tmp/infracost.json
+        run: |
+          infracost breakdown --path=examples/terraform-cloud-enterprise/code \
+                              --format=json \
+                              --out-file=/tmp/prior.json
         env:
-          # TODO: the following two envs be removed once https://github.com/infracost/infracost/pull/1148 is released in v0.9.14 of the CLI (https://github.com/infracost/infracost/releases)
+          # Terraform cloud credentials used to fetch Terraform vars.
+          INFRACOST_TERRAFORM_CLOUD_TOKEN: ${{ secrets.TFC_TOKEN }}
+          # INFRACOST_TERRAFORM_CLOUD_HOST: my-tfe-host.com # For Terraform Enterprise users only.
+
+      - name: Checkout pr branch
+        uses: actions/checkout@v2
+
+      - name: Run Infracost
+        run: |
+          infracost diff --path=examples/terraform-cloud-enterprise/code \
+                              --format=json \
+                              --compare-to=/tmp/prior.json \
+                              --out-file=/tmp/infracost.json
+        env:
+          # Terraform cloud credentials used to fetch Terraform vars.
           INFRACOST_TERRAFORM_CLOUD_TOKEN: ${{ secrets.TFC_TOKEN }}
           # INFRACOST_TERRAFORM_CLOUD_HOST: my-tfe-host.com # For Terraform Enterprise users only.
 

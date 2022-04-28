@@ -17,26 +17,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Install Terraform
-        uses: hashicorp/setup-terraform@v1
+      # Checkout the branch you want Infracost to compare costs against.This example is using the 
+      # target PR branch.
+      - name: Checkout base branch
+        uses: actions/checkout@v2
         with:
-          terraform_wrapper: false # This is recommended so the `terraform show` command outputs valid JSON
+          ref: '${{ github.event.pull_request.base.ref }}'
 
       - name: Setup Infracost
-        uses: infracost/actions/setup@v1
+        uses: infracost/actions/setup@v2
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
 
+      # Generate an Infracost output JSON from the comparison branch, so that Infracost can compare the cost difference.
+      - name: Generate Infracost cost snapshot
+        run: |
+          infracost breakdown --config-file=examples/multi-project/code/infracost.yml \
+                              --format=json \
+                              --out-file=/tmp/prior.json
+
+      - name: Checkout pr branch
+        uses: actions/checkout@v2
+
       - name: Run Infracost
-        run: infracost breakdown --config-file=examples/multi-project/code/infracost.yml --format=json --out-file=/tmp/infracost.json
-        env:
-          # IMPORTANT: add any required secrets to setup cloud credentials so Terraform can run
-          DEV_AWS_ACCESS_KEY_ID: ${{ secrets.EXAMPLE_DEV_AWS_ACCESS_KEY_ID }}
-          DEV_AWS_SECRET_ACCESS_KEY: ${{ secrets.EXAMPLE_DEV_AWS_SECRET_ACCESS_KEY }}
-          PROD_AWS_ACCESS_KEY_ID: ${{ secrets.EXAMPLE_PROD_AWS_ACCESS_KEY_ID }}
-          PROD_AWS_SECRET_ACCESS_KEY: ${{ secrets.EXAMPLE_PROD_AWS_SECRET_ACCESS_KEY }}
+        run: |
+          infracost diff --config-file=examples/multi-project/code/infracost.yml \
+                              --format=json \
+                              --compare-to=/tmp/prior.json \
+                              --out-file=/tmp/infracost.json
 
       - name: Post Infracost comment
         run: |
@@ -72,33 +80,38 @@ jobs:
     strategy:
       matrix:
         include:
-          # IMPORTANT: add any required secrets to setup cloud credentials so Terraform can run
           - dir: dev
-            # GitHub actions doesn't support secrets in matrix values, so we use the name of the secret instead
-            aws_access_key_id_secret: EXAMPLE_DEV_AWS_ACCESS_KEY_ID
-            aws_secret_access_key_secret: EXAMPLE_DEV_AWS_SECRET_ACCESS_KEY
           - dir: prod
-            aws_access_key_id_secret: EXAMPLE_PROD_AWS_ACCESS_KEY_ID
-            aws_secret_access_key_secret: EXAMPLE_PROD_AWS_SECRET_ACCESS_KEY
 
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Install Terraform
-        uses: hashicorp/setup-terraform@v1
+      # Checkout the branch you want Infracost to compare costs against. This example is using the 
+      # target PR branch.
+      - name: Checkout base branch
+        uses: actions/checkout@v2
         with:
-          terraform_wrapper: false # This is recommended so the `terraform show` command outputs valid JSON
+          ref: '${{ github.event.pull_request.base.ref }}'
 
       - name: Setup Infracost
-        uses: infracost/actions/setup@v1
+        uses: infracost/actions/setup@v2
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
 
+      # Generate an Infracost output JSON from the comparison branch, so that Infracost can compare the cost difference.
+      - name: Generate Infracost cost snapshot
+        run: |
+          infracost breakdown --path=examples/multi-project/code/${{ matrix.dir }} \
+                              --format=json \
+                              --out-file=/tmp/prior.json
+          
+      - name: Checkout pr branch
+        uses: actions/checkout@v2
+
       - name: Run Infracost
-        run: infracost breakdown --path=examples/multi-project/code/${{ matrix.dir }} --format=json --out-file=/tmp/infracost_${{ matrix.dir }}.json
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets[matrix.aws_access_key_id_secret] }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets[matrix.aws_secret_access_key_secret] }}
+        run: |
+          infracost diff --path=examples/multi-project/code/${{ matrix.dir }} \
+                              --format json \
+                              --compare-to=/tmp/prior.json \
+                              --out-file=/tmp/infracost_${{ matrix.dir }}.json
 
       - name: Upload Infracost breakdown
         uses: actions/upload-artifact@v2
@@ -120,7 +133,7 @@ jobs:
           path: /tmp
 
       - name: Setup Infracost
-        uses: infracost/actions/setup@v1
+        uses: infracost/actions/setup@v2
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
 
