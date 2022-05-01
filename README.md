@@ -123,7 +123,9 @@ We recommend you use the above [quick start](#quick-start) guide and examples, w
 - [setup](setup): downloads and installs the Infracost CLI in your GitHub Actions workflow.
 
 ### Deprecated Actions
-- [comment](comment): adds comments to pull requests. This action is deprecated, please use `infracost comment` directly.
+The following actions are deprecated and will be removed in the V2 of the GitHub action.
+
+- [comment](comment): adds comments to pull requests. This action is deprecated, please use [`infracost comment`](https://www.infracost.io/docs/features/cli_commands/#comment-on-pull-requests) directly.
 - [get-comment](get-comment): reads a comment from a pull request. This action is deprecated.
 
 ## Contributing
