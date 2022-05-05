@@ -92,9 +92,11 @@ The following steps assume a simple Terraform directory is being used, we recomm
                                        --behavior update
     ```
 
-4. 🎉 That's it! Send a new pull request to change something in Terraform that costs money. You should see a pull request comment that gets updated, e.g. the 📉 and 📈 emojis will update as changes are pushed!
+5. 🎉 That's it! Send a new pull request to change something in Terraform that costs money. You should see a pull request comment that gets updated, e.g. the 📉 and 📈 emojis will update as changes are pushed!
 
     If there are issues, check the GitHub Actions logs and [this page](https://www.infracost.io/docs/troubleshooting/).
+
+6. Follow [the docs](https://www.infracost.io/usage-file) if you'd also like to show cost for of usage-based resources such as AWS Lambda or S3. The usage for these resources are fetched from CloudWatch/cloud APIs and used to calculate an estimate.
 
 ## Examples
 
@@ -119,14 +121,11 @@ If you use HashiCorp Sentinel, follow [our example](examples/sentinel) to output
 
 ## Actions
 
-We recommend you use the above [quick start](#quick-start) guide and examples, which combine the following individual actions:
-- [setup](setup): downloads and installs the Infracost CLI in your GitHub Actions workflow.
+We recommend you use the above [quick start](#quick-start) guide and examples, which uses the [setup](setup) action. This downloads and installs the Infracost CLI in your GitHub Actions workflow.
 
-### Deprecated Actions
-The following actions are deprecated and will be removed in the V2 of the GitHub action.
-
-- [comment](comment): adds comments to pull requests. This action is deprecated, please use [`infracost comment`](https://www.infracost.io/docs/features/cli_commands/#comment-on-pull-requests) directly.
-- [get-comment](get-comment): reads a comment from a pull request. This action is deprecated.
+The following actions are **deprecated** and will be removed in the V2 of the GitHub action:
+- [comment](comment): adds comments to pull requests; you should use the [`infracost comment`](https://www.infracost.io/docs/features/cli_commands/#comment-on-pull-requests) command directly.
+- [get-comment](get-comment): reads a comment from a pull request. This action was not widely used and is deprecated.
 
 ## Contributing
 
