@@ -7,7 +7,7 @@ inputs:
   version:
     description: Version of Infracost CLI to install. SemVer ranges (https://www.npmjs.com/package/semver#ranges) are supported.
     required: false
-    default: 0.10.x
+    default: 0.10.0-beta.1
   currency:
     description: Convert output from USD to your preferred ISO 4217 currency (https://en.wikipedia.org/wiki/ISO_4217#Active_codes), e.g. EUR, BRL or INR.
     required: false
