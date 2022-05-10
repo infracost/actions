@@ -13,17 +13,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the branch you want Infracost to compare costs against. This example is using the 
+      - name: Setup Infracost
+        uses: infracost/actions/setup@v2
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+
+      # Checkout the branch you want Infracost to compare costs against. This example is using the
       # target PR branch.
       - name: Checkout base branch
         uses: actions/checkout@v2
         with:
           ref: '${{ github.event.pull_request.base.ref }}'
-
-      - name: Setup Infracost
-        uses: infracost/actions/setup@v2
-        with:
-          api-key: ${{ secrets.INFRACOST_API_KEY }}
 
       # Generate an Infracost output JSON from the comparison branch, so that Infracost can compare the cost difference.
       - name: Generate Infracost cost snapshot
@@ -31,7 +31,7 @@ jobs:
           infracost breakdown --path examples/terraform-directory/code \
                               --format json \
                               --out-file /tmp/prior.json
-          
+
       - name: Checkout pr branch
         uses: actions/checkout@v2
 
