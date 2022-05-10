@@ -9,13 +9,13 @@
   </thead>
   <tbody>
     <tr>
-      <td>infracost/actions/examples/multi-project/code/dev</td>
+      <td>infracost/actions/examples/multi-terraform-workspace/code (dev)</td>
       <td align="right">$51.97</td>
       <td align="right">$77.37</td>
       <td>+$25.40 (+49%)</td>
     </tr>
     <tr>
-      <td>infracost/actions/examples/multi-project/code/prod</td>
+      <td>infracost/actions/examples/multi-terraform-workspace/code (prod)</td>
       <td align="right">$748</td>
       <td align="right">$1,308</td>
       <td>+$561 (+75%)</td>
@@ -33,28 +33,28 @@
 <summary><strong>Infracost output</strong></summary>
 
 ```
-Project: infracost/actions/examples/multi-project/code/dev
+Project: infracost/actions/examples/multi-terraform-workspace/code (dev)
 
-~ module.base.aws_instance.web_app
+~ aws_instance.web_app
   +$25.40 ($51.97 → $77.37)
 
     ~ Instance usage (Linux/UNIX, on-demand, t2.micro → t2.medium)
       +$25.40 ($8.47 → $33.87)
 
-Monthly cost change for infracost/actions/examples/multi-project/code/dev
+Monthly cost change for infracost/actions/examples/multi-terraform-workspace/code (dev)
 Amount:  +$25.40 ($51.97 → $77.37)
 Percent: +49%
 
 ──────────────────────────────────
-Project: infracost/actions/examples/multi-project/code/prod
+Project: infracost/actions/examples/multi-terraform-workspace/code (prod)
 
-~ module.base.aws_instance.web_app
+~ aws_instance.web_app
   +$561 ($748 → $1,308)
 
     ~ Instance usage (Linux/UNIX, on-demand, m5.4xlarge → m5.8xlarge)
       +$561 ($561 → $1,121)
 
-Monthly cost change for infracost/actions/examples/multi-project/code/prod
+Monthly cost change for infracost/actions/examples/multi-terraform-workspace/code (prod)
 Amount:  +$561 ($748 → $1,308)
 Percent: +75%
 

@@ -1,5 +1,5 @@
 
-💰 Infracost estimate: **monthly cost will increase by $561 (+75%) 📈**
+💰 Infracost estimate: **monthly cost will increase by $25.40 (+223%) 📈**
 <table>
   <thead>
     <td>Project</td>
@@ -10,9 +10,9 @@
   <tbody>
     <tr>
       <td>infracost/actions/examples/private-terraform-module/code</td>
-      <td align="right">$743</td>
-      <td align="right">$1,303</td>
-      <td>+$561 (+75%)</td>
+      <td align="right">$11.37</td>
+      <td align="right">$36.77</td>
+      <td>+$25.40 (+223%)</td>
     </tr>
   </tbody>
 </table>
@@ -23,21 +23,21 @@
 ```
 Project: infracost/actions/examples/private-terraform-module/code
 
-~ aws_instance.web_app
-  +$561 ($743 → $1,303)
+~ module.ec2_cluster.aws_instance.this[0]
+  +$25.40 ($11.37 → $36.77)
 
-    ~ Instance usage (Linux/UNIX, on-demand, m5.4xlarge → m5.8xlarge)
-      +$561 ($561 → $1,121)
+    ~ Instance usage (Linux/UNIX, on-demand, t2.micro → t2.medium)
+      +$25.40 ($8.47 → $33.87)
 
 Monthly cost change for infracost/actions/examples/private-terraform-module/code
-Amount:  +$561 ($743 → $1,303)
-Percent: +75%
+Amount:  +$25.40 ($11.37 → $36.77)
+Percent: +223%
 
 ──────────────────────────────────
 Key: ~ changed, + added, - removed
 
-2 cloud resources were detected:
-∙ 2 were estimated, all of which include usage-based costs, see https://infracost.io/usage-file
+1 cloud resource was detected:
+∙ 1 was estimated, it includes usage-based costs, see https://infracost.io/usage-file
 ```
 </details>
 

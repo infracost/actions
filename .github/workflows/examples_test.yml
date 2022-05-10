@@ -12,14 +12,15 @@ jobs:
     name: Multi-project config file
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout base branch
+      - name: Checkout source code so we can install the action locally
         uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.base.ref }}
       - name: Setup Infracost
         uses: ./setup
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
+      - name: Checkout base branch
+        uses: actions/checkout@v2
+        with: {}
       - name: Generate Infracost cost snapshot
         run: >
           infracost breakdown
@@ -30,12 +31,12 @@ jobs:
         uses: actions/checkout@v2
       - name: Replace m5 instance
         run: >-
-          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
-          's/m5.4xlarge/m5.8xlarge/g'
+          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
+          '*.tfvars'  | xargs sed -i 's/m5.4xlarge/m5.8xlarge/g'
       - name: Replace t2 instance
         run: >-
-          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
-          's/t2.micro/t2.medium/g'
+          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
+          '*.tfvars'  | xargs sed -i 's/t2.micro/t2.medium/g'
       - name: Run Infracost
         run: >
           infracost diff --config-file=examples/multi-project/code/infracost.yml
@@ -71,14 +72,15 @@ jobs:
           - dir: dev
           - dir: prod
     steps:
-      - name: Checkout base branch
+      - name: Checkout source code so we can install the action locally
         uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.base.ref }}
       - name: Setup Infracost
         uses: ./setup
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
+      - name: Checkout base branch
+        uses: actions/checkout@v2
+        with: {}
       - name: Generate Infracost cost snapshot
         run: >
           infracost breakdown --path=examples/multi-project/code/${{ matrix.dir
@@ -89,12 +91,12 @@ jobs:
         uses: actions/checkout@v2
       - name: Replace m5 instance
         run: >-
-          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
-          's/m5.4xlarge/m5.8xlarge/g'
+          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
+          '*.tfvars'  | xargs sed -i 's/m5.4xlarge/m5.8xlarge/g'
       - name: Replace t2 instance
         run: >-
-          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
-          's/t2.micro/t2.medium/g'
+          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
+          '*.tfvars'  | xargs sed -i 's/t2.micro/t2.medium/g'
       - name: Run Infracost
         run: |
           infracost diff --path=examples/multi-project/code/${{ matrix.dir }} \
@@ -146,14 +148,15 @@ jobs:
     name: Multi-Terraform workspace config file
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout base branch
+      - name: Checkout source code so we can install the action locally
         uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.base.ref }}
       - name: Setup Infracost
         uses: ./setup
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
+      - name: Checkout base branch
+        uses: actions/checkout@v2
+        with: {}
       - name: Generate Infracost cost snapshot
         run: >
           infracost breakdown
@@ -164,12 +167,12 @@ jobs:
         uses: actions/checkout@v2
       - name: Replace m5 instance
         run: >-
-          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
-          's/m5.4xlarge/m5.8xlarge/g'
+          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
+          '*.tfvars'  | xargs sed -i 's/m5.4xlarge/m5.8xlarge/g'
       - name: Replace t2 instance
         run: >-
-          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
-          's/t2.micro/t2.medium/g'
+          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
+          '*.tfvars'  | xargs sed -i 's/t2.micro/t2.medium/g'
       - name: Run Infracost
         run: >
           infracost diff
@@ -201,24 +204,25 @@ jobs:
     name: Private Terraform module
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout source code so we can install the action locally
+        uses: actions/checkout@v2
+      - name: Setup Infracost
+        uses: ./setup
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
       - name: Checkout base branch
         uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.base.ref }}
+        with: {}
       - name: add GIT_SSH_KEY
         run: >
           mkdir -p ~/.ssh
 
           echo "${{ secrets.GIT_SSH_KEY }}" > ~/.ssh/git_ssh_key
 
-          chmod 400 .ssh/git_ssh_key
+          chmod 400 ~/.ssh/git_ssh_key
 
           echo "GIT_SSH_COMMAND=ssh -i ~/.ssh/git_ssh_key -o
           'StrictHostKeyChecking=no'" >> $GITHUB_ENV
-      - name: Setup Infracost
-        uses: ./setup
-        with:
-          api-key: ${{ secrets.INFRACOST_API_KEY }}
       - name: Generate Infracost cost snapshot
         run: |
           infracost breakdown --path examples/private-terraform-module/code \
@@ -228,12 +232,12 @@ jobs:
         uses: actions/checkout@v2
       - name: Replace m5 instance
         run: >-
-          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
-          's/m5.4xlarge/m5.8xlarge/g'
+          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
+          '*.tfvars'  | xargs sed -i 's/m5.4xlarge/m5.8xlarge/g'
       - name: Replace t2 instance
         run: >-
-          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
-          's/t2.micro/t2.medium/g'
+          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
+          '*.tfvars'  | xargs sed -i 's/t2.micro/t2.medium/g'
       - name: Run Infracost
         run: |
           infracost diff --path=examples/private-terraform-module/code \
@@ -299,14 +303,15 @@ jobs:
     name: Slack
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout base branch
+      - name: Checkout source code so we can install the action locally
         uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.base.ref }}
       - name: Setup Infracost
         uses: ./setup
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
+      - name: Checkout base branch
+        uses: actions/checkout@v2
+        with: {}
       - name: Generate Infracost cost snapshot
         run: |
           infracost breakdown --path examples/slack/code \
@@ -316,12 +321,12 @@ jobs:
         uses: actions/checkout@v2
       - name: Replace m5 instance
         run: >-
-          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
-          's/m5.4xlarge/m5.8xlarge/g'
+          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
+          '*.tfvars'  | xargs sed -i 's/m5.4xlarge/m5.8xlarge/g'
       - name: Replace t2 instance
         run: >-
-          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
-          's/t2.micro/t2.medium/g'
+          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
+          '*.tfvars'  | xargs sed -i 's/t2.micro/t2.medium/g'
       - name: Run Infracost
         run: |
           infracost diff --path examples/slack/code \
@@ -369,14 +374,15 @@ jobs:
     name: Terraform Cloud/Enterprise
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout base branch
+      - name: Checkout source code so we can install the action locally
         uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.base.ref }}
       - name: Setup Infracost
         uses: ./setup
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
+      - name: Checkout base branch
+        uses: actions/checkout@v2
+        with: {}
       - name: Run Infracost
         run: |
           infracost breakdown --path=examples/terraform-cloud-enterprise/code \
@@ -388,12 +394,12 @@ jobs:
         uses: actions/checkout@v2
       - name: Replace m5 instance
         run: >-
-          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
-          's/m5.4xlarge/m5.8xlarge/g'
+          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
+          '*.tfvars'  | xargs sed -i 's/m5.4xlarge/m5.8xlarge/g'
       - name: Replace t2 instance
         run: >-
-          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
-          's/t2.micro/t2.medium/g'
+          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
+          '*.tfvars'  | xargs sed -i 's/t2.micro/t2.medium/g'
       - name: Run Infracost
         run: |
           infracost diff --path=examples/terraform-cloud-enterprise/code \
@@ -425,14 +431,15 @@ jobs:
     name: Terraform directory
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout base branch
+      - name: Checkout source code so we can install the action locally
         uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.base.ref }}
       - name: Setup Infracost
         uses: ./setup
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
+      - name: Checkout base branch
+        uses: actions/checkout@v2
+        with: {}
       - name: Generate Infracost cost snapshot
         run: |
           infracost breakdown --path examples/terraform-directory/code \
@@ -442,12 +449,12 @@ jobs:
         uses: actions/checkout@v2
       - name: Replace m5 instance
         run: >-
-          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
-          's/m5.4xlarge/m5.8xlarge/g'
+          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
+          '*.tfvars'  | xargs sed -i 's/m5.4xlarge/m5.8xlarge/g'
       - name: Replace t2 instance
         run: >-
-          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
-          's/t2.micro/t2.medium/g'
+          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
+          '*.tfvars'  | xargs sed -i 's/t2.micro/t2.medium/g'
       - name: Run Infracost
         run: |
           infracost diff --path examples/terraform-directory/code \
@@ -509,14 +516,15 @@ jobs:
     name: Terragrunt
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout base branch
+      - name: Checkout source code so we can install the action locally
         uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.base.ref }}
       - name: Setup Infracost
         uses: ./setup
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
+      - name: Checkout base branch
+        uses: actions/checkout@v2
+        with: {}
       - name: Generate Infracost cost snapshot
         run: |
           infracost breakdown --path examples/terragrunt/code \
@@ -526,12 +534,12 @@ jobs:
         uses: actions/checkout@v2
       - name: Replace m5 instance
         run: >-
-          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
-          's/m5.4xlarge/m5.8xlarge/g'
+          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
+          '*.tfvars'  | xargs sed -i 's/m5.4xlarge/m5.8xlarge/g'
       - name: Replace t2 instance
         run: >-
-          find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i
-          's/t2.micro/t2.medium/g'
+          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
+          '*.tfvars'  | xargs sed -i 's/t2.micro/t2.medium/g'
       - name: Run Infracost
         run: |
           infracost diff --path examples/terragrunt/code \

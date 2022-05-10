@@ -84,17 +84,31 @@ function fixupExamples(examples) {
       const [jobKey, job] = jobEntry;
 
       const steps = [];
-      for (const step of job.steps) {
+      for (let i = 0; i < job.steps.length; i++) {
+        const step = job.steps[i];
+
+        if (step.name && step.name.toLowerCase() === 'checkout base branch') {
+          // In the tests we don't actually want to use the base branch since we might have updated
+          // the actual tests themselves.
+          if (step.with) {
+            delete step.with.ref;
+          }
+
+          steps.push(step);
+
+          continue;
+        }
+
         if (step.name && step.name.toLowerCase() === 'checkout pr branch') {
           steps.push(
             step,
             {
               name: 'Replace m5 instance',
-              run: `find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i 's/m5\.4xlarge/m5\.8xlarge/g'`
+              run: `find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name '*.tfvars'  | xargs sed -i 's/m5\.4xlarge/m5\.8xlarge/g'`
             },
             {
               name: 'Replace t2 instance',
-              run: `find examples -type f  -name '*.tf' -o -name '*.hcl'  | xargs sed -i 's/t2\.micro/t2\.medium/g'`
+              run: `find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name '*.tfvars'  | xargs sed -i 's/t2\.micro/t2\.medium/g'`
             }
           )
 
@@ -153,6 +167,17 @@ function fixupExamples(examples) {
           );
 
           continue;
+        }
+
+        // Since we're using the local action we need to make sure the we have the code checked out before running that action
+        // We should only do this if the setup action is the first step
+        if (i == 0 && step.uses && step.uses.startsWith('infracost/actions/setup')) {
+          steps.push(
+            {
+              name: 'Checkout source code so we can install the action locally',
+              uses: 'actions/checkout@v2',
+            },
+          );
         }
 
         // Replace infracost/actions steps with the local path
