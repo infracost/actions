@@ -1,6 +1,6 @@
 # Slack Example
 
-This example shows how to send cost estimates to Slack by combining the Infracost actions with the official [slackapi/slack-github-action](https://github.com/slackapi/slack-github-action) repo.
+This example shows how to send cost estimates to Slack by combining the Infracost GitHub Action with the official [slackapi/slack-github-action](https://github.com/slackapi/slack-github-action) repo.
 
 Slack message blocks have a 3000 char limit so the Infracost CLI automatically truncates the middle of `slack-message` output formats.
 
@@ -15,6 +15,8 @@ jobs:
   slack:
     name: Slack
     runs-on: ubuntu-latest
+    env:
+      TF_ROOT: examples/slack/code
 
     steps:
       - name: Setup Infracost
@@ -32,18 +34,18 @@ jobs:
       # Generate an Infracost output JSON from the comparison branch, so that Infracost can compare the cost difference.
       - name: Generate Infracost cost snapshot
         run: |
-          infracost breakdown --path examples/slack/code \
+          infracost breakdown --path ${TF_ROOT} \
                               --format json \
-                              --out-file /tmp/prior.json
+                              --out-file /tmp/infracost-base.json
 
       - name: Checkout pr branch
         uses: actions/checkout@v2
 
       - name: Run Infracost
         run: |
-          infracost diff --path examples/slack/code \
+          infracost diff --path ${TF_ROOT} \
                            --format json \
-                           --compare-to /tmp/prior.json \
+                           --compare-to /tmp/infracost-base.json \
                            --out-file /tmp/infracost.json
 
       - name: Post Infracost comment

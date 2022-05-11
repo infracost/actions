@@ -1,0 +1,6 @@
+version: 0.1
+
+projects:
+
+  - path: examples/plan-json/terragrunt/code/./dev/plan.json
+  - path: examples/plan-json/terragrunt/code/./prod/plan.json

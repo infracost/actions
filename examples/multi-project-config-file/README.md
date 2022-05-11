@@ -1,18 +1,18 @@
-# Private Terraform module
+# Multi-project using config file
 
-This example shows how to run Infracost in GitHub Actions with a Terraform project that uses a private Terraform module. This requires a secret to be added to your GitHub repository called `GIT_SSH_KEY` containing a private key so that Infracost can access the private repository.
+This example shows how to run Infracost in GitHub Actions with multiple Terraform projects using a config file. The [config file]((https://www.infracost.io/docs/config_file/)) can be used to specify variable files or the Terraform workspaces for different projects.
 
 [//]: <> (BEGIN EXAMPLE)
 ```yml
-name: Private Terraform module
+name: Multi-project config file
 on: [pull_request]
 
 jobs:
-  private-terraform-module:
-    name: Private Terraform module
+  multi-project-config-file:
+    name: Multi-project config file
     runs-on: ubuntu-latest
     env:
-      TF_ROOT: examples/private-terraform-module/code
+      TF_ROOT: examples/multi-project-config-file/code
 
     steps:
       - name: Setup Infracost
@@ -20,34 +20,26 @@ jobs:
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
 
-      # Checkout the branch you want Infracost to compare costs against. This example is using the
+      # Checkout the branch you want Infracost to compare costs against.This example is using the
       # target PR branch.
       - name: Checkout base branch
         uses: actions/checkout@v2
         with:
           ref: '${{ github.event.pull_request.base.ref }}'
 
-      # Add your git SSH key so Infracost can checkout the private modules
-      - name: add GIT_SSH_KEY
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.GIT_SSH_KEY }}" > ~/.ssh/git_ssh_key
-          chmod 400 ~/.ssh/git_ssh_key
-          echo "GIT_SSH_COMMAND=ssh -i ~/.ssh/git_ssh_key -o 'StrictHostKeyChecking=no'" >> $GITHUB_ENV
-
       # Generate an Infracost output JSON from the comparison branch, so that Infracost can compare the cost difference.
       - name: Generate Infracost cost snapshot
         run: |
-          infracost breakdown --path ${TF_ROOT} \
+          infracost breakdown --config-file=${TF_ROOT}/infracost.yml \
                               --format=json \
-                              --out-file /tmp/infracost-base.json
+                              --out-file=/tmp/infracost-base.json
 
-      - name: Checkout PR branch
+      - name: Checkout pr branch
         uses: actions/checkout@v2
 
       - name: Run Infracost
         run: |
-          infracost diff --path=${TF_ROOT} \
+          infracost diff --config-file=${TF_ROOT}/infracost.yml \
                               --format=json \
                               --compare-to=/tmp/infracost-base.json \
                               --out-file=/tmp/infracost.json

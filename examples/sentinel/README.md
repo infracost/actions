@@ -66,6 +66,8 @@ jobs:
   sentinel:
     name: Sentinel
     runs-on: ubuntu-latest
+    env:
+      TF_ROOT: examples/terraform-project/code
 
     steps:
       - uses: actions/checkout@v2
@@ -83,7 +85,7 @@ jobs:
           echo "/tmp/sentinel" >> $GITHUB_PATH
 
       - name: Run Infracost
-        run: infracost breakdown --path=examples/sentinel/code/plan.json --format=json --out-file=/tmp/infracost.json
+        run: infracost breakdown --path=${TF_ROOT} --format=json --out-file=/tmp/infracost.json
 
       - name: Run Sentinel
         run: sentinel apply -global breakdown="$(cat /tmp/infracost.json)" examples/sentinel/policy/policy.policy | tee /tmp/sentinel.out

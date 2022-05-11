@@ -12,14 +12,7 @@ The following steps assume a simple Terraform directory is being used, we recomm
 
 2. [Create a repo secret](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets#creating-encrypted-secrets-for-a-repository) called `INFRACOST_API_KEY` with your API key.
 
-3. Create required repo secrets for any cloud credentials that are needed for Terraform to run. If you have multiple projects/workspaces, consider using an Infracost [config-file](https://www.infracost.io/docs/multi_project/config_file) to define the projects.
-
-    - **Terraform Cloud/Enterprise users**: if you use Remote Execution Mode, you should follow [setup-terraform](https://github.com/hashicorp/setup-terraform) instructions to set the inputs `cli_config_credentials_token`, and `cli_config_credentials_hostname` for Terraform Enterprise.
-    - **AWS users**: use [aws-actions/configure-aws-credentials](https://github.com/aws-actions/configure-aws-credentials), the [Terraform docs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs#environment-variables) explain other options.
-    - **Azure users**: the [Terraform docs](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_secret) explain the options. The [Azure/login](https://github.com/Azure/login) GitHub Actions might also be useful; we haven't tested these with Terraform.
-    - **Google users**: the [Terraform docs](https://registry.terraform.io/providers/hashicorp/google/latest/docs/guides/provider_reference#full-reference) explain the options, e.g. using `GOOGLE_CREDENTIALS`.
-
-4. Create a new file in `.github/workflows/infracost.yml` in your repo with the following content.
+3. Create a new file in `.github/workflows/infracost.yml` in your repo with the following content.
 
  ```yaml
     # The GitHub Actions docs (https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#on)
@@ -48,13 +41,13 @@ The following steps assume a simple Terraform directory is being used, we recomm
               run: |
                 infracost breakdown --path examples/terraform-directory/code \
                                     --format json \
-                                    --out-file /tmp/prior.json
+                                    --out-file /tmp/infracost-base.json
 
             - name: Run Infracost
               run: |
                 infracost diff --path examples/terraform-directory/code \
                                     --format json \
-                                    --compare-to /tmp/prior.json \
+                                    --compare-to /tmp/infracost-base.json \
                                     --out-file /tmp/infracost.json
 
             - name: Post Infracost comment
@@ -81,16 +74,13 @@ The following steps assume a simple Terraform directory is being used, we recomm
 
 ## Examples
 
-The [examples](examples) directory demonstrates how these actions can be used in different workflows, including:
-  - [Terraform directory](examples/terraform-directory): a Terraform directory containing HCL code
-  - [Terraform plan JSON](examples/terraform-plan-json): a Terraform plan JSON file
-  - [Terragrunt](examples/terragrunt): a Terragrunt project
-  - [Terraform Cloud/Enterprise](examples/terraform-cloud-enterprise): a Terraform project using Terraform Cloud/Enterprise
-  - [Multi-project using config file](examples/multi-project/README.md#using-an-infracost-config-file): multiple Terraform projects using the Infracost [config file](https://www.infracost.io/docs/multi_project/config_file)
-  - [Multi-project using build matrix](examples/multi-project/README.md#using-github-actions-build-matrix): multiple Terraform projects using GitHub Actions build matrix
-  - [Multi-Terraform workspace](examples/multi-terraform-workspace): multiple Terraform workspaces using the Infracost [config file](https://www.infracost.io/docs/multi_project/config_file)
+The [examples](examples) directory demonstrates how these actions can be used for different projects. They all work by using the default Infracost CLI option that parses HCL, thus a Terraform Plan JSON is not needed.
+  - [Terraform/Terragrunt projects (single or multi)](examples/terraform-project): a repository containing one or more (e.g. mono repos) Terraform or Terragrunt projects
+  - [Multi-projects using a config file](examples/multi-project-config-file): repository containing multiple Terraform projects that need different inputs, i.e. variable files or Terraform workspaces
   - [Private Terraform module](examples/private-terraform-module): a Terraform project using a private Terraform module
-  - [Slack](examples/slack): [send cost estimates to Slack](examples/slack)
+  - [Slack](examples/slack): send cost estimates to Slack
+
+For advanced use cases where the estimate needs to be generated from Terraform plan JSON files, see the [plan JSON examples here](examples#plan-json-examples).
 
 ### Cost policies
 

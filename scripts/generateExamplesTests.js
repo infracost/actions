@@ -17,6 +17,8 @@ const localSkipJobs = [
   // These jobs are skipped locally until https://github.com/nektos/act/issues/769 is fixed
   'multi-project-matrix',
   'multi-project-matrix-merge',
+  'multi-workspace-matrix',
+  'multi-workspace-matrix-merge',
 ]
 
 const workflowTemplate = {
@@ -53,23 +55,18 @@ function extractAllExamples(examplesDir) {
       continue;
     }
 
-    console.log(
-      `Generating GitHub Actions workflow job for ${examplesDir}/${dir}`
-    );
-
     const filename = `${examplesDir}/${dir}/README.md`;
 
-    try {
-      if (!fs.existsSync(filename)) {
-        console.error(`Skipping ${dir} since no README.md file was found`);
-        continue;
+    if (fs.existsSync(filename)) {
+      console.error(`Found README.md file in ${dir} was found, extracting examples`);
+      try {
+        examples.push(...extractExamples(filename));
+      } catch(err) {
+        console.error(`Error reading YAML file ${filename}: ${err}`);
       }
-
-      examples.push(...extractExamples(filename));
-    } catch (err) {
-      console.error(`Error reading YAML file ${filename}: ${err}`);
-      continue;
     }
+
+    examples.push(...extractAllExamples(`${examplesDir}/${dir}`));
   }
 
   return examples;

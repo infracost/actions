@@ -11,7 +11,7 @@ inputs:
     description: Your Infracost API key. It can be retrieved by running `infracost configure get api_key`. We recommend using your same API key in all environments. If you don't have one, download Infracost (https://www.infracost.io/docs/#quick-start) and run `infracost register` to get a free API key.
     required: true
   path:
-    description: The path that will be passed to `infracost breakdown`. This may be a path to a Terraform plan JSON or a Terraform project. Project support requires Terraform to have been installed with hashicorp/setup-terraform@v1.
+    description: The path that will be passed to `infracost breakdown`. This may be a path to a Terraform plan JSON or a Terraform project.
     required: true
   behavior:
     description: The behavior to use when posting cost estimate comments. Must be one of 'update' | 'delete-and-new' | 'hide-and-new' | 'new'.
@@ -38,7 +38,7 @@ runs:
       run: |
         infracost breakdown --path examples/terraform-directory/code \
                             --format json \
-                            --out-file /tmp/prior.json
+                            --out-file /tmp/infracost-base.json
 
 
     # Checkout the PR branch with your infrastructure changes.
@@ -48,7 +48,7 @@ runs:
       run: |
         infracost breakdown --path examples/terraform-directory/code \
                             --format json \
-                            --compare-to /tmp/prior.json \
+                            --compare-to /tmp/infracost-base.json \
                             --out-file /tmp/infracost.json
 
     - name: Post Infracost comment
