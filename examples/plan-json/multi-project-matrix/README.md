@@ -50,7 +50,8 @@ jobs:
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
 
-      - name: Run Infracost
+      # Generate an Infracost diff and save it to a JSON file.
+      - name: Generate Infracost diff
         run: infracost diff --path ${TF_ROOT}/${{ matrix.project }}/plan.json --format json --out-file /tmp/infracost_${{ matrix.project }}.json
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets[matrix.aws_access_key_id_secret] }}
@@ -81,15 +82,15 @@ jobs:
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
 
+      # Posts a comment to the PR using the 'update' behavior.
+      # This creates a single comment and updates it. The "quietest" option.
+      # The other valid behaviors are:
+      #   delete-and-new - Delete previous comments and create a new one.
+      #   hide-and-new - Minimize previous comments and create a new one.
+      #   new - Create a new cost estimate comment on every push.
+      # See https://www.infracost.io/docs/features/cli_commands/#comment-on-pull-requests for other options.
       - name: Post Infracost comment
         run: |
-          # Posts a comment to the PR using the 'update' behavior.
-          # This creates a single comment and updates it. The "quietest" option.
-          # The other valid behaviors are:
-          #   delete-and-new - Delete previous comments and create a new one.
-          #   hide-and-new - Minimize previous comments and create a new one.
-          #   new - Create a new cost estimate comment on every push.
-          # See https://www.infracost.io/docs/features/cli_commands/#comment-on-pull-requests for other options.
           infracost comment github --path "/tmp/infracost_*.json" \
                                    --repo $GITHUB_REPOSITORY \
                                    --github-token ${{github.token}} \
