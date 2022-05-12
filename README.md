@@ -43,8 +43,8 @@ The following steps assume a simple Terraform directory is being used, we recomm
               with:
                 api-key: ${{ secrets.INFRACOST_API_KEY }}
 
-            # Generate an Infracost cost snapshot from the comparison branch, so that Infracost can compare the cost difference.
-            - name: Generate Infracost cost snapshot
+            # Generate an Infracost cost estimate baseline from the comparison branch, so that Infracost can compare the cost difference.
+            - name: Generate Infracost cost estimate baseline
               run: |
                 infracost breakdown --path ${TF_ROOT} \
                                     --format json \

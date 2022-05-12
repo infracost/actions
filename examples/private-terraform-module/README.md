@@ -35,8 +35,8 @@ jobs:
           chmod 400 ~/.ssh/git_ssh_key
           echo "GIT_SSH_COMMAND=ssh -i ~/.ssh/git_ssh_key -o 'StrictHostKeyChecking=no'" >> $GITHUB_ENV
 
-      # Generate an Infracost cost snapshot from the comparison branch, so that Infracost can compare the cost difference.
-      - name: Generate Infracost cost snapshot
+      # Generate an Infracost cost estimate baseline from the comparison branch, so that Infracost can compare the cost difference.
+      - name: Generate Infracost cost estimate baseline
         run: |
           infracost breakdown --path ${TF_ROOT} \
                               --format=json \

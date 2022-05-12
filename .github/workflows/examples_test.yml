@@ -23,7 +23,7 @@ jobs:
       - name: Checkout base branch
         uses: actions/checkout@v2
         with: {}
-      - name: Generate Infracost cost snapshot
+      - name: Generate Infracost cost estimate baseline
         run: |
           infracost breakdown --config-file=${TF_ROOT}/infracost.yml \
                               --format=json \
@@ -452,7 +452,7 @@ jobs:
 
           echo "GIT_SSH_COMMAND=ssh -i ~/.ssh/git_ssh_key -o
           'StrictHostKeyChecking=no'" >> $GITHUB_ENV
-      - name: Generate Infracost cost snapshot
+      - name: Generate Infracost cost estimate baseline
         run: |
           infracost breakdown --path ${TF_ROOT} \
                               --format=json \
@@ -516,7 +516,7 @@ jobs:
       - name: Checkout base branch
         uses: actions/checkout@v2
         with: {}
-      - name: Generate Infracost cost snapshot
+      - name: Generate Infracost cost estimate baseline
         run: |
           infracost breakdown --path ${TF_ROOT} \
                               --format json \
@@ -565,7 +565,7 @@ jobs:
       - name: Checkout base branch
         uses: actions/checkout@v2
         with: {}
-      - name: Generate Infracost cost snapshot
+      - name: Generate Infracost cost estimate baseline
         run: |
           infracost breakdown --path ${TF_ROOT} \
                               --format json \
@@ -638,7 +638,7 @@ jobs:
       - name: Checkout base branch
         uses: actions/checkout@v2
         with: {}
-      - name: Generate Infracost cost snapshot
+      - name: Generate Infracost cost estimate baseline
         run: |
           infracost breakdown --path ${TF_ROOT} \
                               --format json \
