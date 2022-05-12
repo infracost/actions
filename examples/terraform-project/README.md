@@ -13,6 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TF_ROOT: examples/terraform-project/code
+      # If you're using Terraform Cloud/Enterprise and have variables stored on there
+      # you can specify the following to automatically retrieve the variables:
+      #   INFRACOST_TERRAFORM_CLOUD_TOKEN: ${{ secrets.TFC_TOKEN }}
+      #   INFRACOST_TERRAFORM_CLOUD_HOST: app.terraform.io # Change this if you're using Terraform Enterprise
 
     steps:
       - name: Setup Infracost
@@ -45,6 +49,7 @@ jobs:
                               --format json \
                               --compare-to /tmp/infracost-base.json \
                               --out-file /tmp/infracost.json
+
 
       # Posts a comment to the PR using the 'update' behavior.
       # This creates a single comment and updates it. The "quietest" option.

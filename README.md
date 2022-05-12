@@ -23,6 +23,13 @@ The following steps assume a simple Terraform directory is being used, we recomm
         name: Infracost
         runs-on: ubuntu-latest
 
+        env:
+          TF_ROOT: examples/terraform-project/code
+          # If you're using Terraform Cloud/Enterprise and have variables stored on there
+          # you can specify the following to automatically retrieve the variables:
+          #   INFRACOST_TERRAFORM_CLOUD_TOKEN: ${{ secrets.TFC_TOKEN }}
+          #   INFRACOST_TERRAFORM_CLOUD_HOST: app.terraform.io # Change this if you're using Terraform Enterprise
+
           steps:
             # Checkout the branch you want Infracost to compare costs against. This example is using the
             # target PR branch.
@@ -39,7 +46,7 @@ The following steps assume a simple Terraform directory is being used, we recomm
             # Generate an Infracost cost snapshot from the comparison branch, so that Infracost can compare the cost difference.
             - name: Generate Infracost cost snapshot
               run: |
-                infracost breakdown --path examples/terraform-directory/code \
+                infracost breakdown --path ${TF_ROOT} \
                                     --format json \
                                     --out-file /tmp/infracost-base.json
 
@@ -50,7 +57,7 @@ The following steps assume a simple Terraform directory is being used, we recomm
             # Generate an Infracost diff and save it to a JSON file.
             - name: Generate Infracost diff
               run: |
-                infracost diff --path examples/terraform-directory/code \
+                infracost diff --path ${TF_ROOT} \
                                     --format json \
                                     --compare-to /tmp/infracost-base.json \
                                     --out-file /tmp/infracost.json
