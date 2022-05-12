@@ -16,7 +16,7 @@ jobs:
     name: Slack
     runs-on: ubuntu-latest
     env:
-      TF_ROOT: examples/slack/code
+      TF_ROOT: examples/terraform-project/code
 
     steps:
       - name: Setup Infracost

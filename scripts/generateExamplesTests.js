@@ -96,9 +96,8 @@ function fixupExamples(examples) {
           continue;
         }
 
-        if (step.name && step.name.toLowerCase() === 'checkout pr branch') {
+        if (step.name && step.name.toLowerCase() === 'generate infracost diff') {
           steps.push(
-            step,
             {
               name: 'Replace m5 instance',
               run: `find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name '*.tfvars'  | xargs sed -i 's/m5\.4xlarge/m5\.8xlarge/g'`
@@ -106,7 +105,8 @@ function fixupExamples(examples) {
             {
               name: 'Replace t2 instance',
               run: `find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name '*.tfvars'  | xargs sed -i 's/t2\.micro/t2\.medium/g'`
-            }
+            },
+            step,
           )
 
           continue;

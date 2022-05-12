@@ -1,5 +1,5 @@
 
-💰 Infracost estimate: **monthly cost will increase by $1,303 📈**
+💰 Infracost estimate: **monthly cost will increase by $743 📈**
 <table>
   <thead>
     <td>Project</td>
@@ -11,8 +11,8 @@
     <tr>
       <td>infracost/actions/examples/plan...loud-enterprise/code/plan.json</td>
       <td align="right">$0</td>
-      <td align="right">$1,303</td>
-      <td>+$1,303</td>
+      <td align="right">$743</td>
+      <td>+$743</td>
     </tr>
   </tbody>
 </table>
@@ -24,10 +24,10 @@
 Project: infracost/actions/examples/plan-json/terraform-cloud-enterprise/code/plan.json
 
 + aws_instance.web_app
-  +$1,303
+  +$743
 
-    + Instance usage (Linux/UNIX, on-demand, m5.8xlarge)
-      +$1,121
+    + Instance usage (Linux/UNIX, on-demand, m5.4xlarge)
+      +$561
 
     + root_block_device
     
@@ -54,7 +54,7 @@ Project: infracost/actions/examples/plan-json/terraform-cloud-enterprise/code/pl
         +$0.0000166667 per GB-seconds
 
 Monthly cost change for infracost/actions/examples/plan-json/terraform-cloud-enterprise/code/plan.json
-Amount:  +$1,303 ($0.00 → $1,303)
+Amount:  +$743 ($0.00 → $743)
 
 ──────────────────────────────────
 Key: ~ changed, + added, - removed

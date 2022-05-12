@@ -19,8 +19,8 @@ The following steps assume a simple Terraform directory is being used, we recomm
     # describe other options for 'on', 'pull_request' is a good default.
     on: [pull_request]
     jobs:
-      terraform-directory:
-        name: Terraform directory
+      infracost:
+        name: Infracost
         runs-on: ubuntu-latest
 
           steps:

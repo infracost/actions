@@ -95,6 +95,14 @@ jobs:
         uses: ./setup
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
+      - name: Replace m5 instance
+        run: >-
+          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
+          '*.tfvars'  | xargs sed -i 's/m5.4xlarge/m5.8xlarge/g'
+      - name: Replace t2 instance
+        run: >-
+          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
+          '*.tfvars'  | xargs sed -i 's/t2.micro/t2.medium/g'
       - name: Generate Infracost diff
         run: >-
           infracost diff --path ${TF_ROOT}/${{ matrix.project }}/plan.json
@@ -181,6 +189,14 @@ jobs:
         uses: ./setup
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
+      - name: Replace m5 instance
+        run: >-
+          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
+          '*.tfvars'  | xargs sed -i 's/m5.4xlarge/m5.8xlarge/g'
+      - name: Replace t2 instance
+        run: >-
+          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
+          '*.tfvars'  | xargs sed -i 's/t2.micro/t2.medium/g'
       - name: Generate Infracost diff
         run: >-
           infracost diff --path ${TF_ROOT}/${{ matrix.tf_workspace }}-plan.json
@@ -240,14 +256,6 @@ jobs:
     steps:
       - name: Checkout PR branch
         uses: actions/checkout@v2
-      - name: Replace m5 instance
-        run: >-
-          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
-          '*.tfvars'  | xargs sed -i 's/m5.4xlarge/m5.8xlarge/g'
-      - name: Replace t2 instance
-        run: >-
-          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
-          '*.tfvars'  | xargs sed -i 's/t2.micro/t2.medium/g'
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
@@ -292,6 +300,14 @@ jobs:
         uses: ./setup
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
+      - name: Replace m5 instance
+        run: >-
+          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
+          '*.tfvars'  | xargs sed -i 's/m5.4xlarge/m5.8xlarge/g'
+      - name: Replace t2 instance
+        run: >-
+          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
+          '*.tfvars'  | xargs sed -i 's/t2.micro/t2.medium/g'
       - name: Generate Infracost diff
         run: |
           infracost diff --path ${TF_ROOT}/plan.json \
@@ -324,14 +340,6 @@ jobs:
     steps:
       - name: Checkout PR branch
         uses: actions/checkout@v2
-      - name: Replace m5 instance
-        run: >-
-          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
-          '*.tfvars'  | xargs sed -i 's/m5.4xlarge/m5.8xlarge/g'
-      - name: Replace t2 instance
-        run: >-
-          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
-          '*.tfvars'  | xargs sed -i 's/t2.micro/t2.medium/g'
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
@@ -387,6 +395,14 @@ jobs:
         uses: ./setup
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
+      - name: Replace m5 instance
+        run: >-
+          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
+          '*.tfvars'  | xargs sed -i 's/m5.4xlarge/m5.8xlarge/g'
+      - name: Replace t2 instance
+        run: >-
+          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
+          '*.tfvars'  | xargs sed -i 's/t2.micro/t2.medium/g'
       - name: Generate Infracost diff
         run: |
           infracost diff --config-file=${TF_ROOT}/infracost.yml \
@@ -538,7 +554,7 @@ jobs:
     name: Slack
     runs-on: ubuntu-latest
     env:
-      TF_ROOT: examples/slack/code
+      TF_ROOT: examples/terraform-project/code
     steps:
       - name: Checkout source code so we can install the action locally
         uses: actions/checkout@v2
