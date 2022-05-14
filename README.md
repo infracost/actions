@@ -1,6 +1,6 @@
 # Infracost GitHub Actions
 
-This project provides a set of GitHub Actions for Infracost, so you can see cloud cost estimates for Terraform in pull requests 💰
+This project provide a GitHub Action and examples for Infracost, so you can see cloud cost estimates for Terraform in pull requests 💰
 
 <img src=".github/assets/screenshot.png" alt="Example screenshot" />
 
@@ -31,8 +31,7 @@ The following steps assume a simple Terraform directory is being used, we recomm
           #   INFRACOST_TERRAFORM_CLOUD_HOST: app.terraform.io # Change this if you're using Terraform Enterprise
 
           steps:
-            # Checkout the branch you want Infracost to compare costs against. This example is using the
-            # target PR branch.
+            # Checkout the base branch of the pull request (e.g. main/master).
             - name: Checkout base branch
               uses: actions/checkout@v2
               with:
@@ -40,10 +39,11 @@ The following steps assume a simple Terraform directory is being used, we recomm
 
             - name: Setup Infracost
               uses: infracost/actions/setup@v2
+              # See https://github.com/infracost/actions/tree/master/setup for other inputs
               with:
                 api-key: ${{ secrets.INFRACOST_API_KEY }}
 
-            # Generate an Infracost cost estimate baseline from the comparison branch, so that Infracost can compare the cost difference.
+            # Generate Infracost JSON file as the baseline.
             - name: Generate Infracost cost estimate baseline
               run: |
                 infracost breakdown --path=${TF_ROOT} \
@@ -84,9 +84,15 @@ The following steps assume a simple Terraform directory is being used, we recomm
 
 6. Follow [the docs](https://www.infracost.io/usage-file) if you'd also like to show cost for of usage-based resources such as AWS Lambda or S3. The usage for these resources are fetched from CloudWatch/cloud APIs and used to calculate an estimate.
 
+### Troubleshooting
+
+#### Permissions issue
+
+If you receive an error when running the `infracost comment` command in your pipeline, it's probably related to `${{ github.token }}`. This is the default GitHub token available to actions and is used to post comments. The default [token permissions](https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#permissions) work fine but `pull-requests: write` is required if you need to customize these. If you are using SAML single sign-on, you must first [authorize the token](https://docs.github.com/en/enterprise-cloud@latest/authentication/authenticating-with-saml-single-sign-on/authorizing-a-personal-access-token-for-use-with-saml-single-sign-on).
+
 ## Examples
 
-The [examples](examples) directory demonstrates how these actions can be used for different projects. They all work by using the default Infracost CLI option that parses HCL, thus a Terraform Plan JSON is not needed.
+The [examples](examples) directory demonstrates how these actions can be used for different projects. They all work by using the default Infracost CLI option that parses HCL, thus a Terraform plan JSON is not needed.
   - [Terraform/Terragrunt projects (single or multi)](examples/terraform-project): a repository containing one or more (e.g. mono repos) Terraform or Terragrunt projects
   - [Multi-projects using a config file](examples/multi-project-config-file): repository containing multiple Terraform projects that need different inputs, i.e. variable files or Terraform workspaces
   - [Private Terraform module](examples/private-terraform-module): a Terraform project using a private Terraform module
@@ -101,10 +107,6 @@ Infracost policies enable centralized teams, who are often helping others with c
 ![](.github/assets/policy-passing-github.png)
 
 If you use HashiCorp Sentinel, follow [our example](examples/sentinel) to output the policy pass/fail results into CI/CD logs.
-
-## Actions
-
-We recommend you use the above [quick start](#quick-start) guide and examples, which uses the [setup](setup) action. This downloads and installs the Infracost CLI in your GitHub Actions workflow.
 
 ## Contributing
 

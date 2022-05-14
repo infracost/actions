@@ -27,7 +27,7 @@ jobs:
         with:
           ref: '${{ github.event.pull_request.base.ref }}'
 
-      # Generate an Infracost cost estimate baseline from the comparison branch, so that Infracost can compare the cost difference.
+      # Generate Infracost JSON file as the baseline.
       - name: Generate Infracost cost estimate baseline
         run: |
           infracost breakdown --config-file=${TF_ROOT}/infracost.yml \

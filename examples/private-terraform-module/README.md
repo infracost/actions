@@ -20,8 +20,7 @@ jobs:
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
 
-      # Checkout the branch you want Infracost to compare costs against. This example is using the
-      # target PR branch.
+      # Checkout the base branch of the pull request (e.g. main/master).
       - name: Checkout base branch
         uses: actions/checkout@v2
         with:
@@ -35,7 +34,7 @@ jobs:
           chmod 400 ~/.ssh/git_ssh_key
           echo "GIT_SSH_COMMAND=ssh -i ~/.ssh/git_ssh_key -o 'StrictHostKeyChecking=no'" >> $GITHUB_ENV
 
-      # Generate an Infracost cost estimate baseline from the comparison branch, so that Infracost can compare the cost difference.
+      # Generate Infracost JSON file as the baseline.
       - name: Generate Infracost cost estimate baseline
         run: |
           infracost breakdown --path=${TF_ROOT} \
