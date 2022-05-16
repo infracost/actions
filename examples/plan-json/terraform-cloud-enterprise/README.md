@@ -59,9 +59,9 @@ jobs:
       # Generate an Infracost diff and save it to a JSON file.
       - name: Generate Infracost diff
         run: |
-          infracost diff --path ${TF_ROOT}/plan.json \
-                         --format json \
-                         --out-file /tmp/infracost.json
+          infracost diff --path=${TF_ROOT}/plan.json \
+                         --format=json \
+                         --out-file=/tmp/infracost.json
 
       # Posts a comment to the PR using the 'update' behavior.
       # This creates a single comment and updates it. The "quietest" option.
@@ -72,10 +72,10 @@ jobs:
       # See https://www.infracost.io/docs/features/cli_commands/#comment-on-pull-requests for other options.
       - name: Post Infracost comment
         run: |
-          infracost comment github --path /tmp/infracost.json \
-                                   --repo $GITHUB_REPOSITORY \
-                                   --github-token ${{github.token}} \
-                                   --pull-request ${{github.event.pull_request.number}} \
-                                   --behavior update
+          infracost comment github --path=/tmp/infracost.json \
+                                   --repo=$GITHUB_REPOSITORY \
+                                   --github-token=${{github.token}} \
+                                   --pull-request=${{github.event.pull_request.number}} \
+                                   --behavior=update
 ```
 [//]: <> (END EXAMPLE)

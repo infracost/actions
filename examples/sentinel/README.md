@@ -94,9 +94,9 @@ jobs:
       # Generate an Infracost cost estimate baseline from the comparison branch, so that Infracost can compare the cost difference.
       - name: Generate Infracost cost estimate baseline
         run: |
-          infracost breakdown --path ${TF_ROOT} \
-                              --format json \
-                              --out-file /tmp/infracost-base.json
+          infracost breakdown --path=${TF_ROOT} \
+                              --format=json \
+                              --out-file=/tmp/infracost-base.json
 
       # Checkout the current PR branch so we can create a diff.
       - name: Checkout PR branch
@@ -105,10 +105,10 @@ jobs:
       # Generate an Infracost diff and save it to a JSON file.
       - name: Generate Infracost diff
         run: |
-          infracost diff --path ${TF_ROOT} \
-                              --format json \
-                              --compare-to /tmp/infracost-base.json \
-                              --out-file /tmp/infracost.json
+          infracost diff --path=${TF_ROOT} \
+                              --format=json \
+                              --compare-to=/tmp/infracost-base.json \
+                              --out-file=/tmp/infracost.json
 
       - name: Run Sentinel
         run: sentinel apply -global breakdown="$(cat /tmp/infracost.json)" examples/sentinel/policy/policy.policy | tee /tmp/sentinel.out

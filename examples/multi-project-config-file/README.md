@@ -55,10 +55,10 @@ jobs:
       # See https://www.infracost.io/docs/features/cli_commands/#comment-on-pull-requests for other options.
       - name: Post Infracost comment
         run: |
-          infracost comment github --path /tmp/infracost.json \
-                                   --repo $GITHUB_REPOSITORY \
-                                   --github-token ${{github.token}} \
-                                   --pull-request ${{github.event.pull_request.number}} \
-                                   --behavior update
+          infracost comment github --path=/tmp/infracost.json \
+                                   --repo=$GITHUB_REPOSITORY \
+                                   --github-token=${{github.token}} \
+                                   --pull-request=${{github.event.pull_request.number}} \
+                                   --behavior=update
 ```
 [//]: <> (END EXAMPLE)

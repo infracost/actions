@@ -34,9 +34,9 @@ jobs:
       # Generate an Infracost cost estimate baseline from the comparison branch, so that Infracost can compare the cost difference.
       - name: Generate Infracost cost estimate baseline
         run: |
-          infracost breakdown --path ${TF_ROOT} \
-                              --format json \
-                              --out-file /tmp/infracost-base.json
+          infracost breakdown --path=${TF_ROOT} \
+                              --format=json \
+                              --out-file=/tmp/infracost-base.json
 
       # Checkout the current PR branch so we can create a diff.
       - name: Checkout PR branch
@@ -45,10 +45,10 @@ jobs:
       # Generate an Infracost diff and save it to a JSON file.
       - name: Generate Infracost diff
         run: |
-          infracost diff --path ${TF_ROOT} \
-                              --format json \
-                              --compare-to /tmp/infracost-base.json \
-                              --out-file /tmp/infracost.json
+          infracost diff --path=${TF_ROOT} \
+                              --format=json \
+                              --compare-to=/tmp/infracost-base.json \
+                              --out-file=/tmp/infracost.json
 
 
       # Posts a comment to the PR using the 'update' behavior.
@@ -60,10 +60,10 @@ jobs:
       # See https://www.infracost.io/docs/features/cli_commands/#comment-on-pull-requests for other options.
       - name: Post Infracost comment
         run: |
-          infracost comment github --path /tmp/infracost.json \
-                                   --repo $GITHUB_REPOSITORY \
-                                   --github-token ${{github.token}} \
-                                   --pull-request ${{github.event.pull_request.number}} \
-                                   --behavior update
+          infracost comment github --path=/tmp/infracost.json \
+                                   --repo=$GITHUB_REPOSITORY \
+                                   --github-token=${{github.token}} \
+                                   --pull-request=${{github.event.pull_request.number}} \
+                                   --behavior=update
 ```
 [//]: <> (END EXAMPLE)

@@ -46,11 +46,11 @@ jobs:
                               --out-file=/tmp/infracost.json
       - name: Post Infracost comment
         run: |-
-          infracost comment github --path /tmp/infracost.json \
-          --repo $GITHUB_REPOSITORY \
-          --github-token ${{github.token}} \
-          --pull-request 1 \
-          --behavior update \
+          infracost comment github --path=/tmp/infracost.json \
+          --repo=$GITHUB_REPOSITORY \
+          --github-token=${{github.token}} \
+          --pull-request=1 \
+          --behavior=update \
           --dry-run true \
           > /tmp/infracost_comment.md
       - run: >-
@@ -88,7 +88,7 @@ jobs:
         working-directory: ${{ env.TF_ROOT }}/${{ matrix.project }}
       - name: Generate plan JSON
         run: |
-          terraform plan -out plan.cache
+          terraform plan -out=plan.cache
           terraform show -json plan.cache > plan.json
         working-directory: ${{ env.TF_ROOT }}/${{ matrix.project }}
       - name: Setup Infracost
@@ -105,8 +105,8 @@ jobs:
           '*.tfvars'  | xargs sed -i 's/t2.micro/t2.medium/g'
       - name: Generate Infracost diff
         run: >-
-          infracost diff --path ${TF_ROOT}/${{ matrix.project }}/plan.json
-          --format json --out-file /tmp/infracost_${{ matrix.project }}.json
+          infracost diff --path=${TF_ROOT}/${{ matrix.project }}/plan.json
+          --format=json --out-file=/tmp/infracost_${{ matrix.project }}.json
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets[matrix.aws_access_key_id_secret] }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets[matrix.aws_secret_access_key_secret] }}
@@ -134,11 +134,11 @@ jobs:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
       - name: Post Infracost comment
         run: |-
-          infracost comment github --path "/tmp/infracost_*.json" \
-          --repo $GITHUB_REPOSITORY \
-          --github-token ${{github.token}} \
-          --pull-request 1 \
-          --behavior update \
+          infracost comment github --path="/tmp/infracost_*.json" \
+          --repo=$GITHUB_REPOSITORY \
+          --github-token=${{github.token}} \
+          --pull-request=1 \
+          --behavior=update \
           --dry-run true \
           > /tmp/infracost_comment.md
       - run: >-
@@ -177,7 +177,7 @@ jobs:
         working-directory: ${{ env.TF_ROOT }}
       - name: Generate plan JSON
         run: >
-          terraform plan -out ${{ matrix.tf_workspace }}-plan.cache
+          terraform plan -out=${{ matrix.tf_workspace }}-plan.cache
           -var-file=${{ matrix.tf_workspace }}.tfvars
 
           terraform show -json ${{ matrix.tf_workspace }}-plan.cache > ${{
@@ -199,8 +199,8 @@ jobs:
           '*.tfvars'  | xargs sed -i 's/t2.micro/t2.medium/g'
       - name: Generate Infracost diff
         run: >-
-          infracost diff --path ${TF_ROOT}/${{ matrix.tf_workspace }}-plan.json
-          --format json --out-file /tmp/infracost_${{ matrix.tf_workspace
+          infracost diff --path=${TF_ROOT}/${{ matrix.tf_workspace }}-plan.json
+          --format=json --out-file=/tmp/infracost_${{ matrix.tf_workspace
           }}.json
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets[matrix.aws_access_key_id_secret] }}
@@ -229,11 +229,11 @@ jobs:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
       - name: Post Infracost comment
         run: |-
-          infracost comment github --path "/tmp/infracost_*.json" \
-          --repo $GITHUB_REPOSITORY \
-          --github-token ${{github.token}} \
-          --pull-request 1 \
-          --behavior update \
+          infracost comment github --path="/tmp/infracost_*.json" \
+          --repo=$GITHUB_REPOSITORY \
+          --github-token=${{github.token}} \
+          --pull-request=1 \
+          --behavior=update \
           --dry-run true \
           > /tmp/infracost_comment.md
       - run: >-
@@ -310,16 +310,16 @@ jobs:
           '*.tfvars'  | xargs sed -i 's/t2.micro/t2.medium/g'
       - name: Generate Infracost diff
         run: |
-          infracost diff --path ${TF_ROOT}/plan.json \
-                         --format json \
-                         --out-file /tmp/infracost.json
+          infracost diff --path=${TF_ROOT}/plan.json \
+                         --format=json \
+                         --out-file=/tmp/infracost.json
       - name: Post Infracost comment
         run: |-
-          infracost comment github --path /tmp/infracost.json \
-          --repo $GITHUB_REPOSITORY \
-          --github-token ${{github.token}} \
-          --pull-request 1 \
-          --behavior update \
+          infracost comment github --path=/tmp/infracost.json \
+          --repo=$GITHUB_REPOSITORY \
+          --github-token=${{github.token}} \
+          --pull-request=1 \
+          --behavior=update \
           --dry-run true \
           > /tmp/infracost_comment.md
       - run: >-
@@ -350,8 +350,8 @@ jobs:
           terragrunt_version: 0.37.0
       - name: Generate plan JSONs
         run: >
-          terragrunt run-all --terragrunt-ignore-external-dependencies plan -out
-          plan.cache
+          terragrunt run-all --terragrunt-ignore-external-dependencies plan
+          -out=plan.cache
 
 
           # Find the plan files
@@ -406,15 +406,15 @@ jobs:
       - name: Generate Infracost diff
         run: |
           infracost diff --config-file=${TF_ROOT}/infracost.yml \
-                         --format json \
-                         --out-file /tmp/infracost.json
+                         --format=json \
+                         --out-file=/tmp/infracost.json
       - name: Post Infracost comment
         run: |-
-          infracost comment github --path /tmp/infracost.json \
-          --repo $GITHUB_REPOSITORY \
-          --github-token ${{github.token}} \
-          --pull-request 1 \
-          --behavior update \
+          infracost comment github --path=/tmp/infracost.json \
+          --repo=$GITHUB_REPOSITORY \
+          --github-token=${{github.token}} \
+          --pull-request=1 \
+          --behavior=update \
           --dry-run true \
           > /tmp/infracost_comment.md
       - run: >-
@@ -454,9 +454,9 @@ jobs:
           'StrictHostKeyChecking=no'" >> $GITHUB_ENV
       - name: Generate Infracost cost estimate baseline
         run: |
-          infracost breakdown --path ${TF_ROOT} \
+          infracost breakdown --path=${TF_ROOT} \
                               --format=json \
-                              --out-file /tmp/infracost-base.json
+                              --out-file=/tmp/infracost-base.json
       - name: Checkout PR branch
         uses: actions/checkout@v2
       - name: Replace m5 instance
@@ -475,11 +475,11 @@ jobs:
                               --out-file=/tmp/infracost.json
       - name: Post Infracost comment
         run: |-
-          infracost comment github --path /tmp/infracost.json \
-          --repo $GITHUB_REPOSITORY \
-          --github-token ${{github.token}} \
-          --pull-request 1 \
-          --behavior update \
+          infracost comment github --path=/tmp/infracost.json \
+          --repo=$GITHUB_REPOSITORY \
+          --github-token=${{github.token}} \
+          --pull-request=1 \
+          --behavior=update \
           --dry-run true \
           > /tmp/infracost_comment.md
       - run: >-
@@ -518,9 +518,9 @@ jobs:
         with: {}
       - name: Generate Infracost cost estimate baseline
         run: |
-          infracost breakdown --path ${TF_ROOT} \
-                              --format json \
-                              --out-file /tmp/infracost-base.json
+          infracost breakdown --path=${TF_ROOT} \
+                              --format=json \
+                              --out-file=/tmp/infracost-base.json
       - name: Checkout PR branch
         uses: actions/checkout@v2
       - name: Replace m5 instance
@@ -533,10 +533,10 @@ jobs:
           '*.tfvars'  | xargs sed -i 's/t2.micro/t2.medium/g'
       - name: Generate Infracost diff
         run: |
-          infracost diff --path ${TF_ROOT} \
-                              --format json \
-                              --compare-to /tmp/infracost-base.json \
-                              --out-file /tmp/infracost.json
+          infracost diff --path=${TF_ROOT} \
+                              --format=json \
+                              --compare-to=/tmp/infracost-base.json \
+                              --out-file=/tmp/infracost.json
       - name: Run Sentinel
         run: >-
           sentinel apply -global breakdown="$(cat /tmp/infracost.json)"
@@ -567,9 +567,9 @@ jobs:
         with: {}
       - name: Generate Infracost cost estimate baseline
         run: |
-          infracost breakdown --path ${TF_ROOT} \
-                              --format json \
-                              --out-file /tmp/infracost-base.json
+          infracost breakdown --path=${TF_ROOT} \
+                              --format=json \
+                              --out-file=/tmp/infracost-base.json
       - name: Checkout PR branch
         uses: actions/checkout@v2
       - name: Replace m5 instance
@@ -582,17 +582,17 @@ jobs:
           '*.tfvars'  | xargs sed -i 's/t2.micro/t2.medium/g'
       - name: Generate Infracost diff
         run: |
-          infracost diff --path ${TF_ROOT} \
-                           --format json \
-                           --compare-to /tmp/infracost-base.json \
-                           --out-file /tmp/infracost.json
+          infracost diff --path=${TF_ROOT} \
+                           --format=json \
+                           --compare-to=/tmp/infracost-base.json \
+                           --out-file=/tmp/infracost.json
       - name: Post Infracost comment
         run: |-
-          infracost comment github --path /tmp/infracost.json \
-          --repo $GITHUB_REPOSITORY \
-          --github-token ${{github.token}} \
-          --pull-request 1 \
-          --behavior update \
+          infracost comment github --path=/tmp/infracost.json \
+          --repo=$GITHUB_REPOSITORY \
+          --github-token=${{github.token}} \
+          --pull-request=1 \
+          --behavior=update \
           --dry-run true \
           > /tmp/infracost_comment.md
       - run: diff -y ./testdata/slack_comment_golden.md /tmp/infracost_comment.md
@@ -604,8 +604,8 @@ jobs:
       - name: Generate Slack message
         id: infracost-slack
         run: >
-          echo "::set-output name=slack-message::$(infracost output --path
-          /tmp/infracost.json --format slack-message --show-skipped)"
+          echo "::set-output name=slack-message::$(infracost output
+          --path=/tmp/infracost.json --format=slack-message --show-skipped)"
 
           echo "::set-output name=diffTotalMonthlyCost::$(jq
           '(.diffTotalMonthlyCost // 0) | tonumber' /tmp/infracost.json)"
@@ -640,9 +640,9 @@ jobs:
         with: {}
       - name: Generate Infracost cost estimate baseline
         run: |
-          infracost breakdown --path ${TF_ROOT} \
-                              --format json \
-                              --out-file /tmp/infracost-base.json
+          infracost breakdown --path=${TF_ROOT} \
+                              --format=json \
+                              --out-file=/tmp/infracost-base.json
       - name: Checkout PR branch
         uses: actions/checkout@v2
       - name: Replace m5 instance
@@ -655,17 +655,17 @@ jobs:
           '*.tfvars'  | xargs sed -i 's/t2.micro/t2.medium/g'
       - name: Generate Infracost diff
         run: |
-          infracost diff --path ${TF_ROOT} \
-                              --format json \
-                              --compare-to /tmp/infracost-base.json \
-                              --out-file /tmp/infracost.json
+          infracost diff --path=${TF_ROOT} \
+                              --format=json \
+                              --compare-to=/tmp/infracost-base.json \
+                              --out-file=/tmp/infracost.json
       - name: Post Infracost comment
         run: |-
-          infracost comment github --path /tmp/infracost.json \
-          --repo $GITHUB_REPOSITORY \
-          --github-token ${{github.token}} \
-          --pull-request 1 \
-          --behavior update \
+          infracost comment github --path=/tmp/infracost.json \
+          --repo=$GITHUB_REPOSITORY \
+          --github-token=${{github.token}} \
+          --pull-request=1 \
+          --behavior=update \
           --dry-run true \
           > /tmp/infracost_comment.md
       - run: >-

@@ -40,7 +40,7 @@ jobs:
 
       - name: Generate plan JSON
         run: |
-          terraform plan -out ${{ matrix.tf_workspace }}-plan.cache -var-file=${{ matrix.tf_workspace }}.tfvars
+          terraform plan -out=${{ matrix.tf_workspace }}-plan.cache -var-file=${{ matrix.tf_workspace }}.tfvars
           terraform show -json ${{ matrix.tf_workspace }}-plan.cache > ${{ matrix.tf_workspace }}-plan.json
         env:
           TF_WORKSPACE: ${{ matrix.tf_workspace }}
@@ -53,7 +53,7 @@ jobs:
 
       # Generate an Infracost diff and save it to a JSON file.
       - name: Generate Infracost diff
-        run: infracost diff --path ${TF_ROOT}/${{ matrix.tf_workspace }}-plan.json --format json --out-file /tmp/infracost_${{ matrix.tf_workspace }}.json
+        run: infracost diff --path=${TF_ROOT}/${{ matrix.tf_workspace }}-plan.json --format=json --out-file=/tmp/infracost_${{ matrix.tf_workspace }}.json
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets[matrix.aws_access_key_id_secret] }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets[matrix.aws_secret_access_key_secret] }}
@@ -92,10 +92,10 @@ jobs:
       # See https://www.infracost.io/docs/features/cli_commands/#comment-on-pull-requests for other options.
       - name: Post Infracost comment
         run: |
-          infracost comment github --path "/tmp/infracost_*.json" \
-                                   --repo $GITHUB_REPOSITORY \
-                                   --github-token ${{github.token}} \
-                                   --pull-request ${{github.event.pull_request.number}} \
-                                   --behavior update
+          infracost comment github --path="/tmp/infracost_*.json" \
+                                   --repo=$GITHUB_REPOSITORY \
+                                   --github-token=${{github.token}} \
+                                   --pull-request=${{github.event.pull_request.number}} \
+                                   --behavior=update
 ```
 [//]: <> (END EXAMPLE)

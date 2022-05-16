@@ -36,9 +36,9 @@ runs:
     # Generate an Infracost output JSON from the comparison branch, so that Infracost can compare the cost difference.
     - name: Generate Infracost cost estimate baseline
       run: |
-        infracost breakdown --path examples/terraform-directory/code \
-                            --format json \
-                            --out-file /tmp/infracost-base.json
+        infracost breakdown --path=examples/terraform-directory/code \
+                            --format=json \
+                            --out-file=/tmp/infracost-base.json
 
 
     # Checkout the PR branch with your infrastructure changes.
@@ -46,10 +46,10 @@ runs:
 
     - name: Run Infracost
       run: |
-        infracost breakdown --path examples/terraform-directory/code \
-                            --format json \
-                            --compare-to /tmp/infracost-base.json \
-                            --out-file /tmp/infracost.json
+        infracost breakdown --path=examples/terraform-directory/code \
+                            --format=json \
+                            --compare-to=/tmp/infracost-base.json \
+                            --out-file=/tmp/infracost.json
 
     - name: Post Infracost comment
       run: |
@@ -60,8 +60,8 @@ runs:
         #   hide-and-new - Minimize previous comments and create a new one.
         #   new - Create a new cost estimate comment on every push.
         # See https://www.infracost.io/docs/features/cli_commands/#comment-on-pull-requests for other options.
-        infracost comment github --path /tmp/infracost.json \
-                                 --repo $GITHUB_REPOSITORY \
-                                 --github-token ${{github.token}} \
-                                 --pull-request ${{github.event.pull_request.number}} \
-                                 --behavior ${{inputs.behavior}}
+        infracost comment github --path=/tmp/infracost.json \
+                                 --repo=$GITHUB_REPOSITORY \
+                                 --github-token=${{github.token}} \
+                                 --pull-request=${{github.event.pull_request.number}} \
+                                 --behavior=${{inputs.behavior}}

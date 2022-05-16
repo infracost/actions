@@ -116,7 +116,7 @@ function fixupExamples(examples) {
           const goldenFilePath = `./testdata/${jobKey}_comment_golden.md`;
           const commentArgs = step.run
             .replace(/\\/g, '')
-            .replace(/--pull-request \$\{\{github\.event\.pull_request\.number\}\}/g, '--pull-request 1')
+            .replace(/--pull-request=\$\{\{github\.event\.pull_request\.number\}\}/g, '--pull-request=1')
             .split('\n')
             .map(s => s.trim())
             .filter(e => !e.startsWith('#') && e !== '')
