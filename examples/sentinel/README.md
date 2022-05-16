@@ -66,6 +66,8 @@ jobs:
   sentinel:
     name: Sentinel
     runs-on: ubuntu-latest
+    env:
+      TF_ROOT: examples/terraform-project/code
 
     steps:
       - uses: actions/checkout@v2
@@ -82,8 +84,30 @@ jobs:
           unzip -d /tmp/sentinel /tmp/sentinel/sentinel.zip
           echo "/tmp/sentinel" >> $GITHUB_PATH
 
-      - name: Run Infracost
-        run: infracost breakdown --path=examples/sentinel/code/plan.json --format=json --out-file=/tmp/infracost.json
+      # Checkout the base branch of the pull request (e.g. main/master).
+      - name: Checkout base branch
+        uses: actions/checkout@v2
+        with:
+          ref: '${{ github.event.pull_request.base.ref }}'
+
+      # Generate Infracost JSON file as the baseline.
+      - name: Generate Infracost cost estimate baseline
+        run: |
+          infracost breakdown --path=${TF_ROOT} \
+                              --format=json \
+                              --out-file=/tmp/infracost-base.json
+
+      # Checkout the current PR branch so we can create a diff.
+      - name: Checkout PR branch
+        uses: actions/checkout@v2
+
+      # Generate an Infracost diff and save it to a JSON file.
+      - name: Generate Infracost diff
+        run: |
+          infracost diff --path=${TF_ROOT} \
+                              --format=json \
+                              --compare-to=/tmp/infracost-base.json \
+                              --out-file=/tmp/infracost.json
 
       - name: Run Sentinel
         run: sentinel apply -global breakdown="$(cat /tmp/infracost.json)" examples/sentinel/policy/policy.policy | tee /tmp/sentinel.out

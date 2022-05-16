@@ -9,13 +9,13 @@
   </thead>
   <tbody>
     <tr>
-      <td>infracost/actions/examples/terraform-project/code/dev/plan.json</td>
+      <td>infracost/actions/examples/plan.../terragrunt/code/dev/plan.json</td>
       <td align="right">$0</td>
       <td align="right">$51.97</td>
       <td>+$51.97</td>
     </tr>
     <tr>
-      <td>infracost/actions/examples/terraform-project/code/prod/plan.json</td>
+      <td>infracost/actions/examples/plan...terragrunt/code/prod/plan.json</td>
       <td align="right">$0</td>
       <td align="right">$748</td>
       <td>+$748</td>
@@ -33,9 +33,9 @@
 <summary><strong>Infracost output</strong></summary>
 
 ```
-Project: infracost/actions/examples/terraform-project/code/dev/plan.json
+Project: infracost/actions/examples/plan-json/terragrunt/code/dev/plan.json
 
-+ module.base.aws_instance.web_app
++ aws_instance.web_app
   +$51.97
 
     + Instance usage (Linux/UNIX, on-demand, t2.micro)
@@ -54,7 +54,7 @@ Project: infracost/actions/examples/terraform-project/code/dev/plan.json
         + Provisioned IOPS
           +$26.00
 
-+ module.base.aws_lambda_function.hello_world
++ aws_lambda_function.hello_world
   Monthly cost depends on usage
 
     + Requests
@@ -65,13 +65,13 @@ Project: infracost/actions/examples/terraform-project/code/dev/plan.json
       Monthly cost depends on usage
         +$0.0000166667 per GB-seconds
 
-Monthly cost change for infracost/actions/examples/terraform-project/code/dev/plan.json
+Monthly cost change for infracost/actions/examples/plan-json/terragrunt/code/dev/plan.json
 Amount:  +$51.97 ($0.00 → $51.97)
 
 ──────────────────────────────────
-Project: infracost/actions/examples/terraform-project/code/prod/plan.json
+Project: infracost/actions/examples/plan-json/terragrunt/code/prod/plan.json
 
-+ module.base.aws_instance.web_app
++ aws_instance.web_app
   +$748
 
     + Instance usage (Linux/UNIX, on-demand, m5.4xlarge)
@@ -90,7 +90,7 @@ Project: infracost/actions/examples/terraform-project/code/prod/plan.json
         + Provisioned IOPS
           +$52.00
 
-+ module.base.aws_lambda_function.hello_world
++ aws_lambda_function.hello_world
   Monthly cost depends on usage
 
     + Requests
@@ -101,7 +101,7 @@ Project: infracost/actions/examples/terraform-project/code/prod/plan.json
       Monthly cost depends on usage
         +$0.0000166667 per GB-seconds
 
-Monthly cost change for infracost/actions/examples/terraform-project/code/prod/plan.json
+Monthly cost change for infracost/actions/examples/plan-json/terragrunt/code/prod/plan.json
 Amount:  +$748 ($0.00 → $748)
 
 ──────────────────────────────────

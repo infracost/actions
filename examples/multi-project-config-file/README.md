@@ -1,22 +1,18 @@
-# Slack Example
+# Multi-project using config file
 
-This example shows how to send cost estimates to Slack by combining the Infracost GitHub Action with the official [slackapi/slack-github-action](https://github.com/slackapi/slack-github-action) repo.
-
-Slack message blocks have a 3000 char limit so the Infracost CLI automatically truncates the middle of `slack-message` output formats.
-
-<img src="/.github/assets/slack-message.png" alt="Example screenshot" />
+This example shows how to run Infracost in GitHub Actions with multiple Terraform projects using a config file. The [config file]((https://www.infracost.io/docs/config_file/)) can be used to specify variable files or the Terraform workspaces for different projects.
 
 [//]: <> (BEGIN EXAMPLE)
 ```yml
-name: Slack
+name: Multi-project config file
 on: [pull_request]
 
 jobs:
-  slack:
-    name: Slack
+  multi-project-config-file:
+    name: Multi-project config file
     runs-on: ubuntu-latest
     env:
-      TF_ROOT: examples/terraform-project/code
+      TF_ROOT: examples/multi-project-config-file/code
 
     steps:
       - name: Setup Infracost
@@ -24,7 +20,8 @@ jobs:
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
 
-      # Checkout the base branch of the pull request (e.g. main/master).
+      # Checkout the branch you want Infracost to compare costs against.This example is using the
+      # target PR branch.
       - name: Checkout base branch
         uses: actions/checkout@v2
         with:
@@ -33,7 +30,7 @@ jobs:
       # Generate Infracost JSON file as the baseline.
       - name: Generate Infracost cost estimate baseline
         run: |
-          infracost breakdown --path=${TF_ROOT} \
+          infracost breakdown --config-file=${TF_ROOT}/infracost.yml \
                               --format=json \
                               --out-file=/tmp/infracost-base.json
 
@@ -44,10 +41,10 @@ jobs:
       # Generate an Infracost diff and save it to a JSON file.
       - name: Generate Infracost diff
         run: |
-          infracost diff --path=${TF_ROOT} \
-                           --format=json \
-                           --compare-to=/tmp/infracost-base.json \
-                           --out-file=/tmp/infracost.json
+          infracost diff --config-file=${TF_ROOT}/infracost.yml \
+                              --format=json \
+                              --compare-to=/tmp/infracost-base.json \
+                              --out-file=/tmp/infracost.json
 
       # Posts a comment to the PR using the 'update' behavior.
       # This creates a single comment and updates it. The "quietest" option.
@@ -63,20 +60,5 @@ jobs:
                                    --github-token=${{github.token}} \
                                    --pull-request=${{github.event.pull_request.number}} \
                                    --behavior=update
-
-      - name: Generate Slack message
-        id: infracost-slack
-        run: |
-          echo "::set-output name=slack-message::$(infracost output --path=/tmp/infracost.json --format=slack-message --show-skipped)"
-          echo "::set-output name=diffTotalMonthlyCost::$(jq '(.diffTotalMonthlyCost // 0) | tonumber' /tmp/infracost.json)"
-
-      - name: Send cost estimate to Slack
-        uses: slackapi/slack-github-action@v1
-        if: ${{ steps.infracost-slack.outputs.diffTotalMonthlyCost > 0 }} # Only post to Slack if there is a cost diff
-        with:
-          payload: ${{ steps.infracost-slack.outputs.slack-message }}
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 ```
 [//]: <> (END EXAMPLE)

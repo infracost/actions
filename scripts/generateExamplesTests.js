@@ -17,6 +17,8 @@ const localSkipJobs = [
   // These jobs are skipped locally until https://github.com/nektos/act/issues/769 is fixed
   'multi-project-matrix',
   'multi-project-matrix-merge',
+  'multi-workspace-matrix',
+  'multi-workspace-matrix-merge',
 ]
 
 const workflowTemplate = {
@@ -53,23 +55,18 @@ function extractAllExamples(examplesDir) {
       continue;
     }
 
-    console.log(
-      `Generating GitHub Actions workflow job for ${examplesDir}/${dir}`
-    );
-
     const filename = `${examplesDir}/${dir}/README.md`;
 
-    try {
-      if (!fs.existsSync(filename)) {
-        console.error(`Skipping ${dir} since no README.md file was found`);
-        continue;
+    if (fs.existsSync(filename)) {
+      console.error(`Found README.md file in ${dir} was found, extracting examples`);
+      try {
+        examples.push(...extractExamples(filename));
+      } catch(err) {
+        console.error(`Error reading YAML file ${filename}: ${err}`);
       }
-
-      examples.push(...extractExamples(filename));
-    } catch (err) {
-      console.error(`Error reading YAML file ${filename}: ${err}`);
-      continue;
     }
+
+    examples.push(...extractAllExamples(`${examplesDir}/${dir}`));
   }
 
   return examples;
@@ -99,9 +96,8 @@ function fixupExamples(examples) {
           continue;
         }
 
-        if (step.name && step.name.toLowerCase() === 'checkout pr branch') {
+        if (step.name && step.name.toLowerCase() === 'generate infracost diff') {
           steps.push(
-            step,
             {
               name: 'Replace m5 instance',
               run: `find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name '*.tfvars'  | xargs sed -i 's/m5\.4xlarge/m5\.8xlarge/g'`
@@ -109,7 +105,8 @@ function fixupExamples(examples) {
             {
               name: 'Replace t2 instance',
               run: `find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name '*.tfvars'  | xargs sed -i 's/t2\.micro/t2\.medium/g'`
-            }
+            },
+            step,
           )
 
           continue;
@@ -119,7 +116,7 @@ function fixupExamples(examples) {
           const goldenFilePath = `./testdata/${jobKey}_comment_golden.md`;
           const commentArgs = step.run
             .replace(/\\/g, '')
-            .replace(/--pull-request \$\{\{github\.event\.pull_request\.number\}\}/g, '--pull-request 1')
+            .replace(/--pull-request=\$\{\{github\.event\.pull_request\.number\}\}/g, '--pull-request=1')
             .split('\n')
             .map(s => s.trim())
             .filter(e => !e.startsWith('#') && e !== '')

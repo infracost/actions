@@ -1,0 +1,9 @@
+version: 0.1
+
+projects:
+  - path: examples/multi-project-config-file/code/dev
+    terraform_var_files:
+      - "../dev.tfvars"
+  - path: examples/multi-project-config-file/code/prod
+    terraform_var_files:
+      - "../prod.tfvars"
