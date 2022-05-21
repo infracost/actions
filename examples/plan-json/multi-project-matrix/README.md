@@ -28,7 +28,8 @@ jobs:
             aws_secret_access_key_secret: EXAMPLE_PROD_AWS_SECRET_ACCESS_KEY
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout PR branch
+        uses: actions/checkout@v2
 
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2

@@ -31,18 +31,18 @@ The following steps assume a simple Terraform directory is being used, we recomm
           #   INFRACOST_TERRAFORM_CLOUD_HOST: app.terraform.io # Change this if you're using Terraform Enterprise
 
           steps:
-            # Checkout the base branch of the pull request (e.g. main/master).
-            - name: Checkout base branch
-              uses: actions/checkout@v2
-              with:
-                ref: '${{ github.event.pull_request.base.ref }}'
-
             - name: Setup Infracost
               uses: infracost/actions/setup@v2
               # See https://github.com/infracost/actions/tree/master/setup for other inputs
               # If you can't use this action, see Docker images in https://infracost.io/cicd
               with:
                 api-key: ${{ secrets.INFRACOST_API_KEY }}
+
+            # Checkout the base branch of the pull request (e.g. main/master).
+            - name: Checkout base branch
+              uses: actions/checkout@v2
+              with:
+                ref: '${{ github.event.pull_request.base.ref }}'
 
             # Generate Infracost JSON file as the baseline.
             - name: Generate Infracost cost estimate baseline
