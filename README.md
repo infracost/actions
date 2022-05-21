@@ -40,6 +40,7 @@ The following steps assume a simple Terraform directory is being used, we recomm
             - name: Setup Infracost
               uses: infracost/actions/setup@v2
               # See https://github.com/infracost/actions/tree/master/setup for other inputs
+              # If you can't use this action, see Docker images in https://infracost.io/cicd
               with:
                 api-key: ${{ secrets.INFRACOST_API_KEY }}
 
