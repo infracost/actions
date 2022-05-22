@@ -59,9 +59,9 @@ The following steps assume a simple Terraform directory is being used, we recomm
             - name: Generate Infracost diff
               run: |
                 infracost diff --path=${TF_ROOT} \
-                                    --format=json \
-                                    --compare-to=/tmp/infracost-base.json \
-                                    --out-file=/tmp/infracost.json
+                               --format=json \
+                               --compare-to=/tmp/infracost-base.json \
+                               --out-file=/tmp/infracost.json
 
             # Posts a comment to the PR using the 'update' behavior.
             # This creates a single comment and updates it. The "quietest" option.
