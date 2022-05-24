@@ -1,6 +1,6 @@
 # Infracost GitHub Actions
 
-This project provides a set of GitHub Actions for Infracost, so you can see cloud cost estimates for Terraform in pull requests 💰 
+This project provide a GitHub Action and examples for Infracost, so you can see cloud cost estimates for Terraform in pull requests 💰
 
 <img src=".github/assets/screenshot.png" alt="Example screenshot" />
 
@@ -12,85 +12,72 @@ The following steps assume a simple Terraform directory is being used, we recomm
 
 2. [Create a repo secret](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets#creating-encrypted-secrets-for-a-repository) called `INFRACOST_API_KEY` with your API key.
 
-3. Create required repo secrets for any cloud credentials that are needed for Terraform to run. If you have multiple projects/workspaces, consider using an Infracost [config-file](https://www.infracost.io/docs/multi_project/config_file) to define the projects.
+3. Create a new file in `.github/workflows/infracost.yml` in your repo with the following content.
 
-    - **Terraform Cloud/Enterprise users**: if you use Remote Execution Mode, you should follow [setup-terraform](https://github.com/hashicorp/setup-terraform) instructions to set the inputs `cli_config_credentials_token`, and `cli_config_credentials_hostname` for Terraform Enterprise.
-    - **AWS users**: use [aws-actions/configure-aws-credentials](https://github.com/aws-actions/configure-aws-credentials), the [Terraform docs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs#environment-variables) explain other options.
-    - **Azure users**: the [Terraform docs](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_secret) explain the options. The [Azure/login](https://github.com/Azure/login) GitHub Actions might also be useful; we haven't tested these with Terraform.
-    - **Google users**: the [Terraform docs](https://registry.terraform.io/providers/hashicorp/google/latest/docs/guides/provider_reference#full-reference) explain the options, e.g. using `GOOGLE_CREDENTIALS`.
-
-4. Create a new file in `.github/workflows/infracost.yml` in your repo with the following content.
-
-    ```yaml
+ ```yaml
     # The GitHub Actions docs (https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#on)
     # describe other options for 'on', 'pull_request' is a good default.
     on: [pull_request]
     jobs:
       infracost:
-        runs-on: ubuntu-latest # The following are JavaScript actions (not Docker)
+        name: Infracost
+        runs-on: ubuntu-latest
+
         env:
-          working-directory: PATH/TO/TERRAFORM/CODE # Update this!
+          TF_ROOT: examples/terraform-project/code
+          # If you're using Terraform Cloud/Enterprise and have variables stored on there
+          # you can specify the following to automatically retrieve the variables:
+          #   INFRACOST_TERRAFORM_CLOUD_TOKEN: ${{ secrets.TFC_TOKEN }}
+          #   INFRACOST_TERRAFORM_CLOUD_HOST: app.terraform.io # Change this if you're using Terraform Enterprise
 
-        name: Run Infracost
-        steps:
-          - name: Check out repository
-            uses: actions/checkout@v2
+          steps:
+            - name: Setup Infracost
+              uses: infracost/actions/setup@v2
+              # See https://github.com/infracost/actions/tree/master/setup for other inputs
+              # If you can't use this action, see Docker images in https://infracost.io/cicd
+              with:
+                api-key: ${{ secrets.INFRACOST_API_KEY }}
 
-          # Typically the Infracost actions will be used in conjunction with
-          # https://github.com/hashicorp/setup-terraform. Subsequent steps
-          # can run Terraform commands as they would in the shell.
-          - name: Install terraform
-            uses: hashicorp/setup-terraform@v1
-            with:
-              terraform_wrapper: false # This is recommended so the `terraform show` command outputs valid JSON
+            # Checkout the base branch of the pull request (e.g. main/master).
+            - name: Checkout base branch
+              uses: actions/checkout@v2
+              with:
+                ref: '${{ github.event.pull_request.base.ref }}'
 
-          # IMPORTANT: add any required steps here to setup cloud credentials so Terraform can run
+            # Generate Infracost JSON file as the baseline.
+            - name: Generate Infracost cost estimate baseline
+              run: |
+                infracost breakdown --path=${TF_ROOT} \
+                                    --format=json \
+                                    --out-file=/tmp/infracost-base.json
 
-          - name: Terraform init
-            run: terraform init
-            working-directory: ${{ env.working-directory }}
+            # Checkout the current PR branch so we can create a diff.
+            - name: Checkout PR branch
+              uses: actions/checkout@v2
 
-          - name: Terraform plan
-            run: terraform plan -out tfplan.binary
-            working-directory: ${{ env.working-directory }}
+            # Generate an Infracost diff and save it to a JSON file.
+            - name: Generate Infracost diff
+              run: |
+                infracost diff --path=${TF_ROOT} \
+                               --format=json \
+                               --compare-to=/tmp/infracost-base.json \
+                               --out-file=/tmp/infracost.json
 
-          - name: Terraform show
-            run: terraform show -json tfplan.binary > plan.json
-            working-directory: ${{ env.working-directory }}
-
-          # Install the Infracost CLI, see https://github.com/infracost/actions/tree/master/setup
-          # for other inputs such as version, and pricing-api-endpoint (for self-hosted users).
-          - name: Setup Infracost
-            uses: infracost/actions/setup@v1
-            with:
-              api-key: ${{ secrets.INFRACOST_API_KEY }}
-
-          # Generate Infracost JSON output, the following docs might be useful:
-          # Multi-project/workspaces: https://www.infracost.io/docs/features/config_file
-          # Combine Infracost JSON files: https://www.infracost.io/docs/features/cli_commands/#combined-output-formats
-          - name: Generate Infracost JSON
-            run: infracost breakdown --path plan.json --format json --out-file /tmp/infracost.json
-            working-directory: ${{ env.working-directory }}
-            # Env vars can be set using the usual GitHub Actions syntax
-            # See the list of supported Infracost env vars here: https://www.infracost.io/docs/integrations/environment_variables/
-            # env:
-            #   MY_ENV: ${{ secrets.MY_ENV }}
-
-          # See https://www.infracost.io/docs/features/cli_commands/#comment-on-pull-requests for other options.
-          - name: Post Infracost comment
-            run: |
-              # Posts a comment to the PR using the 'update' behavior.
-              # This creates a single comment and updates it. The "quietest" option.
-              # The other valid behaviors are:
-              #   delete-and-new - Delete previous comments and create a new one.
-              #   hide-and-new - Minimize previous comments and create a new one.
-              #   new - Create a new cost estimate comment on every push.
-              infracost comment github --path /tmp/infracost.json \
-                                       --repo $GITHUB_REPOSITORY \
-                                       --github-token ${{github.token}} \
-                                       --pull-request ${{github.event.pull_request.number}} \
-                                       --behavior update
-    ```
+            # Posts a comment to the PR using the 'update' behavior.
+            # This creates a single comment and updates it. The "quietest" option.
+            # The other valid behaviors are:
+            #   delete-and-new - Delete previous comments and create a new one.
+            #   hide-and-new - Minimize previous comments and create a new one.
+            #   new - Create a new cost estimate comment on every push.
+            # See https://www.infracost.io/docs/features/cli_commands/#comment-on-pull-requests for other options.
+            - name: Post Infracost comment
+              run: |
+                  infracost comment github --path=/tmp/infracost.json \
+                                           --repo=$GITHUB_REPOSITORY \
+                                           --github-token=${{github.token}} \
+                                           --pull-request=${{github.event.pull_request.number}} \
+                                           --behavior=update
+ ```
 
 5. 🎉 That's it! Send a new pull request to change something in Terraform that costs money. You should see a pull request comment that gets updated, e.g. the 📉 and 📈 emojis will update as changes are pushed!
 
@@ -98,18 +85,21 @@ The following steps assume a simple Terraform directory is being used, we recomm
 
 6. Follow [the docs](https://www.infracost.io/usage-file) if you'd also like to show cost for of usage-based resources such as AWS Lambda or S3. The usage for these resources are fetched from CloudWatch/cloud APIs and used to calculate an estimate.
 
+### Troubleshooting
+
+#### Permissions issue
+
+If you receive an error when running the `infracost comment` command in your pipeline, it's probably related to `${{ github.token }}`. This is the default GitHub token available to actions and is used to post comments. The default [token permissions](https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#permissions) work fine but `pull-requests: write` is required if you need to customize these. If you are using SAML single sign-on, you must first [authorize the token](https://docs.github.com/en/enterprise-cloud@latest/authentication/authenticating-with-saml-single-sign-on/authorizing-a-personal-access-token-for-use-with-saml-single-sign-on).
+
 ## Examples
 
-The [examples](examples) directory demonstrates how these actions can be used in different workflows, including:
-  - [Terraform directory](examples/terraform-directory): a Terraform directory containing HCL code
-  - [Terraform plan JSON](examples/terraform-plan-json): a Terraform plan JSON file
-  - [Terragrunt](examples/terragrunt): a Terragrunt project
-  - [Terraform Cloud/Enterprise](examples/terraform-cloud-enterprise): a Terraform project using Terraform Cloud/Enterprise
-  - [Multi-project using config file](examples/multi-project/README.md#using-an-infracost-config-file): multiple Terraform projects using the Infracost [config file](https://www.infracost.io/docs/multi_project/config_file)
-  - [Multi-project using build matrix](examples/multi-project/README.md#using-github-actions-build-matrix): multiple Terraform projects using GitHub Actions build matrix
-  - [Multi-Terraform workspace](examples/multi-terraform-workspace): multiple Terraform workspaces using the Infracost [config file](https://www.infracost.io/docs/multi_project/config_file)
+The [examples](examples) directory demonstrates how these actions can be used for different projects. They all work by using the default Infracost CLI option that parses HCL, thus a Terraform plan JSON is not needed.
+  - [Terraform/Terragrunt projects (single or multi)](examples/terraform-project): a repository containing one or more (e.g. mono repos) Terraform or Terragrunt projects
+  - [Multi-projects using a config file](examples/multi-project-config-file): repository containing multiple Terraform projects that need different inputs, i.e. variable files or Terraform workspaces
   - [Private Terraform module](examples/private-terraform-module): a Terraform project using a private Terraform module
-  - [Slack](examples/slack): [send cost estimates to Slack](examples/slack)
+  - [Slack](examples/slack): send cost estimates to Slack
+
+For advanced use cases where the estimate needs to be generated from Terraform plan JSON files, see the [plan JSON examples here](examples#plan-json-examples).
 
 ### Cost policies
 
@@ -118,14 +108,6 @@ Infracost policies enable centralized teams, who are often helping others with c
 ![](.github/assets/policy-passing-github.png)
 
 If you use HashiCorp Sentinel, follow [our example](examples/sentinel) to output the policy pass/fail results into CI/CD logs.
-
-## Actions
-
-We recommend you use the above [quick start](#quick-start) guide and examples, which uses the [setup](setup) action. This downloads and installs the Infracost CLI in your GitHub Actions workflow.
-
-The following actions are **deprecated** and will be removed in the V2 of the GitHub action:
-- [comment](comment): adds comments to pull requests; you should use the [`infracost comment`](https://www.infracost.io/docs/features/cli_commands/#comment-on-pull-requests) command directly.
-- [get-comment](get-comment): reads a comment from a pull request. This action was not widely used and is deprecated.
 
 ## Contributing
 

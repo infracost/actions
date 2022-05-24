@@ -1,18 +1,22 @@
-# Private Terraform module
+# Terraform/Terragrunt project (single or multi)
 
-This example shows how to run Infracost in GitHub Actions with a Terraform project that uses a private Terraform module. This requires a secret to be added to your GitHub repository called `GIT_SSH_KEY` containing a private key so that Infracost can access the private repository.
+This example shows how to run Infracost in GitHub Actions with multiple Terraform/Terragrunt projects, both single projects or mono-repos that contain multiple projects.
 
 [//]: <> (BEGIN EXAMPLE)
 ```yml
-name: Private Terraform module
+name: Terraform project
 on: [pull_request]
 
 jobs:
-  private-terraform-module:
-    name: Private Terraform module
+  terraform-project:
+    name: Terraform project
     runs-on: ubuntu-latest
     env:
-      TF_ROOT: examples/private-terraform-module/code
+      TF_ROOT: examples/terraform-project/code
+      # If you're using Terraform Cloud/Enterprise and have variables stored on there
+      # you can specify the following to automatically retrieve the variables:
+      #   INFRACOST_TERRAFORM_CLOUD_TOKEN: ${{ secrets.TFC_TOKEN }}
+      #   INFRACOST_TERRAFORM_CLOUD_HOST: app.terraform.io # Change this if you're using Terraform Enterprise
 
     steps:
       - name: Setup Infracost
@@ -27,14 +31,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: '${{ github.event.pull_request.base.ref }}'
-
-      # Add your git SSH key so Infracost can checkout the private modules
-      - name: add GIT_SSH_KEY
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.GIT_SSH_KEY }}" > ~/.ssh/git_ssh_key
-          chmod 400 ~/.ssh/git_ssh_key
-          echo "GIT_SSH_COMMAND=ssh -i ~/.ssh/git_ssh_key -o 'StrictHostKeyChecking=no'" >> $GITHUB_ENV
 
       # Generate Infracost JSON file as the baseline.
       - name: Generate Infracost cost estimate baseline
@@ -54,6 +50,7 @@ jobs:
                               --format=json \
                               --compare-to=/tmp/infracost-base.json \
                               --out-file=/tmp/infracost.json
+
 
       # Posts a comment to the PR using the 'update' behavior.
       # This creates a single comment and updates it. The "quietest" option.

@@ -1,5 +1,5 @@
 
-💰 Infracost estimate: **monthly cost will increase by $11.37 📈**
+💰 Infracost estimate: **monthly cost will increase by $25.40 (+223%) 📈**
 <table>
   <thead>
     <td>Project</td>
@@ -10,9 +10,9 @@
   <tbody>
     <tr>
       <td>infracost/actions/examples/private-terraform-module/code</td>
-      <td align="right">$0</td>
       <td align="right">$11.37</td>
-      <td>+$11.37</td>
+      <td align="right">$36.77</td>
+      <td>+$25.40 (+223%)</td>
     </tr>
   </tbody>
 </table>
@@ -23,22 +23,15 @@
 ```
 Project: infracost/actions/examples/private-terraform-module/code
 
-+ module.ec2_cluster.aws_instance.this[0]
-  +$11.37
+~ module.ec2_cluster.aws_instance.this[0]
+  +$25.40 ($11.37 → $36.77)
 
-    + Instance usage (Linux/UNIX, on-demand, t2.micro)
-      +$8.47
-
-    + EC2 detailed monitoring
-      +$2.10
-
-    + root_block_device
-    
-        + Storage (general purpose SSD, gp2)
-          +$0.80
+    ~ Instance usage (Linux/UNIX, on-demand, t2.micro → t2.medium)
+      +$25.40 ($8.47 → $33.87)
 
 Monthly cost change for infracost/actions/examples/private-terraform-module/code
-Amount:  +$11.37 ($0.00 → $11.37)
+Amount:  +$25.40 ($11.37 → $36.77)
+Percent: +223%
 
 ──────────────────────────────────
 Key: ~ changed, + added, - removed

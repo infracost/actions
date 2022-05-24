@@ -27,11 +27,11 @@ console.log(`Running ${command}`);
 const child = spawn('bash', ['-c', command], { env: process.env });
 
 child.stdout.on('data', (data) => {
-  process.stdout.write(data.toString()); 
+  process.stdout.write(data.toString());
 });
 
 child.stderr.on('data', (data) => {
-  process.stderr.write(data.toString()); 
+  process.stderr.write(data.toString());
 });
 
 child.on('exit', () => {

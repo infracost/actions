@@ -1,5 +1,5 @@
 
-💰 Infracost estimate: **monthly cost will increase by $800 📈**
+💰 Infracost estimate: **monthly cost will increase by $586 (+73%) 📈**
 <table>
   <thead>
     <td>Project</td>
@@ -9,22 +9,22 @@
   </thead>
   <tbody>
     <tr>
-      <td>infracost/actions/examples/multi-project/code/dev</td>
-      <td align="right">$0</td>
+      <td>infracost/actions/examples/multi-project-config-file/code/dev</td>
       <td align="right">$51.97</td>
-      <td>+$51.97</td>
+      <td align="right">$77.37</td>
+      <td>+$25.40 (+49%)</td>
     </tr>
     <tr>
-      <td>infracost/actions/examples/multi-project/code/prod</td>
-      <td align="right">$0</td>
+      <td>infracost/actions/examples/multi-project-config-file/code/prod</td>
       <td align="right">$748</td>
-      <td>+$748</td>
+      <td align="right">$1,308</td>
+      <td>+$561 (+75%)</td>
     </tr>
     <tr>
       <td>All projects</td>
-      <td align="right">$0</td>
       <td align="right">$800</td>
-      <td>+$800</td>
+      <td align="right">$1,386</td>
+      <td>+$586 (+73%)</td>
     </tr>
   </tbody>
 </table>
@@ -33,76 +33,30 @@
 <summary><strong>Infracost output</strong></summary>
 
 ```
-Project: infracost/actions/examples/multi-project/code/dev
+Project: infracost/actions/examples/multi-project-config-file/code/dev
 
-+ module.base.aws_instance.web_app
-  +$51.97
+~ module.base.aws_instance.web_app
+  +$25.40 ($51.97 → $77.37)
 
-    + Instance usage (Linux/UNIX, on-demand, t2.micro)
-      +$8.47
+    ~ Instance usage (Linux/UNIX, on-demand, t2.micro → t2.medium)
+      +$25.40 ($8.47 → $33.87)
 
-    + root_block_device
-    
-        + Storage (general purpose SSD, gp2)
-          +$5.00
-
-    + ebs_block_device[0]
-    
-        + Storage (provisioned IOPS SSD, io1)
-          +$12.50
-    
-        + Provisioned IOPS
-          +$26.00
-
-+ module.base.aws_lambda_function.hello_world
-  Monthly cost depends on usage
-
-    + Requests
-      Monthly cost depends on usage
-        +$0.20 per 1M requests
-
-    + Duration
-      Monthly cost depends on usage
-        +$0.0000166667 per GB-seconds
-
-Monthly cost change for infracost/actions/examples/multi-project/code/dev
-Amount:  +$51.97 ($0.00 → $51.97)
+Monthly cost change for infracost/actions/examples/multi-project-config-file/code/dev
+Amount:  +$25.40 ($51.97 → $77.37)
+Percent: +49%
 
 ──────────────────────────────────
-Project: infracost/actions/examples/multi-project/code/prod
+Project: infracost/actions/examples/multi-project-config-file/code/prod
 
-+ module.base.aws_instance.web_app
-  +$748
+~ module.base.aws_instance.web_app
+  +$561 ($748 → $1,308)
 
-    + Instance usage (Linux/UNIX, on-demand, m5.4xlarge)
-      +$561
+    ~ Instance usage (Linux/UNIX, on-demand, m5.4xlarge → m5.8xlarge)
+      +$561 ($561 → $1,121)
 
-    + root_block_device
-    
-        + Storage (general purpose SSD, gp2)
-          +$10.00
-
-    + ebs_block_device[0]
-    
-        + Storage (provisioned IOPS SSD, io1)
-          +$125
-    
-        + Provisioned IOPS
-          +$52.00
-
-+ module.base.aws_lambda_function.hello_world
-  Monthly cost depends on usage
-
-    + Requests
-      Monthly cost depends on usage
-        +$0.20 per 1M requests
-
-    + Duration
-      Monthly cost depends on usage
-        +$0.0000166667 per GB-seconds
-
-Monthly cost change for infracost/actions/examples/multi-project/code/prod
-Amount:  +$748 ($0.00 → $748)
+Monthly cost change for infracost/actions/examples/multi-project-config-file/code/prod
+Amount:  +$561 ($748 → $1,308)
+Percent: +75%
 
 ──────────────────────────────────
 Key: ~ changed, + added, - removed

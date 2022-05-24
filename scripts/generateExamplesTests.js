@@ -6,7 +6,7 @@
 
 const fs = require('fs');
 const yaml = require('js-yaml');
-const { env } = require('process');
+const {env} = require('process');
 
 const examplesTestWorkflowPath = './.github/workflows/examples_test.yml';
 const examplesDir = 'examples';
@@ -17,6 +17,8 @@ const localSkipJobs = [
   // These jobs are skipped locally until https://github.com/nektos/act/issues/769 is fixed
   'multi-project-matrix',
   'multi-project-matrix-merge',
+  'multi-workspace-matrix',
+  'multi-workspace-matrix-merge',
 ]
 
 const workflowTemplate = {
@@ -53,23 +55,18 @@ function extractAllExamples(examplesDir) {
       continue;
     }
 
-    console.log(
-      `Generating GitHub Actions workflow job for ${examplesDir}/${dir}`
-    );
-
     const filename = `${examplesDir}/${dir}/README.md`;
 
-    try {
-      if (!fs.existsSync(filename)) {
-        console.error(`Skipping ${dir} since no README.md file was found`);
-        continue;
+    if (fs.existsSync(filename)) {
+      console.error(`Found README.md file in ${dir} was found, extracting examples`);
+      try {
+        examples.push(...extractExamples(filename));
+      } catch(err) {
+        console.error(`Error reading YAML file ${filename}: ${err}`);
       }
-
-      examples.push(...extractExamples(filename));
-    } catch (err) {
-      console.error(`Error reading YAML file ${filename}: ${err}`);
-      continue;
     }
+
+    examples.push(...extractAllExamples(`${examplesDir}/${dir}`));
   }
 
   return examples;
@@ -84,13 +81,42 @@ function fixupExamples(examples) {
       const [jobKey, job] = jobEntry;
 
       const steps = [];
+      for (let i = 0; i < job.steps.length; i++) {
+        const step = job.steps[i];
 
-      for (const step of job.steps) {
+        if (step.name && step.name.toLowerCase() === 'checkout base branch') {
+          // In the tests we don't actually want to use the base branch since we might have updated
+          // the actual tests themselves.
+          if (step.with) {
+            delete step.with.ref;
+          }
+
+          steps.push(step);
+
+          continue;
+        }
+
+        if (step.name && step.name.toLowerCase() === 'generate infracost diff') {
+          steps.push(
+            {
+              name: 'Replace m5 instance',
+              run: `find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name '*.tfvars'  | xargs sed -i 's/m5\.4xlarge/m5\.8xlarge/g'`
+            },
+            {
+              name: 'Replace t2 instance',
+              run: `find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name '*.tfvars'  | xargs sed -i 's/t2\.micro/t2\.medium/g'`
+            },
+            step,
+          )
+
+          continue;
+        }
+
         if (step.name && step.name.toLowerCase() === 'post infracost comment') {
           const goldenFilePath = `./testdata/${jobKey}_comment_golden.md`;
           const commentArgs = step.run
             .replace(/\\/g, '')
-            .replace(/--pull-request \$\{\{github\.event\.pull_request\.number\}\}/g, '--pull-request 1')
+            .replace(/--pull-request=\$\{\{github\.event\.pull_request\.number\}\}/g, '--pull-request=1')
             .split('\n')
             .map(s => s.trim())
             .filter(e => !e.startsWith('#') && e !== '')
@@ -140,6 +166,17 @@ function fixupExamples(examples) {
           continue;
         }
 
+        // Since we're using the local action we need to make sure the we have the code checked out before running that action
+        // We should only do this if the setup action is the first step
+        if (i == 0 && step.uses && step.uses.startsWith('infracost/actions/setup')) {
+          steps.push(
+            {
+              name: 'Checkout source code so we can install the action locally',
+              uses: 'actions/checkout@v2',
+            },
+          );
+        }
+
         // Replace infracost/actions steps with the local path
         steps.push({
           ...step,
@@ -162,7 +199,7 @@ function fixupExamples(examples) {
 
 // Generate the workflow YAML from the examples
 function generateWorkflow(examples) {
-  const workflow = { ...workflowTemplate };
+  const workflow = {...workflowTemplate};
 
   for (const example of examples) {
     workflow.jobs = {
