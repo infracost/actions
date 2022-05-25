@@ -8,7 +8,6 @@ These examples work by using the default Infracost CLI option that parses HCL, t
 
   - [Terraform/Terragrunt projects (single or multi)](terraform-project): a repository containing one or more (e.g. mono repos) Terraform or Terragrunt projects
   - [Multi-projects using a config file](multi-project-config-file): repository containing multiple Terraform projects that need different inputs, i.e. variable files or Terraform workspaces
-  - [Private Terraform module](private-terraform-module): a Terraform project using a private Terraform module
   - [Slack](slack): send cost estimates to Slack
 
 ## Plan JSON examples
