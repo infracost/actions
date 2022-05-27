@@ -7,6 +7,11 @@ This example shows how to run Infracost in GitHub Actions with multiple Terrafor
 name: Terraform project
 on: [pull_request]
 
+env:
+  # If you use private modules you'll need this env variable to use 
+  # the same ssh-agent socket value across all jobs & steps. 
+  SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+
 jobs:
   terraform-project:
     name: Terraform project
@@ -24,10 +29,10 @@ jobs:
       # private repositories (similar to how Terraform/Terragrunt does).
       # - name: add GIT_SSH_KEY
       #   run: |
+      #     ssh-agent -a $SSH_AUTH_SOCK
       #     mkdir -p ~/.ssh
-      #     echo "${{ secrets.GIT_SSH_KEY }}" > ~/.ssh/git_ssh_key
-      #     chmod 400 ~/.ssh/git_ssh_key
-      #    echo "GIT_SSH_COMMAND=ssh -i ~/.ssh/git_ssh_key -o 'StrictHostKeyChecking=no'" >> $GITHUB_ENV
+      #     echo "${{ secrets.GIT_SSH_KEY }}" | tr -d '\r' | ssh-add -
+      #     ssh-keyscan github.com >> ~/.ssh/known_hosts
           
       - name: Setup Infracost
         uses: infracost/actions/setup@v2
