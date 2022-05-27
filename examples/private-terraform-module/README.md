@@ -7,6 +7,11 @@ This example shows how to run Infracost in GitHub Actions with a Terraform proje
 name: Private Terraform module
 on: [pull_request]
 
+env:
+  # Use the same ssh-agent socket value across all jobs
+  # Useful when a GH action is using SSH behind-the-scenes
+  SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+  
 jobs:
   private-terraform-module:
     name: Private Terraform module
@@ -15,26 +20,26 @@ jobs:
       TF_ROOT: examples/private-terraform-module/code
 
     steps:
-      - name: Setup Infracost
-        uses: infracost/actions/setup@v2
-        # See https://github.com/infracost/actions/tree/master/setup for other inputs
-        # If you can't use this action, see Docker images in https://infracost.io/cicd
-        with:
-          api-key: ${{ secrets.INFRACOST_API_KEY }}
+      # Add your git SSH key so Infracost can checkout the private modules
+      - name: add GIT_SSH_KEY
+        run: |
+          ssh-agent -a $SSH_AUTH_SOCK
+          mkdir -p ~/.ssh
+          echo "${{ secrets.GIT_SSH_KEY }}" | tr -d '\r' | ssh-add -
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
 
       # Checkout the base branch of the pull request (e.g. main/master).
       - name: Checkout base branch
         uses: actions/checkout@v2
         with:
           ref: '${{ github.event.pull_request.base.ref }}'
-
-      # Add your git SSH key so Infracost can checkout the private modules
-      - name: add GIT_SSH_KEY
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.GIT_SSH_KEY }}" > ~/.ssh/git_ssh_key
-          chmod 400 ~/.ssh/git_ssh_key
-          echo "GIT_SSH_COMMAND=ssh -i ~/.ssh/git_ssh_key -o 'StrictHostKeyChecking=no'" >> $GITHUB_ENV
+          
+      - name: Setup Infracost
+        uses: infracost/actions/setup@v2
+        # See https://github.com/infracost/actions/tree/master/setup for other inputs
+        # If you can't use this action, see Docker images in https://infracost.io/cicd
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
 
       # Generate Infracost JSON file as the baseline.
       - name: Generate Infracost cost estimate baseline
