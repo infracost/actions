@@ -7,6 +7,8 @@ name: Run examples
 defaults:
   run:
     shell: bash
+env:
+  SSH_AUTH_SOCK: /tmp/ssh_agent.sock
 jobs:
   multi-project-config-file:
     name: Multi-project config file
@@ -78,7 +80,8 @@ jobs:
             aws_access_key_id_secret: EXAMPLE_PROD_AWS_ACCESS_KEY_ID
             aws_secret_access_key_secret: EXAMPLE_PROD_AWS_SECRET_ACCESS_KEY
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout PR branch
+        uses: actions/checkout@v2
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2
         with:
@@ -167,7 +170,8 @@ jobs:
             aws_access_key_id_secret: EXAMPLE_PROD_AWS_ACCESS_KEY_ID
             aws_secret_access_key_secret: EXAMPLE_PROD_AWS_SECRET_ACCESS_KEY
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout PR branch
+        uses: actions/checkout@v2
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2
         with:
@@ -433,25 +437,19 @@ jobs:
     env:
       TF_ROOT: examples/private-terraform-module/code
     steps:
-      - name: Checkout source code so we can install the action locally
+      - name: add GIT_SSH_KEY
+        run: |
+          ssh-agent -a $SSH_AUTH_SOCK
+          mkdir -p ~/.ssh
+          echo "${{ secrets.GIT_SSH_KEY }}" | tr -d '\r' | ssh-add -
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+      - name: Checkout base branch
         uses: actions/checkout@v2
+        with: {}
       - name: Setup Infracost
         uses: ./setup
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
-      - name: Checkout base branch
-        uses: actions/checkout@v2
-        with: {}
-      - name: add GIT_SSH_KEY
-        run: >
-          mkdir -p ~/.ssh
-
-          echo "${{ secrets.GIT_SSH_KEY }}" > ~/.ssh/git_ssh_key
-
-          chmod 400 ~/.ssh/git_ssh_key
-
-          echo "GIT_SSH_COMMAND=ssh -i ~/.ssh/git_ssh_key -o
-          'StrictHostKeyChecking=no'" >> $GITHUB_ENV
       - name: Generate Infracost cost estimate baseline
         run: |
           infracost breakdown --path=${TF_ROOT} \
