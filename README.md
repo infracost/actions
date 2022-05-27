@@ -18,6 +18,10 @@ The following steps assume a simple Terraform directory is being used, we recomm
     # The GitHub Actions docs (https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#on)
     # describe other options for 'on', 'pull_request' is a good default.
     on: [pull_request]
+    env:
+       # If you use private modules you'll need this env variable to use 
+       # the same ssh-agent socket value across all jobs & steps. 
+       SSH_AUTH_SOCK: /tmp/ssh_agent.sock
     jobs:
       infracost:
         name: Infracost
@@ -31,6 +35,16 @@ The following steps assume a simple Terraform directory is being used, we recomm
           #   INFRACOST_TERRAFORM_CLOUD_HOST: app.terraform.io # Change this if you're using Terraform Enterprise
 
           steps:
+            # If you use private modules, add an environment variable or secret
+            # called GIT_SSH_KEY with your private key, so Infracost can access
+            # private repositories (similar to how Terraform/Terragrunt does).
+            # - name: add GIT_SSH_KEY
+            #   run: |
+            #     ssh-agent -a $SSH_AUTH_SOCK
+            #     mkdir -p ~/.ssh
+            #     echo "${{ secrets.GIT_SSH_KEY }}" | tr -d '\r' | ssh-add -
+            #     ssh-keyscan github.com >> ~/.ssh/known_hosts
+             
             - name: Setup Infracost
               uses: infracost/actions/setup@v2
               # See https://github.com/infracost/actions/tree/master/setup for other inputs
@@ -96,7 +110,6 @@ If you receive an error when running the `infracost comment` command in your pip
 The [examples](examples) directory demonstrates how these actions can be used for different projects. They all work by using the default Infracost CLI option that parses HCL, thus a Terraform plan JSON is not needed.
   - [Terraform/Terragrunt projects (single or multi)](examples/terraform-project): a repository containing one or more (e.g. mono repos) Terraform or Terragrunt projects
   - [Multi-projects using a config file](examples/multi-project-config-file): repository containing multiple Terraform projects that need different inputs, i.e. variable files or Terraform workspaces
-  - [Private Terraform module](examples/private-terraform-module): a Terraform project using a private Terraform module
   - [Slack](examples/slack): send cost estimates to Slack
 
 For advanced use cases where the estimate needs to be generated from Terraform plan JSON files, see the [plan JSON examples here](examples#plan-json-examples).

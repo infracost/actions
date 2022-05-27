@@ -6,6 +6,10 @@ This example shows how to run Infracost in GitHub Actions with multiple Terrafor
 ```yml
 name: Multi-project config file
 on: [pull_request]
+env:
+  # If you use private modules you'll need this env variable to use 
+  # the same ssh-agent socket value across all jobs & steps. 
+  SSH_AUTH_SOCK: /tmp/ssh_agent.sock
 
 jobs:
   multi-project-config-file:
@@ -15,6 +19,16 @@ jobs:
       TF_ROOT: examples/multi-project-config-file/code
 
     steps:
+      # If you use private modules, add an environment variable or secret
+      # called GIT_SSH_KEY with your private key, so Infracost can access
+      # private repositories (similar to how Terraform/Terragrunt does).
+      # - name: add GIT_SSH_KEY
+      #   run: |
+      #     ssh-agent -a $SSH_AUTH_SOCK
+      #     mkdir -p ~/.ssh
+      #     echo "${{ secrets.GIT_SSH_KEY }}" | tr -d '\r' | ssh-add -
+      #     ssh-keyscan github.com >> ~/.ssh/known_hosts
+      
       - name: Setup Infracost
         uses: infracost/actions/setup@v2
         # See https://github.com/infracost/actions/tree/master/setup for other inputs
