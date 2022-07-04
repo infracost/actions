@@ -18,8 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TF_ROOT: examples/terraform-project/code
-      # If you're using Terraform Cloud/Enterprise and have variables stored on there
-      # you can specify the following to automatically retrieve the variables:
+      # If you're using Terraform Cloud/Enterprise and have variables or modules stored
+      # on there, you can specify the following to automatically retrieve them:
       #   INFRACOST_TERRAFORM_CLOUD_TOKEN: ${{ secrets.TFC_TOKEN }}
       #   INFRACOST_TERRAFORM_CLOUD_HOST: app.terraform.io # Change this if you're using Terraform Enterprise
 
@@ -33,7 +33,7 @@ jobs:
       #     mkdir -p ~/.ssh
       #     echo "${{ secrets.GIT_SSH_KEY }}" | tr -d '\r' | ssh-add -
       #     ssh-keyscan github.com >> ~/.ssh/known_hosts
-          
+
       - name: Setup Infracost
         uses: infracost/actions/setup@v2
         # See https://github.com/infracost/actions/tree/master/setup for other inputs
