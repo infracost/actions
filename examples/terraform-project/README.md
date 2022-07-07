@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TF_ROOT: examples/terraform-project/code
-      # If you're using Terraform Cloud/Enterprise and have variables or modules stored
+      # If you're using Terraform Cloud/Enterprise and have variables or private modules stored
       # on there, you can specify the following to automatically retrieve them:
       #   INFRACOST_TERRAFORM_CLOUD_TOKEN: ${{ secrets.TFC_TOKEN }}
       #   INFRACOST_TERRAFORM_CLOUD_HOST: app.terraform.io # Change this if you're using Terraform Enterprise
