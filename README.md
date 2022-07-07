@@ -8,11 +8,13 @@ This project provide a GitHub Action and examples for Infracost, so you can see 
 
 The following steps assume a simple Terraform directory is being used, we recommend you use a more relevant [example](#examples) if required.
 
-1. Retrieve your Infracost API key by running `infracost configure get api_key`. We recommend using your same API key in all environments. If you don't have one, [download Infracost](https://www.infracost.io/docs/#quick-start) and run `infracost register` to get a free API key.
+1. If you haven't done so already, [download Infracost](https://www.infracost.io/docs/#quick-start) and run `infracost auth login` to get a free API key.
 
-2. [Create a repo secret](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets#creating-encrypted-secrets-for-a-repository) called `INFRACOST_API_KEY` with your API key.
+2. Retrieve your Infracost API key by running `infracost configure get api_key`.
 
-3. Create a new file in `.github/workflows/infracost.yml` in your repo with the following content.
+3. [Create a repo secret](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets#creating-encrypted-secrets-for-a-repository) called `INFRACOST_API_KEY` with your API key.
+
+4. Create a new file in `.github/workflows/infracost.yml` in your repo with the following content.
 
 ```yaml
 # The GitHub Actions docs (https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#on)
@@ -29,8 +31,8 @@ jobs:
 
     env:
       TF_ROOT: examples/terraform-project/code
-      # If you're using Terraform Cloud/Enterprise and have variables stored on there
-      # you can specify the following to automatically retrieve the variables:
+      # If you're using Terraform Cloud/Enterprise and have variables or private modules stored
+      # on there, specify the following to automatically retrieve the variables:
       #   INFRACOST_TERRAFORM_CLOUD_TOKEN: ${{ secrets.TFC_TOKEN }}
       #   INFRACOST_TERRAFORM_CLOUD_HOST: app.terraform.io # Change this if you're using Terraform Enterprise
 
@@ -84,9 +86,12 @@ jobs:
       #   hide-and-new - Minimize previous comments and create a new one.
       #   new - Create a new cost estimate comment on every push.
       # See https://www.infracost.io/docs/features/cli_commands/#comment-on-pull-requests for other options.
+      # The INFRACOST_CLOUD_ENABLED=true section instruct the CLI to send its JSON output to Infracost Cloud.
+      #   This optional product gives you visibility across all changes in a dashboard. The JSON output does
+      #   not contain any cloud credentials or secrets.
       - name: Post Infracost comment
         run: |
-            infracost comment github --path=/tmp/infracost.json \
+            INFRACOST_CLOUD_ENABLED=true infracost comment github --path=/tmp/infracost.json \
                                       --repo=$GITHUB_REPOSITORY \
                                       --github-token=${{github.token}} \
                                       --pull-request=${{github.event.pull_request.number}} \
@@ -97,7 +102,13 @@ jobs:
 
     If there are issues, check the GitHub Actions logs and [this page](https://www.infracost.io/docs/troubleshooting/).
 
-5. Follow [the docs](https://www.infracost.io/usage-file) if you'd also like to show cost for of usage-based resources such as AWS Lambda or S3. The usage for these resources are fetched from CloudWatch/cloud APIs and used to calculate an estimate.
+    <img src=".github/assets/pr-comment.png" alt="Example pull request" width="70%" />
+
+5. To see the test pull request costs in Infracost Cloud, [log in](https://dashboard.infracost.io/) > switch to your organization > Projects. To learn more, see [our docs](https://www.infracost.io/docs/infracost_cloud/get_started/).
+
+    <img src=".github/assets/infracost-cloud-runs.png" alt="Infracost Cloud gives team leads, managers and FinOps practitioners to have visibility across all cost estimates in CI/CD" width="90%" />
+
+6. Follow [the docs](https://www.infracost.io/usage-file) if you'd also like to show cost for of usage-based resources such as AWS Lambda or S3. The usage for these resources are fetched from CloudWatch/cloud APIs and used to calculate an estimate.
 
 ### Troubleshooting
 
