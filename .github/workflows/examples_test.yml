@@ -1,4 +1,5 @@
 name: Run examples
+
 'on':
   push:
     branches:
