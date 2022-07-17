@@ -18,8 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TF_ROOT: examples/terraform-project/code
-      # If you're using Terraform Cloud/Enterprise and have variables stored on there
-      # you can specify the following to automatically retrieve the variables:
+      # If you're using Terraform Cloud/Enterprise and have variables or private modules stored
+      # on there, specify the following to automatically retrieve the variables:
       #   INFRACOST_TERRAFORM_CLOUD_TOKEN: ${{ secrets.TFC_TOKEN }}
       #   INFRACOST_TERRAFORM_CLOUD_HOST: app.terraform.io # Change this if you're using Terraform Enterprise
 
@@ -74,9 +74,12 @@ jobs:
       #   hide-and-new - Minimize previous comments and create a new one.
       #   new - Create a new cost estimate comment on every push.
       # See https://www.infracost.io/docs/features/cli_commands/#comment-on-pull-requests for other options.
+      # The INFRACOST_ENABLE_CLOUD​=true section instructs the CLI to send its JSON output to Infracost Cloud.
+      #   This SaaS product gives you visibility across all changes in a dashboard. The JSON output does not
+      #   contain any cloud credentials or secrets.
       - name: Post Infracost comment
         run: |
-          infracost comment github --path=/tmp/infracost.json \
+          INFRACOST_ENABLE_CLOUD​=true infracost comment github --path=/tmp/infracost.json \
                                    --repo=$GITHUB_REPOSITORY \
                                    --github-token=${{github.token}} \
                                    --pull-request=${{github.event.pull_request.number}} \
