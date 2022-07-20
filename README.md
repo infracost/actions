@@ -42,7 +42,7 @@ jobs:
       # private repositories (similar to how Terraform/Terragrunt does).
       # - name: add GIT_SSH_KEY
       #   run: |
-      #     ssh-agent -a $SSH_AUTH_SOCK
+      #     ssh-agent -a "${{ env.SSH_AUTH_SOCK }}" > /dev/null
       #     mkdir -p ~/.ssh
       #     echo "${{ secrets.GIT_SSH_KEY }}" | tr -d '\r' | ssh-add -
       #     ssh-keyscan github.com >> ~/.ssh/known_hosts
