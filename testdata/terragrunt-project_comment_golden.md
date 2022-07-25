@@ -1,5 +1,5 @@
 
-💰 Infracost estimate: **monthly cost will increase by $800 📈**
+💰 Infracost estimate: **monthly cost will increase by $1,386 📈**
 <table>
   <thead>
     <td>Project</td>
@@ -11,20 +11,20 @@
     <tr>
       <td>infracost/actions/examples/plan.../terragrunt/code/dev/plan.json</td>
       <td align="right">$0</td>
-      <td align="right">$51.97</td>
-      <td>+$51.97</td>
+      <td align="right">$77.37</td>
+      <td>+$77.37</td>
     </tr>
     <tr>
       <td>infracost/actions/examples/plan...terragrunt/code/prod/plan.json</td>
       <td align="right">$0</td>
-      <td align="right">$748</td>
-      <td>+$748</td>
+      <td align="right">$1,308</td>
+      <td>+$1,308</td>
     </tr>
     <tr>
       <td>All projects</td>
       <td align="right">$0</td>
-      <td align="right">$800</td>
-      <td>+$800</td>
+      <td align="right">$1,386</td>
+      <td>+$1,386</td>
     </tr>
   </tbody>
 </table>
@@ -36,10 +36,10 @@
 Project: infracost/actions/examples/plan-json/terragrunt/code/dev/plan.json
 
 + aws_instance.web_app
-  +$51.97
+  +$77.37
 
-    + Instance usage (Linux/UNIX, on-demand, t2.micro)
-      +$8.47
+    + Instance usage (Linux/UNIX, on-demand, t2.medium)
+      +$33.87
 
     + root_block_device
     
@@ -66,16 +66,16 @@ Project: infracost/actions/examples/plan-json/terragrunt/code/dev/plan.json
         +$0.0000166667 per GB-seconds
 
 Monthly cost change for infracost/actions/examples/plan-json/terragrunt/code/dev/plan.json
-Amount:  +$51.97 ($0.00 → $51.97)
+Amount:  +$77.37 ($0.00 → $77.37)
 
 ──────────────────────────────────
 Project: infracost/actions/examples/plan-json/terragrunt/code/prod/plan.json
 
 + aws_instance.web_app
-  +$748
+  +$1,308
 
-    + Instance usage (Linux/UNIX, on-demand, m5.4xlarge)
-      +$561
+    + Instance usage (Linux/UNIX, on-demand, m5.8xlarge)
+      +$1,121
 
     + root_block_device
     
@@ -102,7 +102,7 @@ Project: infracost/actions/examples/plan-json/terragrunt/code/prod/plan.json
         +$0.0000166667 per GB-seconds
 
 Monthly cost change for infracost/actions/examples/plan-json/terragrunt/code/prod/plan.json
-Amount:  +$748 ($0.00 → $748)
+Amount:  +$1,308 ($0.00 → $1,308)
 
 ──────────────────────────────────
 Key: ~ changed, + added, - removed
@@ -115,7 +115,7 @@ Key: ~ changed, + added, - removed
 This comment will be updated when the cost estimate changes.
 
 <sub>
-  Is this comment useful? <a href="https://www.infracost.io/feedback/submit/?value=yes" rel="noopener noreferrer" target="_blank">Yes</a>, <a href="https://www.infracost.io/feedback/submit/?value=no" rel="noopener noreferrer" target="_blank">No</a>
+  Is this comment useful? <a href="https://dashboard.infracost.io/feedback/redirect?runId=&value=yes" rel="noopener noreferrer" target="_blank">Yes</a>, <a href="https://dashboard.infracost.io/feedback/redirect?runId=&value=no" rel="noopener noreferrer" target="_blank">No</a>, <a href="https://dashboard.infracost.io/feedback/redirect?runId=&value=other" rel="noopener noreferrer" target="_blank">Other</a>
 </sub>
 
 Comment not posted to GitHub (--dry-run was specified)
