@@ -7,6 +7,7 @@ const args = process.argv.slice(2);
 const update = args.length > 0 && args[0] === 'true';
 
 let command = `act \
+--container-architecture linux/amd64 \
 -W .github/workflows/examples_test.yml \
 -s GITHUB_TOKEN=$GITHUB_TOKEN \
 -s GIT_SSH_KEY="$GIT_SSH_KEY" \

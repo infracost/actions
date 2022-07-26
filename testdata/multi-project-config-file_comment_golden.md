@@ -34,6 +34,7 @@
 
 ```
 Project: infracost/actions/examples/multi-project-config-file/code/dev
+Module path: dev
 
 ~ module.base.aws_instance.web_app
   +$25.40 ($51.97 → $77.37)
@@ -41,12 +42,13 @@ Project: infracost/actions/examples/multi-project-config-file/code/dev
     ~ Instance usage (Linux/UNIX, on-demand, t2.micro → t2.medium)
       +$25.40 ($8.47 → $33.87)
 
-Monthly cost change for infracost/actions/examples/multi-project-config-file/code/dev
+Monthly cost change for infracost/actions/examples/multi-project-config-file/code/dev (Module path: dev)
 Amount:  +$25.40 ($51.97 → $77.37)
 Percent: +49%
 
 ──────────────────────────────────
 Project: infracost/actions/examples/multi-project-config-file/code/prod
+Module path: prod
 
 ~ module.base.aws_instance.web_app
   +$561 ($748 → $1,308)
@@ -54,7 +56,7 @@ Project: infracost/actions/examples/multi-project-config-file/code/prod
     ~ Instance usage (Linux/UNIX, on-demand, m5.4xlarge → m5.8xlarge)
       +$561 ($561 → $1,121)
 
-Monthly cost change for infracost/actions/examples/multi-project-config-file/code/prod
+Monthly cost change for infracost/actions/examples/multi-project-config-file/code/prod (Module path: prod)
 Amount:  +$561 ($748 → $1,308)
 Percent: +75%
 
@@ -69,7 +71,7 @@ Key: ~ changed, + added, - removed
 This comment will be updated when the cost estimate changes.
 
 <sub>
-  Is this comment useful? <a href="https://www.infracost.io/feedback/submit/?value=yes" rel="noopener noreferrer" target="_blank">Yes</a>, <a href="https://www.infracost.io/feedback/submit/?value=no" rel="noopener noreferrer" target="_blank">No</a>
+  Is this comment useful? <a href="https://dashboard.infracost.io/feedback/redirect?runId=&value=yes" rel="noopener noreferrer" target="_blank">Yes</a>, <a href="https://dashboard.infracost.io/feedback/redirect?runId=&value=no" rel="noopener noreferrer" target="_blank">No</a>, <a href="https://dashboard.infracost.io/feedback/redirect?runId=&value=other" rel="noopener noreferrer" target="_blank">Other</a>
 </sub>
 
 Comment not posted to GitHub (--dry-run was specified)

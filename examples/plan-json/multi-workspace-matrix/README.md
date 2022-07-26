@@ -13,6 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TF_ROOT: examples/plan-json/multi-workspace-matrix/code
+      # This instructs the CLI to send cost estimates to Infracost Cloud. Our SaaS product
+      #   complements the open source CLI by giving teams advanced visibility and controls.
+      #   The cost estimates are transmitted in JSON format and do not contain any cloud 
+      #   credentials or secrets (see https://infracost.io/docs/faq/ for more information).
+      INFRACOST_ENABLE_CLOUD: true
 
     strategy:
       matrix:
@@ -93,12 +98,9 @@ jobs:
       #   hide-and-new - Minimize previous comments and create a new one.
       #   new - Create a new cost estimate comment on every push.
       # See https://www.infracost.io/docs/features/cli_commands/#comment-on-pull-requests for other options.
-      # The INFRACOST_ENABLE_CLOUD​=true section instructs the CLI to send its JSON output to Infracost Cloud.
-      #   This SaaS product gives you visibility across all changes in a dashboard. The JSON output does not
-      #   contain any cloud credentials or secrets.
       - name: Post Infracost comment
         run: |
-          INFRACOST_ENABLE_CLOUD​=true infracost comment github --path="/tmp/infracost_*.json" \
+          infracost comment github --path="/tmp/infracost_*.json" \
                                    --repo=$GITHUB_REPOSITORY \
                                    --github-token=${{github.token}} \
                                    --pull-request=${{github.event.pull_request.number}} \
