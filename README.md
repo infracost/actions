@@ -21,9 +21,9 @@ The following steps assume a simple Terraform directory is being used, we recomm
 # describe other options for 'on', 'pull_request' is a good default.
 on: [pull_request]
 env:
-    # If you use private modules you'll need this env variable to use 
-    # the same ssh-agent socket value across all jobs & steps. 
-    SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+  # If you use private modules you'll need this env variable to use
+  # the same ssh-agent socket value across all jobs & steps.
+  SSH_AUTH_SOCK: /tmp/ssh_agent.sock
 jobs:
   infracost:
     name: Infracost
@@ -117,6 +117,19 @@ jobs:
 #### Permissions issue
 
 If you receive an error when running the `infracost comment` command in your pipeline, it's probably related to `${{ github.token }}`. This is the default GitHub token available to actions and is used to post comments. The default [token permissions](https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#permissions) work fine but `pull-requests: write` is required if you need to customize these. If you are using SAML single sign-on, you must first [authorize the token](https://docs.github.com/en/enterprise-cloud@latest/authentication/authenticating-with-saml-single-sign-on/authorizing-a-personal-access-token-for-use-with-saml-single-sign-on).
+
+#### The `add GIT_SSH_KEY` step fails
+
+If you are using private modules and receive a `option requires an argument -- a` error in the `add GIT_SSH_KEY` step:
+1. Make sure you have the following set in your workflow `SSH_AUTH_SOCK`:
+    ```yml
+    env:
+      SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+    ```
+2. Try changing the `ssh-agent -a $SSH_AUTH_SOCK` line to the following:
+    ```yml
+    ssh-agent -a "${{ env.SSH_AUTH_SOCK }}"
+    ```
 
 ## Examples
 
