@@ -18,14 +18,8 @@ The following steps assume a simple Terraform directory is being used, we recomm
 
 ```yaml
 # The GitHub Actions docs (https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#on)
-# describe other options for 'on'. This examples generates the cost baseline on pushes to main/master branches and
-# the cost diff and comment on pushes to the pull request branch.
-on:
-  pull_request:
-  push:
-    branches:
-      - main
-      - master
+# describe other options for 'on', 'pull_request' is a good default.
+on: [pull_request]
 env:
   # If you use private modules you'll need this env variable to use
   # the same ssh-agent socket value across all jobs & steps.
@@ -65,50 +59,22 @@ jobs:
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
 
-      - name: Cache the Infracost baseline JSON result
-        id: cache-infracost-base-json
-        uses: actions/cache@v3
-        with:
-          path: '/tmp/infracost-base.json'
-          key: infracost-base-json-${{ runner.os }}-${{ github.event.pull_request.base.sha || github.sha }}
-
       # Checkout the base branch of the pull request (e.g. main/master).
       - name: Checkout base branch
         uses: actions/checkout@v2
         with:
           ref: '${{ github.event.pull_request.base.ref }}'
 
-      # Downloading remote Terraform modules can be slow, so we add them to the GitHub cache.
-      # We skip this for pushes to the main/master branch that already have the baseline generated.
-      - name: Cache .infracost/terraform_modules for target branch
-        uses: actions/cache@v3
-        with:
-          path: |
-            ${{ env.TF_ROOT }}/**/.infracost/terraform_modules/**
-            !${{ env.TF_ROOT }}/**/.infracost/terraform_modules/**/.git/**
-          key: infracost-terraform-modules-${{ runner.os }}-${{ github.event.pull_request.base.sha || github.sha }}
-          # If there's no cached record for this commit, pull in the latest cached record anyway
-          # Internally infracost will downloaded any additional required modules if required
-          restore-keys: infracost-terraform-modules-${{ runner.os }}-
-        if: github.event_name == 'pull_request' || steps.cache-infracost-base-json.outputs.cache-hit != 'true'
-
-      # Generate Infracost JSON file as the baseline. We skip this if we've already generated one for this SHA.
-      # This will also run on pull request pushes if we get a cache miss to catch cases where
-      # the baseline run hasn't been run on main/master yet.
+      # Generate Infracost JSON file as the baseline.
       - name: Generate Infracost cost estimate baseline
         run: |
           infracost breakdown --path=${TF_ROOT} \
                               --format=json \
                               --out-file=/tmp/infracost-base.json
-        if: steps.cache-infracost-base-json.outputs.cache-hit != 'true'
 
       # Checkout the current PR branch so we can create a diff.
       - name: Checkout PR branch
         uses: actions/checkout@v2
-        with:
-          # Make sure the .infracost dir stays between runs so that downloaded modules persist
-          clean: false
-        if: github.event_name == 'pull_request'
 
       # Generate an Infracost diff and save it to a JSON file.
       - name: Generate Infracost diff
@@ -117,7 +83,6 @@ jobs:
                           --format=json \
                           --compare-to=/tmp/infracost-base.json \
                           --out-file=/tmp/infracost.json
-        if: github.event_name == 'pull_request'
 
       # Posts a comment to the PR using the 'update' behavior.
       # This creates a single comment and updates it. The "quietest" option.
@@ -129,11 +94,10 @@ jobs:
       - name: Post Infracost comment
         run: |
             infracost comment github --path=/tmp/infracost.json \
-                                      --repo=$GITHUB_REPOSITORY \
-                                      --github-token=${{github.token}} \
-                                      --pull-request=${{github.event.pull_request.number}} \
-                                      --behavior=update
-        if: github.event_name == 'pull_request'
+                                     --repo=$GITHUB_REPOSITORY \
+                                     --github-token=${{github.token}} \
+                                     --pull-request=${{github.event.pull_request.number}} \
+                                     --behavior=update
 ```
 
 4. 🎉 That's it! Send a new pull request to change something in Terraform that costs money. You should see a pull request comment that gets updated, e.g. the 📉 and 📈 emojis will update as changes are pushed!
@@ -171,6 +135,7 @@ If you are using private modules and receive a `option requires an argument -- a
 
 The [examples](examples) directory demonstrates how these actions can be used for different projects. They all work by using the default Infracost CLI option that parses HCL, thus a Terraform plan JSON is not needed.
   - [Terraform/Terragrunt projects (single or multi)](examples/terraform-project): a repository containing one or more (e.g. mono repos) Terraform or Terragrunt projects
+  - [Terraform/Terragrunt projects (using GitHub Actions cache)](terraform-project-using-cache): similar to the above example but uses the GitHub Actions cache to speed up the workflow run time
   - [Multi-projects using a config file](examples/multi-project-config-file): repository containing multiple Terraform projects that need different inputs, i.e. variable files or Terraform workspaces
   - [Slack](examples/slack): send cost estimates to Slack
 
