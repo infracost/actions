@@ -8,8 +8,8 @@ name: Terraform project
 on: [pull_request]
 
 env:
-  # If you use private modules you'll need this env variable to use 
-  # the same ssh-agent socket value across all jobs & steps. 
+  # If you use private modules you'll need this env variable to use
+  # the same ssh-agent socket value across all jobs & steps.
   SSH_AUTH_SOCK: /tmp/ssh_agent.sock
 
 jobs:
@@ -20,7 +20,7 @@ jobs:
       TF_ROOT: examples/terraform-project/code
       # This instructs the CLI to send cost estimates to Infracost Cloud. Our SaaS product
       #   complements the open source CLI by giving teams advanced visibility and controls.
-      #   The cost estimates are transmitted in JSON format and do not contain any cloud 
+      #   The cost estimates are transmitted in JSON format and do not contain any cloud
       #   credentials or secrets (see https://infracost.io/docs/faq/ for more information).
       INFRACOST_ENABLE_CLOUD: true
       # If you're using Terraform Cloud/Enterprise and have variables or private modules stored
@@ -38,7 +38,7 @@ jobs:
       #     mkdir -p ~/.ssh
       #     echo "${{ secrets.GIT_SSH_KEY }}" | tr -d '\r' | ssh-add -
       #     ssh-keyscan github.com >> ~/.ssh/known_hosts
-          
+
       - name: Setup Infracost
         uses: infracost/actions/setup@v2
         # See https://github.com/infracost/actions/tree/master/setup for other inputs

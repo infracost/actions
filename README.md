@@ -33,7 +33,7 @@ jobs:
       TF_ROOT: examples/terraform-project/code
       # This instructs the CLI to send cost estimates to Infracost Cloud. Our SaaS product
       #   complements the open source CLI by giving teams advanced visibility and controls.
-      #   The cost estimates are transmitted in JSON format and do not contain any cloud 
+      #   The cost estimates are transmitted in JSON format and do not contain any cloud
       #   credentials or secrets (see https://infracost.io/docs/faq/ for more information).
       INFRACOST_ENABLE_CLOUD: true
       # If you're using Terraform Cloud/Enterprise and have variables or private modules stored
@@ -135,6 +135,7 @@ If you are using private modules and receive a `option requires an argument -- a
 
 The [examples](examples) directory demonstrates how these actions can be used for different projects. They all work by using the default Infracost CLI option that parses HCL, thus a Terraform plan JSON is not needed.
   - [Terraform/Terragrunt projects (single or multi)](examples/terraform-project): a repository containing one or more (e.g. mono repos) Terraform or Terragrunt projects
+  - [Terraform/Terragrunt projects (using GitHub Actions cache)](terraform-project-using-cache): similar to the above example but uses the GitHub Actions cache to speed up the workflow run time
   - [Multi-projects using a config file](examples/multi-project-config-file): repository containing multiple Terraform projects that need different inputs, i.e. variable files or Terraform workspaces
   - [Slack](examples/slack): send cost estimates to Slack
 

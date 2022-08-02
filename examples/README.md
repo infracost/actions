@@ -7,6 +7,7 @@ All examples post a single comment on merge requests, which gets updated as more
 These examples work by using the default Infracost CLI option that parses HCL, thus a Terraform Plan JSON is not needed.
 
   - [Terraform/Terragrunt projects (single or multi)](terraform-project): a repository containing one or more (e.g. mono repos) Terraform or Terragrunt projects
+  - [Terraform/Terragrunt projects (using GitHub Actions cache)](terraform-project-using-cache): similar to the above example but uses the GitHub Actions cache to speed up the workflow run time
   - [Multi-projects using a config file](multi-project-config-file): repository containing multiple Terraform projects that need different inputs, i.e. variable files or Terraform workspaces
   - [Slack](slack): send cost estimates to Slack
 
