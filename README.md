@@ -135,7 +135,7 @@ If you are using private modules and receive a `option requires an argument -- a
 
 The [examples](examples) directory demonstrates how these actions can be used for different projects. They all work by using the default Infracost CLI option that parses HCL, thus a Terraform plan JSON is not needed.
   - [Terraform/Terragrunt projects (single or multi)](examples/terraform-project): a repository containing one or more (e.g. mono repos) Terraform or Terragrunt projects
-  - [Terraform/Terragrunt projects (using GitHub Actions cache)](terraform-project-using-cache): similar to the above example but uses the GitHub Actions cache to speed up the workflow run time
+  - [Terraform/Terragrunt projects (using GitHub Actions cache)](examples/using-cache): similar to the above example but uses the GitHub Actions cache to speed up the workflow run time
   - [Multi-projects using a config file](examples/multi-project-config-file): repository containing multiple Terraform projects that need different inputs, i.e. variable files or Terraform workspaces
   - [Slack](examples/slack): send cost estimates to Slack
 
