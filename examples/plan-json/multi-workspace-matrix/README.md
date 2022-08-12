@@ -11,6 +11,9 @@ jobs:
   multi-workspace-matrix:
     name: Multi-workspace matrix
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     env:
       TF_ROOT: examples/plan-json/multi-workspace-matrix/code
       # This instructs the CLI to send cost estimates to Infracost Cloud. Our SaaS product
@@ -75,6 +78,9 @@ jobs:
   multi-workspace-matrix-merge:
     name: Multi-workspace matrix merge
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     needs: [multi-workspace-matrix]
 
     steps:

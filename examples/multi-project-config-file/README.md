@@ -15,6 +15,9 @@ jobs:
   multi-project-config-file:
     name: Multi-project config file
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     env:
       TF_ROOT: examples/multi-project-config-file/code
       # This instructs the CLI to send cost estimates to Infracost Cloud. Our SaaS product

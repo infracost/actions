@@ -22,6 +22,9 @@ jobs:
   terraform-project-using-cache:
     name: Terraform project (using the GitHub Actions cache)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
 
     env:
       TF_ROOT: examples/terraform-project/code

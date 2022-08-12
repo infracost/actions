@@ -11,6 +11,9 @@ jobs:
   terraform-cloud-enterprise:
     name: Terraform Cloud/Enterprise
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     env:
       TF_ROOT: examples/plan-json/terraform-cloud-enterprise/code
       TFC_HOST: app.terraform.io # Change this if you're using Terraform Enterprise
