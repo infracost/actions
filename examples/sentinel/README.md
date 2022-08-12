@@ -66,6 +66,9 @@ jobs:
   sentinel:
     name: Sentinel
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     env:
       TF_ROOT: examples/terraform-project/code
 

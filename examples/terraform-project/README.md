@@ -16,6 +16,9 @@ jobs:
   terraform-project:
     name: Terraform project
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     env:
       TF_ROOT: examples/terraform-project/code
       # This instructs the CLI to send cost estimates to Infracost Cloud. Our SaaS product
