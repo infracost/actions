@@ -74,7 +74,8 @@ jobs:
       - name: Cache .infracost/terraform_modules for target branch
         uses: actions/cache@v3
         with:
-          # Remove the '!${{ env.TF_ROOT }}...' path below if you're using Terragrunt and seeing issues downloading from remote git sources
+          # Remove the '!${{ env.TF_ROOT }}...' path below if you're using Terragrunt and seeing
+          # issues downloading from remote git sources.
           path: |
             ${{ env.TF_ROOT }}/**/.infracost/terraform_modules/**
             !${{ env.TF_ROOT }}/**/.infracost/terraform_modules/**/.git/**
