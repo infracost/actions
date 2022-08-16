@@ -74,9 +74,9 @@ jobs:
       - name: Cache .infracost/terraform_modules for target branch
         uses: actions/cache@v3
         with:
+          # Remove the '!${{ env.TF_ROOT }}...' path below if you're using Terragrunt and seeing issues downloading from remote git sources
           path: |
             ${{ env.TF_ROOT }}/**/.infracost/terraform_modules/**
-            # Remove the below line if you're using Terragrunt and seeing issues downloading from remote sources
             !${{ env.TF_ROOT }}/**/.infracost/terraform_modules/**/.git/**
           key: infracost-terraform-modules-${{ runner.os }}-${{ github.event.pull_request.base.sha || github.sha }}
           # If there's no cached record for this commit, pull in the latest cached record anyway
