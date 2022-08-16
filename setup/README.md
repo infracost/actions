@@ -4,7 +4,7 @@ This GitHub Action downloads and installs the [Infracost CLI](https://github.com
 
 ## Usage
 
-The action can be used as follows. You probably want to run Infracost CLI commands then use the [comment](../comment) action to post comments! See the [top-level readme](https://github.com/infracost/actions) for examples of how these actions can be combined.
+See the [top-level readme](https://github.com/infracost/actions) for examples of how this action can be used. You need to [Create a repo secret](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets#creating-encrypted-secrets-for-a-repository) called `INFRACOST_API_KEY` with your API key and pass it into this action:
 
 ```yml
 steps:
@@ -18,15 +18,13 @@ steps:
 
 The action supports the following inputs:
 
-- `api-key`: Required. Your Infracost API key. It can be retrieved by running `infracost configure get api_key`. If you don't have one, [download Infracost](https://www.infracost.io/docs/#quick-start) and run `infracost auth login` to get a free API key.
+- `api-key`: Required. Your Infracost API key. You can get a free API key or retrieve your existing one from [Infracost Cloud](https://dashboard.infracost.io) > Org Settings.
 
 - `version`: Optional, defaults to `0.10.x`. [SemVer ranges](https://www.npmjs.com/package/semver#ranges) are supported, so instead of a [full version](https://github.com/infracost/infracost/releases) string, you can use `0.10.x`. This enables you to automatically get the latest backward compatible changes in the 0.10 release (e.g. new resources or bug fixes).
 
 - `currency`: Optional. Convert output from USD to your preferred [ISO 4217 currency](https://en.wikipedia.org/wiki/ISO_4217#Active_codes), e.g. EUR, BRL or INR.
 
 - `pricing-api-endpoint`: Optional. For [self-hosted](https://www.infracost.io/docs/cloud_pricing_api/self_hosted) users, endpoint of the Cloud Pricing API, e.g. https://cloud-pricing-api.
-
-- `enable-dashboard`: Optional, defaults to `false`. Enables [Infracost dashboard features](https://www.infracost.io/docs/features/share_links), not supported for self-hosted Cloud Pricing API.
 
 ## Outputs
 
