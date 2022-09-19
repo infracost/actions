@@ -112,7 +112,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets[matrix.aws_access_key_id_secret] }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets[matrix.aws_secret_access_key_secret] }}
       - name: Upload Infracost breakdown
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: infracost_project_jsons
           path: /tmp/infracost_${{ matrix.project }}.json
@@ -208,7 +208,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets[matrix.aws_access_key_id_secret] }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets[matrix.aws_secret_access_key_secret] }}
       - name: Upload Infracost breakdown
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: infracost_workspace_jsons
           path: /tmp/infracost_${{ matrix.tf_workspace }}.json
