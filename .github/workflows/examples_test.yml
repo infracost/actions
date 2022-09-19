@@ -347,7 +347,7 @@ jobs:
         with:
           terraform_wrapper: false
       - name: Setup Terragrunt
-        uses: autero1/action-terragrunt@v1.1.0
+        uses: autero1/action-terragrunt@v1.1.1
         with:
           terragrunt_version: 0.37.0
       - name: Generate plan JSONs
