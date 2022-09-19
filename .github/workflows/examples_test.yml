@@ -15,13 +15,13 @@ jobs:
       TF_ROOT: examples/multi-project-config-file/code
     steps:
       - name: Checkout source code so we can install the action locally
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup Infracost
         uses: ./setup
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
       - name: Checkout base branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with: {}
       - name: Generate Infracost cost estimate baseline
         run: |
@@ -29,7 +29,7 @@ jobs:
                               --format=json \
                               --out-file=/tmp/infracost-base.json
       - name: Checkout PR branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Replace m5 instance
         run: >-
           find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
@@ -79,7 +79,7 @@ jobs:
             aws_secret_access_key_secret: EXAMPLE_PROD_AWS_SECRET_ACCESS_KEY
     steps:
       - name: Checkout PR branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2
         with:
@@ -123,7 +123,7 @@ jobs:
     needs:
       - multi-project-matrix
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Download all Infracost breakdown files
         uses: actions/download-artifact@v2
         with:
@@ -169,7 +169,7 @@ jobs:
             aws_secret_access_key_secret: EXAMPLE_PROD_AWS_SECRET_ACCESS_KEY
     steps:
       - name: Checkout PR branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2
         with:
@@ -219,7 +219,7 @@ jobs:
     needs:
       - multi-workspace-matrix
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Download all Infracost breakdown files
         uses: actions/download-artifact@v2
         with:
@@ -257,7 +257,7 @@ jobs:
       TFC_HOST: app.terraform.io
     steps:
       - name: Checkout PR branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
@@ -341,7 +341,7 @@ jobs:
       TF_ROOT: examples/plan-json/terragrunt/code
     steps:
       - name: Checkout PR branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
@@ -435,7 +435,7 @@ jobs:
     env:
       TF_ROOT: examples/terraform-project/code
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Setup Infracost
         uses: ./setup
         with:
@@ -451,7 +451,7 @@ jobs:
 
           echo "/tmp/sentinel" >> $GITHUB_PATH
       - name: Checkout base branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with: {}
       - name: Generate Infracost cost estimate baseline
         run: |
@@ -459,7 +459,7 @@ jobs:
                               --format=json \
                               --out-file=/tmp/infracost-base.json
       - name: Checkout PR branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Replace m5 instance
         run: >-
           find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
@@ -494,13 +494,13 @@ jobs:
       TF_ROOT: examples/terraform-project/code
     steps:
       - name: Checkout source code so we can install the action locally
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup Infracost
         uses: ./setup
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
       - name: Checkout base branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with: {}
       - name: Generate Infracost cost estimate baseline
         run: |
@@ -508,7 +508,7 @@ jobs:
                               --format=json \
                               --out-file=/tmp/infracost-base.json
       - name: Checkout PR branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Replace m5 instance
         run: >-
           find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
@@ -567,13 +567,13 @@ jobs:
       TF_ROOT: examples/terraform-project/code
     steps:
       - name: Checkout source code so we can install the action locally
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup Infracost
         uses: ./setup
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
       - name: Checkout base branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with: {}
       - name: Generate Infracost cost estimate baseline
         run: |
@@ -581,7 +581,7 @@ jobs:
                               --format=json \
                               --out-file=/tmp/infracost-base.json
       - name: Checkout PR branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Replace m5 instance
         run: >-
           find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
