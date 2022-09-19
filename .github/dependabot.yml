@@ -3,9 +3,7 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "monthly"
-    commit-message:
-      prefix: "gha:"
+      interval: monthly
     reviewers:
       - infracost/engineering
     labels:
