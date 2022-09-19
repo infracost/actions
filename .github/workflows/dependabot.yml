@@ -6,6 +6,10 @@ updates:
       interval: "monthly"
     commit-message:
       prefix: "gha:"
+    reviewers:
+      - infracost/engineering
+    labels:
+      - dependencies
   - package-ecosystem: npm
     directory: "/"
     schedule:
