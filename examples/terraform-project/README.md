@@ -21,11 +21,6 @@ jobs:
       pull-requests: write
     env:
       TF_ROOT: examples/terraform-project/code
-      # This instructs the CLI to send cost estimates to Infracost Cloud. Our SaaS product
-      #   complements the open source CLI by giving teams advanced visibility and controls.
-      #   The cost estimates are transmitted in JSON format and do not contain any cloud
-      #   credentials or secrets (see https://infracost.io/docs/faq/ for more information).
-      INFRACOST_ENABLE_CLOUD: true
       # If you're using Terraform Cloud/Enterprise and have variables or private modules stored
       # on there, specify the following to automatically retrieve the variables:
       #   INFRACOST_TERRAFORM_CLOUD_TOKEN: ${{ secrets.TFC_TOKEN }}
