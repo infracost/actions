@@ -34,11 +34,6 @@ jobs:
 
     env:
       TF_ROOT: examples/terraform-project/code
-      # This instructs the CLI to send cost estimates to Infracost Cloud. Our SaaS product
-      #   complements the open source CLI by giving teams advanced visibility and controls.
-      #   The cost estimates are transmitted in JSON format and do not contain any cloud
-      #   credentials or secrets (see https://infracost.io/docs/faq/ for more information).
-      INFRACOST_ENABLE_CLOUD: true
       # If you're using Terraform Cloud/Enterprise and have variables or private modules stored
       # on there, specify the following to automatically retrieve the variables:
       #   INFRACOST_TERRAFORM_CLOUD_TOKEN: ${{ secrets.TFC_TOKEN }}
@@ -103,17 +98,15 @@ jobs:
                                      --behavior=update
 ```
 
-4. 🎉 That's it! Send a new pull request to change something in Terraform that costs money. You should see a pull request comment that gets updated, e.g. the 📉 and 📈 emojis will update as changes are pushed!
+5. 🎉 That's it! Send a new pull request to change something in Terraform that costs money. You should see a pull request comment that gets updated, e.g. the 📉 and 📈 emojis will update as changes are pushed!
 
     If there are issues, check the GitHub Actions logs and [this page](https://www.infracost.io/docs/troubleshooting/).
 
     <img src=".github/assets/pr-comment.png" alt="Example pull request" width="70%" />
 
-5. To see pull request costs in Infracost Cloud, [log in](https://dashboard.infracost.io/) > switch to your organization > Projects. To learn more, see [our docs](https://www.infracost.io/docs/infracost_cloud/get_started/).
+6. [Enable Infracost Cloud](https://dashboard.infracost.io/) and trigger your CI/CD pipeline again. This causes the CLI to send its JSON output to your dashboard; the JSON does not contain any cloud credentials or secrets, see the [FAQ](https://infracost.io/docs/faq/) for more information. This is our SaaS product that builds on top of Infracost open source and enables team leads, managers and FinOps practitioners to see all cost estimates from a central place so they can help guide the team. To learn more, see [our docs](https://www.infracost.io/docs/infracost_cloud/get_started/).
 
-    <img src=".github/assets/infracost-cloud-runs.png" alt="Infracost Cloud gives team leads, managers and FinOps practitioners visibility across all cost estimates in CI/CD" width="90%" />
-
-6. Follow [the docs](https://www.infracost.io/usage-file) if you'd also like to show cost for of usage-based resources such as AWS Lambda or S3. The usage for these resources are fetched from CloudWatch/cloud APIs and used to calculate an estimate.
+    <img src=".github/assets/infracost-cloud-dashboard.png" alt="Infracost Cloud gives team leads, managers and FinOps practitioners visibility across all cost estimates in CI/CD" width="90%" />
 
 ### Troubleshooting
 
