@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout PR branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -27,7 +27,7 @@ jobs:
           terraform_wrapper: false # This is recommended so the `terraform show` command outputs valid JSON
 
       - name: Setup Terragrunt
-        uses: autero1/action-terragrunt@v1.1.0
+        uses: autero1/action-terragrunt@v1.1.1
         with:
           terragrunt_version: 0.37.0
 

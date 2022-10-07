@@ -31,7 +31,7 @@ jobs:
 
     steps:
       - name: Checkout PR branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2
@@ -65,7 +65,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets[matrix.aws_secret_access_key_secret] }}
 
       - name: Upload Infracost breakdown
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: infracost_workspace_jsons
           path: /tmp/infracost_${{ matrix.tf_workspace }}.json
@@ -79,10 +79,10 @@ jobs:
     needs: [multi-workspace-matrix]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Download all Infracost breakdown files
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: infracost_workspace_jsons
           path: /tmp
