@@ -7,8 +7,8 @@ This example shows how to run Infracost in GitHub Actions with multiple Terrafor
 name: Multi-project config file
 on: [pull_request]
 env:
-  # If you use private modules you'll need this env variable to use 
-  # the same ssh-agent socket value across all jobs & steps. 
+  # If you use private modules you'll need this env variable to use
+  # the same ssh-agent socket value across all jobs & steps.
   SSH_AUTH_SOCK: /tmp/ssh_agent.sock
 
 jobs:
@@ -31,7 +31,7 @@ jobs:
       #     mkdir -p ~/.ssh
       #     echo "${{ secrets.GIT_SSH_KEY }}" | tr -d '\r' | ssh-add -
       #     ssh-keyscan github.com >> ~/.ssh/known_hosts
-      
+
       - name: Setup Infracost
         uses: infracost/actions/setup@v2
         # See https://github.com/infracost/actions/tree/master/setup for other inputs
@@ -42,7 +42,7 @@ jobs:
       # Checkout the branch you want Infracost to compare costs against.This example is using the
       # target PR branch.
       - name: Checkout base branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: '${{ github.event.pull_request.base.ref }}'
 
@@ -55,7 +55,7 @@ jobs:
 
       # Checkout the current PR branch so we can create a diff.
       - name: Checkout PR branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       # Generate an Infracost diff and save it to a JSON file.
       - name: Generate Infracost diff

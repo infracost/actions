@@ -172,7 +172,7 @@ function fixupExamples(examples) {
           steps.push(
             {
               name: 'Checkout source code so we can install the action locally',
-              uses: 'actions/checkout@v2',
+              uses: 'actions/checkout@v3',
             },
           );
         }

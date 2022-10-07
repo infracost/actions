@@ -73,7 +73,7 @@ jobs:
       TF_ROOT: examples/terraform-project/code
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Setup Infracost
         uses: infracost/actions/setup@v2
@@ -91,7 +91,7 @@ jobs:
 
       # Checkout the base branch of the pull request (e.g. main/master).
       - name: Checkout base branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: '${{ github.event.pull_request.base.ref }}'
 
@@ -104,7 +104,7 @@ jobs:
 
       # Checkout the current PR branch so we can create a diff.
       - name: Checkout PR branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       # Generate an Infracost diff and save it to a JSON file.
       - name: Generate Infracost diff

@@ -11,6 +11,9 @@ jobs:
   multi-project-config-file:
     name: Multi-project config file
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     env:
       TF_ROOT: examples/multi-project-config-file/code
     steps:
@@ -66,6 +69,9 @@ jobs:
   multi-project-matrix:
     name: Multi-project matrix
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     env:
       TF_ROOT: examples/terraform-project/code
     strategy:
@@ -120,6 +126,9 @@ jobs:
   multi-project-matrix-merge:
     name: Multi-project matrix merge
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     needs:
       - multi-project-matrix
     steps:
@@ -156,6 +165,9 @@ jobs:
   multi-workspace-matrix:
     name: Multi-workspace matrix
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     env:
       TF_ROOT: examples/plan-json/multi-workspace-matrix/code
     strategy:
@@ -216,6 +228,9 @@ jobs:
   multi-workspace-matrix-merge:
     name: Multi-workspace matrix merge
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     needs:
       - multi-workspace-matrix
     steps:
@@ -252,6 +267,9 @@ jobs:
   terraform-cloud-enterprise:
     name: Terraform Cloud/Enterprise
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     env:
       TF_ROOT: examples/plan-json/terraform-cloud-enterprise/code
       TFC_HOST: app.terraform.io
@@ -337,6 +355,9 @@ jobs:
   terragrunt-project:
     name: Terragrunt project
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     env:
       TF_ROOT: examples/plan-json/terragrunt/code
     steps:
@@ -432,6 +453,9 @@ jobs:
   sentinel:
     name: Sentinel
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     env:
       TF_ROOT: examples/terraform-project/code
     steps:
@@ -490,6 +514,9 @@ jobs:
   slack:
     name: Slack
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     env:
       TF_ROOT: examples/terraform-project/code
     steps:
@@ -563,6 +590,9 @@ jobs:
   terraform-project:
     name: Terraform project
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     env:
       TF_ROOT: examples/terraform-project/code
     steps:
@@ -614,4 +644,89 @@ jobs:
         run: >-
           cp /tmp/infracost_comment.md
           ./testdata/terraform-project_comment_golden.md
+        if: env.UPDATE_GOLDEN_FILES == 'true'
+  terraform-project-using-cache:
+    name: Terraform project (using the GitHub Actions cache)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      TF_ROOT: examples/terraform-project/code
+    steps:
+      - name: Checkout source code so we can install the action locally
+        uses: actions/checkout@v3
+      - name: Setup Infracost
+        uses: ./setup
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+      - name: Cache the Infracost baseline JSON result
+        id: cache-infracost-base-json
+        uses: actions/cache@v3
+        with:
+          path: /tmp/infracost-base.json
+          key: >-
+            infracost-base-json-${{ runner.os }}-${{
+            github.event.pull_request.base.sha || github.sha }}
+      - name: Checkout base branch
+        uses: actions/checkout@v3
+        with: {}
+      - name: Cache .infracost/terraform_modules for target branch
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ env.TF_ROOT }}/**/.infracost/terraform_modules/**
+            !${{ env.TF_ROOT }}/**/.infracost/terraform_modules/**/.git/**
+          key: >-
+            infracost-terraform-modules-${{ runner.os }}-${{
+            github.event.pull_request.base.sha || github.sha }}
+          restore-keys: infracost-terraform-modules-${{ runner.os }}-
+        if: >-
+          github.event_name == 'pull_request' ||
+          steps.cache-infracost-base-json.outputs.cache-hit != 'true'
+      - name: Generate Infracost cost estimate baseline
+        run: |
+          infracost breakdown --path=${TF_ROOT} \
+                              --format=json \
+                              --out-file=/tmp/infracost-base.json
+        if: steps.cache-infracost-base-json.outputs.cache-hit != 'true'
+      - name: Checkout PR branch
+        uses: actions/checkout@v3
+        with:
+          clean: false
+        if: github.event_name == 'pull_request'
+      - name: Replace m5 instance
+        run: >-
+          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
+          '*.tfvars'  | xargs sed -i 's/m5.4xlarge/m5.8xlarge/g'
+      - name: Replace t2 instance
+        run: >-
+          find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name
+          '*.tfvars'  | xargs sed -i 's/t2.micro/t2.medium/g'
+      - name: Generate Infracost diff
+        run: |
+          infracost diff --path=${TF_ROOT} \
+                          --format=json \
+                          --compare-to=/tmp/infracost-base.json \
+                          --out-file=/tmp/infracost.json
+        if: github.event_name == 'pull_request'
+      - name: Post Infracost comment
+        run: |-
+          infracost comment github --path=/tmp/infracost.json \
+          --repo=$GITHUB_REPOSITORY \
+          --github-token=${{github.token}} \
+          --pull-request=1 \
+          --behavior=update \
+          --dry-run true \
+          > /tmp/infracost_comment.md
+        if: github.event_name == 'pull_request'
+      - run: >-
+          diff -y ./testdata/terraform-project-using-cache_comment_golden.md
+          /tmp/infracost_comment.md
+        name: Check the comment
+        if: env.UPDATE_GOLDEN_FILES != 'true'
+      - name: Update the golden comment file
+        run: >-
+          cp /tmp/infracost_comment.md
+          ./testdata/terraform-project-using-cache_comment_golden.md
         if: env.UPDATE_GOLDEN_FILES == 'true'
