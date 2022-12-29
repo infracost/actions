@@ -27,7 +27,7 @@ jobs:
           terraform_wrapper: false # This is recommended so the `terraform show` command outputs valid JSON
 
       - name: Setup Terragrunt
-        uses: autero1/action-terragrunt@v1.1.1
+        uses: autero1/action-terragrunt@v1.2.0
         with:
           terragrunt_version: 0.37.0
 
