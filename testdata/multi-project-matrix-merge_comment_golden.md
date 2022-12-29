@@ -61,7 +61,7 @@ Project: infracost/actions/examples/terraform-project/code/dev/plan.json
       Monthly cost depends on usage
         +$0.20 per 1M requests
 
-    + Duration
+    + Duration (first 6B)
       Monthly cost depends on usage
         +$0.0000166667 per GB-seconds
 
@@ -97,7 +97,7 @@ Project: infracost/actions/examples/terraform-project/code/prod/plan.json
       Monthly cost depends on usage
         +$0.20 per 1M requests
 
-    + Duration
+    + Duration (first 6B)
       Monthly cost depends on usage
         +$0.0000166667 per GB-seconds
 
