@@ -33,7 +33,7 @@
     "semver": "^7.3.8"
   },
   "devDependencies": {
-    "@types/semver": "^7.3.12",
+    "@types/semver": "^7.3.13",
     "@typescript-eslint/eslint-plugin": "^5.45.0",
     "@typescript-eslint/parser": "^5.47.1",
     "@vercel/ncc": "^0.34.0",
