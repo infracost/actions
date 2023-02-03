@@ -1,5 +1,7 @@
 # Infracost GitHub Actions
 
+👉 We recommend using the [GitHub App](https://www.infracost.io/docs/integrations/github_app/) instead as it has several benefits over GitHub Actions.
+
 This project provide a GitHub Action and examples for Infracost, so you can see cloud cost estimates for Terraform in pull requests 💰
 
 <img src=".github/assets/screenshot.png" alt="Example screenshot" />
@@ -104,7 +106,7 @@ jobs:
 
     <img src=".github/assets/pr-comment.png" alt="Example pull request" width="70%" />
 
-6. [Enable Infracost Cloud](https://dashboard.infracost.io/) and trigger your CI/CD pipeline again. This causes the CLI to send its JSON output to your dashboard; the JSON does not contain any cloud credentials or secrets, see the [FAQ](https://infracost.io/docs/faq/) for more information. This is our SaaS product that builds on top of Infracost open source and enables team leads, managers and FinOps practitioners to see all cost estimates from a central place so they can help guide the team. To learn more, see [our docs](https://www.infracost.io/docs/infracost_cloud/get_started/).
+6. [Enable Infracost Cloud](https://dashboard.infracost.io/) and trigger your CI/CD pipeline again. This causes the CLI to send its JSON output to your dashboard; the JSON does not contain any cloud credentials or secrets, see the [FAQ](https://infracost.io/docs/faq/) for more information. This is our SaaS product that builds on top of Infracost open source and gives team leads, managers and FinOps practitioners dashboards, guardrails and centralized cost policies so they can help guide the team (e.g. switch AWS GP2 volumes to GP3). See [our docs](https://www.infracost.io/docs/infracost_cloud/get_started/) to learn more.
 
     <img src=".github/assets/infracost-cloud-dashboard.png" alt="Infracost Cloud gives team leads, managers and FinOps practitioners visibility across all cost estimates in CI/CD" width="90%" />
 
@@ -131,19 +133,18 @@ If you are using private modules and receive a `option requires an argument -- a
 
 The [examples](examples) directory demonstrates how these actions can be used for different projects. They all work by using the default Infracost CLI option that parses HCL, thus a Terraform plan JSON is not needed.
   - [Terraform/Terragrunt projects (single or multi)](examples/terraform-project): a repository containing one or more (e.g. mono repos) Terraform or Terragrunt projects
-  - [Terraform/Terragrunt projects (using GitHub Actions cache)](examples/using-cache): similar to the above example but uses the GitHub Actions cache to speed up the workflow run time
   - [Multi-projects using a config file](examples/multi-project-config-file): repository containing multiple Terraform projects that need different inputs, i.e. variable files or Terraform workspaces
   - [Slack](examples/slack): send cost estimates to Slack
 
 For advanced use cases where the estimate needs to be generated from Terraform plan JSON files, see the [plan JSON examples here](examples#plan-json-examples).
 
-### Cost policies
+### Guardrails and cost policies
 
-Infracost policies enable centralized teams, who are often helping others with cloud costs, to provide advice before resources are launched, setup guardrails, and prevent human error. Follow [our docs](https://www.infracost.io/docs/features/cost_policies/) to use Infracost's native support for Open Policy Agent (OPA) policies. This enables you to see passing/failing policies in Infracost pull request comments (shown below) without having to install anything else.
+Infracost Cloud can be used to setup [guardrails](https://www.infracost.io/docs/infracost_cloud/guardrails/) and [cost policies](https://www.infracost.io/docs/infracost_cloud/cost_policies/) so team leads, managers and FinOps practitioners can help guide teams. See the [GitHub App docs](https://www.infracost.io/docs/integrations/github_app/) to get started.
 
-![](.github/assets/policy-passing-github.png)
+![](.github/assets/custom-pull-request-message.png)
 
-If you use HashiCorp Sentinel, follow [our example](examples/sentinel) to output the policy pass/fail results into CI/CD logs.
+If you prefer to write your own Open Policy Agent (OPA) or HashiCorp Sentinel policies, follow [this doc](https://www.infracost.io/docs/features/cost_policies/) to output the policy pass/fail results into CI/CD logs.
 
 ## Contributing
 
