@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "@types/semver": "^7.3.12",
-    "@typescript-eslint/eslint-plugin": "^5.45.0",
+    "@typescript-eslint/eslint-plugin": "^5.54.0",
     "@typescript-eslint/parser": "^5.47.1",
     "@vercel/ncc": "^0.34.0",
     "eslint": "^8.29.0",
