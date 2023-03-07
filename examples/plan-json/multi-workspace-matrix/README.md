@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      # Required to post comments
       pull-requests: write
     env:
       TF_ROOT: examples/plan-json/multi-workspace-matrix/code
@@ -75,6 +76,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      # Required to post comments
       pull-requests: write
     needs: [multi-workspace-matrix]
 

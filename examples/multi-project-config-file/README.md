@@ -17,6 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      # Required to post comments
       pull-requests: write
     env:
       TF_ROOT: examples/multi-project-config-file/code
