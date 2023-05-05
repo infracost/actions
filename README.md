@@ -1,6 +1,9 @@
 # Infracost GitHub Actions
 
-👉 We recommend using the [GitHub App](https://www.infracost.io/docs/integrations/github_app/) instead as it has several benefits over GitHub Actions.
+### Try the GitHub App
+👉👉 We recommend using the [**free Infracost GitHub App**](https://www.infracost.io/docs/integrations/github_app/) instead as it has many benefits over GitHub Actions 👈👈
+
+---
 
 This project provide a GitHub Action and examples for Infracost, so you can see cloud cost estimates for Terraform in pull requests 💰
 
