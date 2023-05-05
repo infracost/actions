@@ -1,7 +1,7 @@
 # Infracost GitHub Actions
 
 ### Try the GitHub App
-👉👉 We recommend using the [**free Infracost GitHub App**](https://www.infracost.io/docs/integrations/github_app/) instead as it has many benefits over GitHub Actions 👈👈
+👉👉 We recommend using the [**free Infracost GitHub App**](https://www.infracost.io/docs/integrations/github_app/) instead as it has many benefits over GitHub Actions
 
 ---
 
