@@ -568,11 +568,11 @@ jobs:
       - name: Generate Slack message
         id: infracost-slack
         run: >
-          echo "::set-output name=slack-message::$(infracost output
-          --path=/tmp/infracost.json --format=slack-message --show-skipped)"
+          echo "slack-message=$(infracost output
+          --path=/tmp/infracost.json --format=slack-message --show-skipped)" >> $GITHUB_OUTPUT
 
-          echo "::set-output name=diffTotalMonthlyCost::$(jq
-          '(.diffTotalMonthlyCost // 0) | tonumber' /tmp/infracost.json)"
+          echo "diffTotalMonthlyCost=$(jq
+          '(.diffTotalMonthlyCost // 0) | tonumber' /tmp/infracost.json)" >> $GITHUB_OUTPUT
       - name: Generate Slack message
         run: >-
           infracost output --path=/tmp/infracost.json --format=slack-message

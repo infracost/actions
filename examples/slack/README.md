@@ -87,8 +87,8 @@ jobs:
       - name: Generate Slack message
         id: infracost-slack
         run: |
-          echo "::set-output name=slack-message::$(infracost output --path=/tmp/infracost.json --format=slack-message --show-skipped)"
-          echo "::set-output name=diffTotalMonthlyCost::$(jq '(.diffTotalMonthlyCost // 0) | tonumber' /tmp/infracost.json)"
+          echo "slack-message=$(infracost output --path=/tmp/infracost.json --format=slack-message --show-skipped)" >> $GITHUB_OUTPUT
+          echo "diffTotalMonthlyCost=$(jq '(.diffTotalMonthlyCost // 0) | tonumber' /tmp/infracost.json)" >> $GITHUB_OUTPUT
 
       - name: Send cost estimate to Slack
         uses: slackapi/slack-github-action@v1
