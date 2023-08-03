@@ -110,9 +110,11 @@ jobs:
 
     <img src=".github/assets/pr-comment.png" alt="Example pull request" width="70%" />
 
-6. [Enable Infracost Cloud](https://dashboard.infracost.io/) and trigger your CI/CD pipeline again. This causes the CLI to send its JSON output to your dashboard; the JSON does not contain any cloud credentials or secrets, see the [FAQ](https://infracost.io/docs/faq/) for more information. This is our SaaS product that builds on top of Infracost open source and gives team leads, managers and FinOps practitioners dashboards, guardrails and centralized cost policies so they can help guide the team (e.g. switch AWS GP2 volumes to GP3). See [our docs](https://www.infracost.io/docs/infracost_cloud/get_started/) to learn more.
+6. In [Infracost Cloud](https://dashboard.infracost.io), go to Org Settings and enable the dashboard, then trigger your CI/CD pipeline again. This causes the CLI to send its JSON output to your dashboard; the JSON does not contain any cloud credentials or secrets, see the [FAQ](https://infracost.io/docs/faq/) for more information.
 
-    <img src=".github/assets/infracost-cloud-dashboard.png" alt="Infracost Cloud gives team leads, managers and FinOps practitioners visibility across all cost estimates in CI/CD" width="90%" />
+    This is our SaaS product that builds on top of Infracost open source. It enables team leads, managers and FinOps practitioners to setup [tagging policies](https://www.infracost.io/docs/infracost_cloud/tagging_policies/), [guardrails](https://www.infracost.io/docs/infracost_cloud/guardrails/) and [best practices](https://www.infracost.io/docs/infracost_cloud/cost_policies/) to help guide the team. For example, you can check for required tag keys/values, or suggest switching AWS GP2 volumes to GP3 as they are more performant and cheaper.
+
+    <img src=".github/assets/infracost-cloud-dashboard.png" alt="Infracost Cloud gives team leads, managers and FinOps practitioners visibility across all cost estimates in CI/CD" width="58%" /><img src=".github/assets/pull-request-tags.png" alt="Communicate and enforce FinOps tags in pull requests." width="42%" />
 
 ### Troubleshooting
 
@@ -141,14 +143,6 @@ The [examples](examples) directory demonstrates how these actions can be used fo
   - [Slack](examples/slack): send cost estimates to Slack
 
 For advanced use cases where the estimate needs to be generated from Terraform plan JSON files, see the [plan JSON examples here](examples#plan-json-examples).
-
-### Guardrails and cost policies
-
-Infracost Cloud can be used to setup [guardrails](https://www.infracost.io/docs/infracost_cloud/guardrails/) and [cost policies](https://www.infracost.io/docs/infracost_cloud/cost_policies/) so team leads, managers and FinOps practitioners can help guide teams. See the [GitHub App docs](https://www.infracost.io/docs/integrations/github_app/) to get started.
-
-![](.github/assets/custom-pull-request-message.png)
-
-If you prefer to write your own Open Policy Agent (OPA) or HashiCorp Sentinel policies, follow [this doc](https://www.infracost.io/docs/features/cost_policies/) to output the policy pass/fail results into CI/CD logs.
 
 ## Contributing
 
