@@ -24,7 +24,7 @@ The action supports the following inputs:
 
 - `currency`: Optional. Convert output from USD to your preferred [ISO 4217 currency](https://en.wikipedia.org/wiki/ISO_4217#Active_codes), e.g. EUR, BRL or INR.
 
-- `pricing-api-endpoint`: Optional. For [self-hosted](https://www.infracost.io/docs/cloud_pricing_api/self_hosted) users, endpoint of the Cloud Pricing API, e.g. https://cloud-pricing-api.
+- `pricing-api-endpoint`: Optional. For self-hosted users, endpoint of the Cloud Pricing API, e.g. https://cloud-pricing-api.
 
 ## Outputs
 
