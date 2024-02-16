@@ -109,6 +109,7 @@ jobs:
                                      --pull-request=${{ github.event.pull_request.number }} \
                                      --behavior=update
 
+  # Run Infracost on default branch and update Infracost Cloud
   infracost-default-branch-update:
     # If you use private modules, or store Terraform variables or modules in a 3rd party
     # such as TFC or Spacelift, include the same steps/variables as the infracost-pull-request-checks job
@@ -132,6 +133,7 @@ jobs:
 
           infracost upload --path=infracost.json || echo "Always pass main branch runs even if there are policy failures"
 
+  # Update PR status in Infracost Cloud
   infracost-pull-request-status-update:
     name: Infracost PR Status Update
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
