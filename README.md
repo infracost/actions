@@ -330,7 +330,7 @@ jobs:
         }
         ```
 
-        In the above example, the Infracost pull request comment points out that the `n1-standard-16` instance type is previous generation and should be upgraded to something like `n2-standard-16` as that gives you a more performance machine.
+        In the above example, the Infracost pull request comment points out that the `n1-standard-16` instance type is previous generation and should be upgraded to something like `n2-standard-16` as that gives you a more performant machine.
 
         </details>
     3. Commit and push the change.
