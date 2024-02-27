@@ -9,9 +9,7 @@ const yaml = require('js-yaml');
 const {env} = require('process');
 
 const examplesTestWorkflowPath = './.github/workflows/examples_test.yml';
-const examplesDir = 'examples';
-const exampleRegex =
-  /\[\/\/\]: <> \(BEGIN EXAMPLE\)\n```.*\n((.|\n)*?)```\n\[\/\/\]: <> \(END EXAMPLE\)/gm;
+const examplesDir = 'testdata/tests';
 
 const localSkipJobs = [
   // These jobs are skipped locally until https://github.com/nektos/act/issues/769 is fixed
@@ -39,34 +37,19 @@ const workflowTemplate = {
   jobs: {},
 };
 
-// Finds all the examples in a file
-function extractExamples(file) {
-  const content = fs.readFileSync(file, 'utf8');
-  const matches = [...content.matchAll(exampleRegex)];
-  return matches.map((match) => yaml.load(match[1]));
-}
-
-// Extracts all the examples from a directory by reading all the README files
+// Extracts all the examples from a directory
 function extractAllExamples(examplesDir) {
   const examples = [];
 
-  for (const dir of fs.readdirSync(examplesDir)) {
-    if (!fs.statSync(`${examplesDir}/${dir}`).isDirectory()) {
+  for (const file of fs.readdirSync(examplesDir)) {
+    const fp = `${examplesDir}/${file}`;
+    if (!fs.statSync(fp).isFile()) {
       continue;
     }
 
-    const filename = `${examplesDir}/${dir}/README.md`;
-
-    if (fs.existsSync(filename)) {
-      console.error(`Found README.md file in ${dir} was found, extracting examples`);
-      try {
-        examples.push(...extractExamples(filename));
-      } catch(err) {
-        console.error(`Error reading YAML file ${filename}: ${err}`);
-      }
-    }
-
-    examples.push(...extractAllExamples(`${examplesDir}/${dir}`));
+    const content = fs.readFileSync(fp, 'utf8');
+    const y = yaml.load(content);
+    examples.push(y);
   }
 
   return examples;
@@ -100,11 +83,11 @@ function fixupExamples(examples) {
           steps.push(
             {
               name: 'Replace m5 instance',
-              run: `find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name '*.tfvars'  | xargs sed -i 's/m5\.4xlarge/m5\.8xlarge/g'`
+              run: `find testdata/code -type f  -name '*.tf' -o -name '*.hcl' -o -name '*.tfvars'  | xargs sed -i 's/m5\.4xlarge/m5\.8xlarge/g'`
             },
             {
               name: 'Replace t2 instance',
-              run: `find examples -type f  -name '*.tf' -o -name '*.hcl' -o -name '*.tfvars'  | xargs sed -i 's/t2\.micro/t2\.medium/g'`
+              run: `find testdata/code -type f  -name '*.tf' -o -name '*.hcl' -o -name '*.tfvars'  | xargs sed -i 's/t2\.micro/t2\.medium/g'`
             },
             step,
           )
@@ -113,10 +96,11 @@ function fixupExamples(examples) {
         }
 
         if (step.name && step.name.toLowerCase() === 'post infracost comment') {
-          const goldenFilePath = `./testdata/${jobKey}_comment_golden.md`;
+          const goldenFilePath = `./testdata/results/${jobKey}_comment_golden.md`;
+
           const commentArgs = step.run
             .replace(/\\/g, '')
-            .replace(/--pull-request=\$\{\{github\.event\.pull_request\.number\}\}/g, '--pull-request=1')
+            .replace(/--pull-request=\$\{\{ github\.event\.pull_request\.number \}\}/g, '--pull-request=1')
             .split('\n')
             .map(s => s.trim())
             .filter(e => !e.startsWith('#') && e !== '')
