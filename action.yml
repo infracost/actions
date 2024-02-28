@@ -29,7 +29,7 @@ runs:
     # Install the Infracost CLI, see https://github.com/infracost/actions/tree/master/setup
     # for other inputs such as version, and pricing-api-endpoint (for self-hosted users).
     - name: Setup Infracost
-      uses: infracost/actions/setup@v2
+      uses: infracost/actions/setup@v3
       with:
         api-key: ${{ inputs.api_key }}
 

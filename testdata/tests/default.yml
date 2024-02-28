@@ -25,7 +25,7 @@ jobs:
       #     ssh-keyscan github.com >> ~/.ssh/known_hosts
 
       - name: Setup Infracost
-        uses: infracost/actions/setup@v2
+        uses: infracost/actions/setup@v3
         # See https://github.com/infracost/actions/tree/master/setup for other inputs
         # If you can't use this action, use Docker image infracost/infracost:ci-0.10
         with:

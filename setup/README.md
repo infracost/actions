@@ -9,7 +9,7 @@ See the [top-level readme](https://github.com/infracost/actions) for examples of
 ```yml
 steps:
   - name: Setup Infracost
-    uses: infracost/actions/setup@v2
+    uses: infracost/actions/setup@v3
     with:
       api-key: ${{ secrets.INFRACOST_API_KEY }}
 ```
