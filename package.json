@@ -20,7 +20,7 @@
     "examples:update_golden": "./scripts/testExamples.js true"
   },
   "devDependencies": {
-    "dotenv": "^16.0.3",
+    "dotenv": "^16.4.5",
     "js-yaml": "^4.1.0"
   },
   "dependencies": {
