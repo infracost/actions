@@ -1,6 +1,7 @@
 # Infracost GitHub Actions
 
 ### Try the GitHub App
+
 👉👉 We recommend using the [**free Infracost GitHub App**](https://www.infracost.io/docs/integrations/github_app/) as it's much simpler to setup and faster to run
 
 ---
@@ -12,11 +13,8 @@ This GitHub Action runs Infracost so you can see cloud cost estimates and FinOps
 ## Quick start
 
 1. If you haven't done so already, [download Infracost](https://www.infracost.io/docs/#quick-start) and run `infracost auth login` to get a free API key.
-
 2. Retrieve your Infracost API key by running `infracost configure get api_key`.
-
 3. [Create a repo secret](https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets#creating-encrypted-secrets-for-a-repository) called `INFRACOST_API_KEY` with your API key.
-
 4. Create a new file in `.github/workflows/infracost.yml` in your repo with the following content.
 
 ```yaml
@@ -85,6 +83,8 @@ jobs:
       # Checkout the current PR branch so we can create a diff.
       - name: Checkout PR branch
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
 
       # Generate an Infracost diff and save it to a JSON file.
       - name: Generate Infracost diff
@@ -156,12 +156,11 @@ jobs:
 ```
 
 5. Follow [these simple steps](https://www.infracost.io/docs/infracost_cloud/get_started/#4-send-a-pull-request) to test the integration. This is important as it ensures the CLI commands are running correctly in your workflow 👌
-
 6. [Infracost Cloud](https://dashboard.infracost.io) is our SaaS product that builds on top of Infracost open source. It enables team leads, managers and FinOps practitioners to setup [tagging policies](https://www.infracost.io/docs/infracost_cloud/tagging_policies/), [guardrails](https://www.infracost.io/docs/infracost_cloud/guardrails/) and [best practices](https://www.infracost.io/docs/infracost_cloud/cost_policies/) to help guide the team. For example, you can check for required tag keys/values, or suggest switching AWS gp2 volumes to gp3 as they are more performant and cheaper.
 
-    If you **do not** want to use [Infracost Cloud](https://dashboard.infracost.io), go to Org Settings and disable the dashboard. This causes the CLI not to send its JSON output to your dashboard; the JSON does not contain any cloud credentials or secrets, see the [FAQ](https://infracost.io/docs/faq/) for more information.
+   If you **do not** want to use [Infracost Cloud](https://dashboard.infracost.io), go to Org Settings and disable the dashboard. This causes the CLI not to send its JSON output to your dashboard; the JSON does not contain any cloud credentials or secrets, see the [FAQ](https://infracost.io/docs/faq/) for more information.
 
-    <img src=".github/assets/infracost-cloud-dashboard.png" alt="Infracost Cloud enables you to check for best practices such as using latest generation instance types or block storage, as well as setup tagging policies and guardrails to help guide the team." />
+   <img src=".github/assets/infracost-cloud-dashboard.png" alt="Infracost Cloud enables you to check for best practices such as using latest generation instance types or block storage, as well as setup tagging policies and guardrails to help guide the team." />
 
 ## Troubleshooting
 
@@ -174,15 +173,16 @@ If you receive an error when running the `infracost comment` command in your pip
 #### The `add GIT_SSH_KEY` step fails
 
 If you are using private modules and receive a `option requires an argument -- a` error in the `add GIT_SSH_KEY` step:
+
 1. Make sure you have the following set in your workflow `SSH_AUTH_SOCK`:
-    ```yml
-    env:
-      SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-    ```
+   ```yml
+   env:
+     SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+   ```
 2. Try changing the `ssh-agent -a $SSH_AUTH_SOCK` line to the following:
-    ```yml
-    ssh-agent -a "${{ env.SSH_AUTH_SOCK }}"
-    ```
+   ```yml
+   ssh-agent -a "${{ env.SSH_AUTH_SOCK }}"
+   ```
 
 ## Contributing
 
