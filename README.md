@@ -85,6 +85,8 @@ jobs:
       # Checkout the current PR branch so we can create a diff.
       - name: Checkout PR branch
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
 
       # Generate an Infracost diff and save it to a JSON file.
       - name: Generate Infracost diff
