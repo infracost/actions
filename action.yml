@@ -1,6 +1,6 @@
 # This is a placeholder action, see https://github.com/infracost/actions/ for the Infracost actions and examples of how to use them.
 name: Infracost Actions
-description: See cloud cost estimates for Terraform in pull requests.
+description: See cloud cost estimates and FinOps best practices for Terraform in pull requests.
 
 author: infracost
 branding:
