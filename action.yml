@@ -35,6 +35,7 @@ runs:
 
     # Generate an Infracost output JSON from the comparison branch, so that Infracost can compare the cost difference.
     - name: Generate Infracost cost estimate baseline
+      shell: bash
       run: |
         infracost breakdown --path=examples/terraform-directory/code \
                             --format=json \
