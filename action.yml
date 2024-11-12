@@ -22,7 +22,7 @@ runs:
   steps:
     # Checkout the branch you want Infracost to compare costs against, most commonly the target branch.
     - name: Checkout base branch
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         ref: '${{ github.event.pull_request.base.ref }}'
 
