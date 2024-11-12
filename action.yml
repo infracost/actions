@@ -46,6 +46,7 @@ runs:
     - uses: actions/checkout@v3
 
     - name: Run Infracost
+      shell: bash
       run: |
         infracost breakdown --path=examples/terraform-directory/code \
                             --format=json \
@@ -53,6 +54,7 @@ runs:
                             --out-file=/tmp/infracost.json
 
     - name: Post Infracost comment
+      shell: bash
       run: |
         # Posts a comment to the PR using the 'update' behavior.
         # This creates a single comment and updates it. The "quietest" option.
