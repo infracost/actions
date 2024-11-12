@@ -22,14 +22,14 @@ runs:
   steps:
     # Checkout the branch you want Infracost to compare costs against, most commonly the target branch.
     - name: Checkout base branch
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         ref: '${{ github.event.pull_request.base.ref }}'
 
     # Install the Infracost CLI, see https://github.com/infracost/actions/tree/master/setup
     # for other inputs such as version, and pricing-api-endpoint (for self-hosted users).
     - name: Setup Infracost
-      uses: infracost/actions/setup@v3
+      uses: infracost/actions/setup@v4
       with:
         api-key: ${{ inputs.api_key }}
 
