@@ -43,7 +43,7 @@ runs:
 
 
     # Checkout the PR branch with your infrastructure changes.
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Run Infracost
       shell: bash
