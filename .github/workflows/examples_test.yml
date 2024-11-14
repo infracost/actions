@@ -16,7 +16,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout source code so we can install the action locally
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup Infracost
         uses: ./setup
         with:
