@@ -1,0 +1,49 @@
+version: "2"
+linters:
+  default: none
+  enable:
+    - bodyclose
+    - errcheck
+    - gocritic
+    - gosec
+    - govet
+    - ineffassign
+    - revive
+    - staticcheck
+    - unused
+    - prealloc
+
+  settings:
+    govet:
+      enable-all: true
+      disable:
+        - shadow
+        - fieldalignment
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters:
+          - exported
+      - path: _test\.go
+        linters:
+          - prealloc
+          - gosec
+      - linters:
+          - revive
+        text: "exported (.+) should have comment"
+      - linters:
+          - revive
+        text: "exported (.+) should be of the form"
+      - linters:
+          - revive
+        text: "package-comments:"
+      - linters:
+          - revive
+        text: "var-naming: avoid package names"
+      - linters:
+          - revive
+        text: "var-naming: avoid meaningless package names"
+run:
+  timeout: 30m
+  issues-exit-code: 1
+  tests: true

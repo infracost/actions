@@ -1,0 +1,55 @@
+name: Scanner
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - tools/scanner/**
+  pull_request:
+    paths:
+      - tools/scanner/**
+
+defaults:
+  run:
+    shell: bash
+    working-directory: tools/scanner
+
+jobs:
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v6
+        with:
+          cache: false
+          go-version-file: tools/scanner/go.mod
+
+      - uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: nonexistent
+          restore-keys: |
+            ${{ runner.os }}-scanner-go-${{ hashFiles('tools/scanner/go.mod') }}-
+
+      - run: make test
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v6
+        with:
+          cache: false
+          go-version-file: tools/scanner/go.mod
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.10
+          working-directory: tools/scanner
