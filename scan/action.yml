@@ -48,6 +48,7 @@ runs:
       id: version
       shell: bash
       env:
+        GH_TOKEN: ${{ inputs.github-token }}
         VERSION: ${{ inputs.version }}
       run: |
         if [ "$VERSION" = "latest" ]; then
