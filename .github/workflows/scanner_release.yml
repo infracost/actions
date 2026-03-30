@@ -1,0 +1,139 @@
+name: Scanner Release
+on:
+  push:
+    tags:
+      - "scanner/v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to be released (e.g., 1.0.0)"
+        type: string
+        required: true
+
+permissions: {}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  version:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
+    steps:
+      - id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            RAW_VERSION="${{ github.event.inputs.version }}"
+          else
+            RAW_VERSION="${GITHUB_REF#refs/tags/scanner/v}"
+          fi
+          echo "VERSION=${RAW_VERSION#v}" >> $GITHUB_OUTPUT
+
+  draft-release:
+    runs-on: ubuntu-24.04
+    needs: version
+    permissions:
+      contents: write
+    steps:
+      - name: Check for existing release
+        id: check-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: scanner/v${{ needs.version.outputs.version }}
+        run: |
+          if gh release view "$VERSION" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "EXISTS=true" >> $GITHUB_OUTPUT
+          else
+            echo "EXISTS=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create draft release
+        if: steps.check-release.outputs.EXISTS == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: scanner/v${{ needs.version.outputs.version }}
+        run: |
+          gh release create "$VERSION" \
+            --repo "${{ github.repository }}" \
+            --title "Scanner ${{ needs.version.outputs.version }}" \
+            --draft
+
+      - name: Reset to draft
+        if: steps.check-release.outputs.EXISTS == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: scanner/v${{ needs.version.outputs.version }}
+        run: |
+          gh release edit "$VERSION" \
+            --repo "${{ github.repository }}" \
+            --draft
+
+  build-and-release:
+    runs-on: ${{ matrix.runner }}
+    needs: [version, draft-release]
+    permissions:
+      contents: write
+    strategy:
+      matrix:
+        include:
+          - { goos: linux, goarch: amd64, runner: ubuntu-24.04 }
+          - { goos: linux, goarch: arm64, runner: ubuntu-24.04 }
+          - { goos: darwin, goarch: amd64, runner: macos-latest }
+          - { goos: darwin, goarch: arm64, runner: macos-latest }
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: tools/scanner/go.mod
+          cache-dependency-path: tools/scanner/go.sum
+
+      - name: Build
+        working-directory: tools/scanner
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          go build \
+            -ldflags "-X github.com/infracost/actions/tools/scanner/internal/version.Version=${VERSION}" \
+            -o "bin/infracost-scanner" \
+            main.go
+
+      - name: Package
+        working-directory: tools/scanner
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          ARCHIVE="infracost-scanner_${VERSION}_${GOOS}_${GOARCH}"
+          mkdir -p dist
+          tar -czf "dist/${ARCHIVE}.tar.gz" -C bin infracost-scanner
+
+      - name: Upload
+        working-directory: tools/scanner
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: scanner/v${{ needs.version.outputs.version }}
+        run: |
+          gh release upload "$VERSION" ./dist/* \
+            --repo "${{ github.repository }}" \
+            --clobber
+
+  publish-release:
+    runs-on: ubuntu-24.04
+    needs: [version, build-and-release]
+    permissions:
+      contents: write
+    steps:
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: scanner/v${{ needs.version.outputs.version }}
+        run: |
+          gh release edit "$VERSION" \
+            --repo "${{ github.repository }}" \
+            --draft=false

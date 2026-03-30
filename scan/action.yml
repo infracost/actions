@@ -1,0 +1,160 @@
+name: "Infracost Scan"
+description: "Scan infrastructure code for cost changes and post a PR comment."
+
+inputs:
+  api-key:
+    description: "Infracost API key for authentication."
+    required: true
+  base-path:
+    description: "Path to the base branch checkout."
+    required: true
+  head-path:
+    description: "Path to the head (PR) branch checkout."
+    required: true
+  version:
+    description: "Version of the scanner to use (e.g. 0.1.0). Defaults to latest."
+    required: false
+    default: "latest"
+  project:
+    description: "Filter scanning to a single project."
+    required: false
+  branch:
+    description: "Branch name used for policy filtering."
+    required: false
+  github-token:
+    description: "GitHub API token for posting PR comments."
+    required: false
+    default: ${{ github.token }}
+  github-owner:
+    description: "GitHub repository owner. Defaults to the current repository owner."
+    required: false
+  github-repo:
+    description: "GitHub repository name. Defaults to the current repository name."
+    required: false
+  pr-number:
+    description: "Pull request number to comment on. Defaults to the current PR."
+    required: false
+  commit-sha:
+    description: "Head commit SHA for source links. Defaults to GITHUB_SHA."
+    required: false
+  repo-url:
+    description: "Repository URL for source links in comments."
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Determine version
+      id: version
+      shell: bash
+      env:
+        VERSION: ${{ inputs.version }}
+      run: |
+        if [ "$VERSION" = "latest" ]; then
+          RELEASE=$(gh release list --repo "${{ github.repository }}" --limit 50 --json tagName --jq '[.[] | select(.tagName | startswith("scanner/v"))][0].tagName')
+          if [ -z "$RELEASE" ]; then
+            echo "::error::No scanner release found"
+            exit 1
+          fi
+          VERSION="${RELEASE#scanner/v}"
+        fi
+        echo "version=${VERSION}" >> $GITHUB_OUTPUT
+        echo "tag=scanner/v${VERSION}" >> $GITHUB_OUTPUT
+
+    - name: Download scanner
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        TAG: ${{ steps.version.outputs.tag }}
+        VERSION: ${{ steps.version.outputs.version }}
+      run: |
+        OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+        ARCH=$(uname -m)
+        case "$ARCH" in
+          x86_64) ARCH="amd64" ;;
+          aarch64|arm64) ARCH="arm64" ;;
+        esac
+
+        ARCHIVE="infracost-scanner_${VERSION}_${OS}_${ARCH}.tar.gz"
+        DEST="${RUNNER_TEMP}/infracost-scanner"
+
+        gh release download "$TAG" \
+          --repo "${{ github.repository }}" \
+          --pattern "$ARCHIVE" \
+          --dir "$RUNNER_TEMP"
+
+        mkdir -p "$(dirname "$DEST")"
+        tar -xzf "${RUNNER_TEMP}/${ARCHIVE}" -C "$RUNNER_TEMP"
+        chmod +x "$DEST"
+        echo "${RUNNER_TEMP}" >> $GITHUB_PATH
+
+    - name: Derive context
+      id: context
+      shell: bash
+      run: |
+        OWNER="${{ inputs.github-owner }}"
+        REPO="${{ inputs.github-repo }}"
+        PR="${{ inputs.pr-number }}"
+        COMMIT="${{ inputs.commit-sha }}"
+        REPO_URL="${{ inputs.repo-url }}"
+        BRANCH="${{ inputs.branch }}"
+
+        if [ -z "$OWNER" ] || [ -z "$REPO" ]; then
+          OWNER="${GITHUB_REPOSITORY_OWNER}"
+          REPO="${GITHUB_REPOSITORY#*/}"
+        fi
+
+        if [ -z "$PR" ]; then
+          PR="${{ github.event.pull_request.number }}"
+        fi
+
+        if [ -z "$PR" ] || [ "$PR" = "0" ]; then
+          echo "::error::Could not determine PR number. Either run on a pull_request event or set the pr-number input."
+          exit 1
+        fi
+
+        if [ -z "$COMMIT" ]; then
+          COMMIT="${GITHUB_SHA}"
+        fi
+
+        if [ -z "$REPO_URL" ]; then
+          REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
+        fi
+
+        if [ -z "$BRANCH" ]; then
+          BRANCH="${{ github.event.pull_request.head.ref }}"
+          if [ -z "$BRANCH" ]; then
+            BRANCH="main"
+          fi
+        fi
+
+        echo "owner=${OWNER}" >> $GITHUB_OUTPUT
+        echo "repo=${REPO}" >> $GITHUB_OUTPUT
+        echo "pr=${PR}" >> $GITHUB_OUTPUT
+        echo "commit=${COMMIT}" >> $GITHUB_OUTPUT
+        echo "repo-url=${REPO_URL}" >> $GITHUB_OUTPUT
+        echo "branch=${BRANCH}" >> $GITHUB_OUTPUT
+
+    - name: Run scanner
+      shell: bash
+      env:
+        INFRACOST_CLI_AUTHENTICATION_TOKEN: ${{ inputs.api-key }}
+        INFRACOST_CLI_LOG_LEVEL: info
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+      run: |
+        ARGS=(
+          --base-path "${{ inputs.base-path }}"
+          --head-path "${{ inputs.head-path }}"
+          --github-owner "${{ steps.context.outputs.owner }}"
+          --github-repo "${{ steps.context.outputs.repo }}"
+          --pr-number "${{ steps.context.outputs.pr }}"
+          --commit-sha "${{ steps.context.outputs.commit }}"
+          --repo-url "${{ steps.context.outputs.repo-url }}"
+          --branch "${{ steps.context.outputs.branch }}"
+        )
+
+        if [ -n "${{ inputs.project }}" ]; then
+          ARGS+=(--project "${{ inputs.project }}")
+        fi
+
+        infracost-scanner "${ARGS[@]}"

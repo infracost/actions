@@ -1,15 +1,20 @@
 # Scanner
 
-Scanner is a Go CLI tool that powers the `infracost/actions/scan` composite GitHub Action. It embeds the Infracost CLI as a Go library to scan two directories of infrastructure code (typically from a base branch and a PR branch), calculates a cost diff between them, and posts a comment on the pull request via the Infracost VCS API.
+Scanner is the Go CLI that powers the [`infracost/actions/scan`](../../scan) composite GitHub Action. It embeds the Infracost CLI as a library to scan two directories of infrastructure code (typically a base branch and a PR branch), calculates a cost diff, and posts a comment on the pull request.
 
-The tool has no external runtime dependencies — the Infracost scanning and diffing logic is imported directly via `go get` rather than shelling out to the CLI. Core scanning logic is shared with the CLI via `github.com/infracost/cli/pkg/scanner`.
+The tool has no external runtime dependencies — scanning and diffing logic is imported directly via `github.com/infracost/cli/pkg/scanner` rather than shelling out to the CLI.
 
-## Remaining work
+## Development
 
-### Composite GitHub Action
+```bash
+make build          # Build the binary
+make test           # Run all tests
+make test-unit      # Run unit tests only (skips integration tests)
+make test-integration # Run integration tests (requires INFRACOST_CLI_AUTHENTICATION_TOKEN)
+make lint           # Run golangci-lint
+make mocks          # Regenerate mockery mocks
+```
 
-Create a `scan/` composite action in this repository that downloads the pre-built scanner binary for the current platform and runs it. This is the user-facing entry point — users will reference `infracost/actions/scan@v1` in their workflows.
+## Releasing
 
-### Release workflow
-
-Add a GitHub Actions workflow that builds multi-platform scanner binaries (linux/amd64, linux/arm64, darwin/amd64, darwin/arm64) and attaches them to a GitHub release in this repository. The composite action will download the appropriate binary from the release.
+Push a tag matching `scanner/v*.*.*` to trigger the [release workflow](../../.github/workflows/scanner_release.yml), which builds multi-platform binaries and creates a GitHub release. The version is set via `-ldflags` at build time.
