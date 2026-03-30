@@ -23,19 +23,30 @@ jobs:
 
       - uses: actions/setup-go@v6
         with:
-          cache: false
           go-version-file: tools/scanner/go.mod
+          cache-dependency-path: tools/scanner/go.sum
 
-      - uses: actions/cache/restore@v4
+      - run: make test-unit
+
+  integration:
+    name: Integration Tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v6
         with:
-          path: |
-            ~/go/pkg/mod
-            ~/.cache/go-build
-          key: nonexistent
-          restore-keys: |
-            ${{ runner.os }}-scanner-go-${{ hashFiles('tools/scanner/go.mod') }}-
+          go-version-file: tools/scanner/go.mod
+          cache-dependency-path: tools/scanner/go.sum
 
-      - run: make test
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/infracost/plugins
+          key: ${{ runner.os }}-scanner-plugins
+
+      - run: make test-integration
+        env:
+          INFRACOST_CLI_AUTHENTICATION_TOKEN: ${{ secrets.INFRACOST_CLI_AUTHENTICATION_TOKEN }}
 
   lint:
     name: Lint
@@ -45,11 +56,32 @@ jobs:
 
       - uses: actions/setup-go@v6
         with:
-          cache: false
           go-version-file: tools/scanner/go.mod
+          cache-dependency-path: tools/scanner/go.sum
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
           version: v2.10
           working-directory: tools/scanner
+
+  mocks:
+    name: Mocks
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: tools/scanner/go.mod
+          cache-dependency-path: tools/scanner/go.sum
+
+      - run: make mocks
+
+      - name: Check for changes
+        run: |
+          if [ -n "$(git diff --name-only)" ]; then
+            echo "Mock files are out of date. Please run 'make mocks' and commit the changes."
+            git diff --name-only
+            exit 1
+          fi

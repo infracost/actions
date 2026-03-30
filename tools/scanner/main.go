@@ -58,7 +58,9 @@ func run() int {
 
 	diags.Merge(process.PreProcess(cfg, cmd.Flags()))
 	if diags.Critical().Len() > 0 {
-		// TODO: Log diagnostics
+		for _, diag := range diags.Critical().Unwrap() {
+			_, _ = fmt.Fprintf(os.Stderr, "%s\n", diag.FormatMessage())
+		}
 		client := cfg.Events.Client(api.Client(context.Background(), cfg.Auth.TokenFromCache(context.Background()), cfg.OrgID))
 		for _, diag := range diags.Critical().Unwrap() {
 			client.Push(context.Background(), "infracost-error", "error", diag.String())
@@ -69,8 +71,10 @@ func run() int {
 	if err := cmd.Execute(); err != nil {
 		diags = diags.Add(diagnostic.FromError(parserpb.DiagnosticType_DIAGNOSTIC_TYPE_UNSPECIFIED, err))
 	}
-	// TODO: Log diagnostics
 	if diags.Critical().Len() > 0 {
+		for _, diag := range diags.Critical().Unwrap() {
+			_, _ = fmt.Fprintf(os.Stderr, "%s\n", diag.FormatMessage())
+		}
 		client := cfg.Events.Client(api.Client(context.Background(), cfg.Auth.TokenFromCache(context.Background()), cfg.OrgID))
 		for _, diag := range diags.Critical().Unwrap() {
 			client.Push(context.Background(), "infracost-error", "error", diag.String())

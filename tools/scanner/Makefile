@@ -9,8 +9,16 @@ build: ## Build the project
 	go build -o bin/scanner main.go
 
 .PHONY: test
-test: ## Run tests
+test: ## Run all tests
 	go test ./...
+
+.PHONY: test-unit
+test-unit: ## Run unit tests only (skips integration tests)
+	go test -short ./...
+
+.PHONY: test-integration
+test-integration: ## Run integration tests only
+	go test -run TestScan ./internal/config/
 
 .PHONY: lint_install
 lint_install: ## Install golangci-lint
@@ -19,6 +27,14 @@ lint_install: ## Install golangci-lint
 .PHONY: lint
 lint: lint_install ## Run linting operations
 	golangci-lint run ./...
+
+.PHONY: mockery_install
+mockery_install: ## Install mockery
+	go install github.com/vektra/mockery/v3@latest
+
+.PHONY: mocks
+mocks: mockery_install ## Generate mocks
+	mockery
 
 .PHONY: fmt
 fmt: ## Check formatting

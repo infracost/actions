@@ -51,6 +51,9 @@ type Config struct {
 	GitHubOwner string `flag:"github-owner" usage:"GitHub repository owner"`
 	GitHubRepo  string `flag:"github-repo" usage:"GitHub repository name"`
 
+	// VCSClientFn overrides the default VCS client construction. Used in tests.
+	VCSClientFn func(ctx context.Context) (vcs.VCS, error)
+
 	// Logging contains the configuration for logging.
 	// keep logging above other structs, so it gets processed first and others can log in their process functions.
 	Logging logging.Config
@@ -69,8 +72,12 @@ type Config struct {
 }
 
 // VCSClient constructs the appropriate VCS provider based on the configured
-// VCSProvider flag.
+// VCSProvider flag. If VCSClientFn is set, it is used instead.
 func (config *Config) VCSClient(ctx context.Context) (vcs.VCS, error) {
+	if config.VCSClientFn != nil {
+		return config.VCSClientFn(ctx)
+	}
+
 	switch config.VCSProvider {
 	case "github":
 		return github.New(ctx, config.GitHubOwner, config.GitHubRepo, config.GitHubToken, config.PRNumber, github.Options{})

@@ -17,6 +17,12 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
+var (
+	pj = protojson.UnmarshalOptions{
+		DiscardUnknown: true,
+	}
+)
+
 // DirectoryResult holds the outputs for scanning an entire directory.
 type DirectoryResult struct {
 	Projects         []pkgscanner.ProjectResult
@@ -54,14 +60,14 @@ func parseRunParameters(raw dashboard.RunParameters) (*parsedRunParameters, erro
 
 	parsed.UsageDefaults = new(event.UsageDefaults)
 	if len(raw.UsageDefaults) > 0 {
-		if err := protojson.Unmarshal(raw.UsageDefaults, parsed.UsageDefaults); err != nil {
+		if err := pj.Unmarshal(raw.UsageDefaults, parsed.UsageDefaults); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal usage defaults: %w", err)
 		}
 	}
 
 	for _, f := range raw.ProductionFilters {
 		filter := new(event.ProductionFilter)
-		if err := protojson.Unmarshal(f, filter); err != nil {
+		if err := pj.Unmarshal(f, filter); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal production filter: %w", err)
 		}
 		parsed.ProductionFilters = append(parsed.ProductionFilters, filter)
@@ -69,7 +75,7 @@ func parseRunParameters(raw dashboard.RunParameters) (*parsedRunParameters, erro
 
 	for _, p := range raw.TagPolicies {
 		policy := new(event.TagPolicy)
-		if err := protojson.Unmarshal(p, policy); err != nil {
+		if err := pj.Unmarshal(p, policy); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal tag policy: %w", err)
 		}
 		parsed.TagPolicies = append(parsed.TagPolicies, policy)
@@ -77,7 +83,7 @@ func parseRunParameters(raw dashboard.RunParameters) (*parsedRunParameters, erro
 
 	for _, p := range raw.FinopsPolicies {
 		policy := new(event.FinopsPolicySettings)
-		if err := protojson.Unmarshal(p, policy); err != nil {
+		if err := pj.Unmarshal(p, policy); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal FinOps policy: %w", err)
 		}
 		parsed.FinopsPolicies = append(parsed.FinopsPolicies, policy)
@@ -85,7 +91,7 @@ func parseRunParameters(raw dashboard.RunParameters) (*parsedRunParameters, erro
 
 	for _, g := range raw.Guardrails {
 		guardrail := new(event.Guardrail)
-		if err := protojson.Unmarshal(g, guardrail); err != nil {
+		if err := pj.Unmarshal(g, guardrail); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal guardrail: %w", err)
 		}
 		parsed.Guardrails = append(parsed.Guardrails, guardrail)
@@ -97,7 +103,14 @@ func parseRunParameters(raw dashboard.RunParameters) (*parsedRunParameters, erro
 func (config *Config) Scan() error {
 	ctx := context.Background()
 
-	tokenSource := config.Auth.TokenFromCache(ctx)
+	if len(config.Auth.AuthenticationToken) == 0 {
+		return fmt.Errorf("authentication token is required: set INFRACOST_CLI_AUTHENTICATION_TOKEN")
+	}
+
+	tokenSource, err := config.Auth.Token(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve access token: %w", err)
+	}
 	httpClient := api.Client(ctx, tokenSource, config.OrgID)
 
 	dashboardClient := config.Dashboard.Client(httpClient)
@@ -111,7 +124,12 @@ func (config *Config) Scan() error {
 		return fmt.Errorf("failed to parse run parameters: %w", err)
 	}
 
-	baseResult, err := config.scanDirectory(ctx, config.BasePath, runParams, nil)
+	token, err := tokenSource.Token()
+	if err != nil {
+		return fmt.Errorf("failed to retrieve access token: %w", err)
+	}
+
+	baseResult, err := config.scanDirectory(ctx, config.BasePath, token.AccessToken, runParams, nil)
 	if err != nil {
 		return fmt.Errorf("failed to scan base path: %w", err)
 	}
@@ -127,7 +145,7 @@ func (config *Config) Scan() error {
 		previousAddresses[p.Name] = addrs
 	}
 
-	headResult, err := config.scanDirectory(ctx, config.HeadPath, runParams, previousAddresses)
+	headResult, err := config.scanDirectory(ctx, config.HeadPath, token.AccessToken, runParams, previousAddresses)
 	if err != nil {
 		return fmt.Errorf("failed to scan head path: %w", err)
 	}
@@ -159,7 +177,7 @@ func (config *Config) Scan() error {
 	return nil
 }
 
-func (config *Config) scanDirectory(ctx context.Context, dir string, runParams *parsedRunParameters, previousAddresses map[string][]string) (*DirectoryResult, error) {
+func (config *Config) scanDirectory(ctx context.Context, dir string, accessToken string, runParams *parsedRunParameters, previousAddresses map[string][]string) (*DirectoryResult, error) {
 	absoluteDir, err := filepath.Abs(dir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve absolute path for %q: %w", dir, err)
@@ -199,12 +217,6 @@ func (config *Config) scanDirectory(ctx context.Context, dir string, runParams *
 
 	estimatedUsageCounts, unestimatedUsageCounts := pkgscanner.CountUsage(repoUsage)
 
-	tokenSource := config.Auth.TokenFromCache(ctx)
-	token, err := tokenSource.Token()
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve access token: %w", err)
-	}
-
 	cacheDir := filepath.Join(os.TempDir(), ".infracost", "cache")
 	if err := os.MkdirAll(cacheDir, 0700); err != nil {
 		return nil, fmt.Errorf("failed to create cache directory: %w", err)
@@ -221,7 +233,7 @@ func (config *Config) scanDirectory(ctx context.Context, dir string, runParams *
 			CacheDir:                  cacheDir,
 			RepoConfig:                repoConfig,
 			Project:                   project,
-			AccessToken:               token.AccessToken,
+			AccessToken:               accessToken,
 			BranchName:                config.Branch,
 			RepositoryName:            runParams.RepositoryName,
 			OrgID:                     runParams.OrganizationID,
