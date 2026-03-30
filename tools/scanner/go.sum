@@ -95,6 +95,8 @@ github.com/infracost/cli v0.0.8-0.20260326132446-c13ce2cc3ab7 h1:xJmLm8ky0mTi0lj
 github.com/infracost/cli v0.0.8-0.20260326132446-c13ce2cc3ab7/go.mod h1:lTY8+4SO2+SY34Hnd6VkPDHoGBm6cOWny3rqdfBpq1M=
 github.com/infracost/cli v0.0.8-0.20260327122245-24b9485db5f1 h1:4O+j10rOo3zAKM++NHxnPRDv0MmeaO2PDUTOYBW/808=
 github.com/infracost/cli v0.0.8-0.20260327122245-24b9485db5f1/go.mod h1:lTY8+4SO2+SY34Hnd6VkPDHoGBm6cOWny3rqdfBpq1M=
+github.com/infracost/cli v0.0.9 h1:igROMIC03sbmr4QakxZsLQyVN/X9QyDvfrjiwUGM96Y=
+github.com/infracost/cli v0.0.9/go.mod h1:fsNkvKYVx4W3/Vm55qyx+5Ujm7w6KgOugSPmbY+oTZ8=
 github.com/infracost/config v0.4.2 h1:jC0X6oFUIgYrZdzc8D6S1r61o9JnU6teqYL2tULOgxE=
 github.com/infracost/config v0.4.2/go.mod h1:XyCBuDQowPYNF6n95+Woz61snyaf7K94DVbNiHcg+1A=
 github.com/infracost/go-proto v0.10.1-0.20260326130149-0544670ac46f h1:P2RLFr9KAPt54QmN7XEkq4E/DFIyhKI/6TSCW4FVqZg=
@@ -123,6 +125,8 @@ github.com/liamg/tml v0.7.1 h1:k6lvZhowxUN0S/uAbgSLZ67wZtaTU+stAkpSNy+CbN0=
 github.com/liamg/tml v0.7.1/go.mod h1:Vuzs4Dn44Awoyd0MLl2EuJR++l1NlFqU6BJk0oxVYX4=
 github.com/lucasb-eyer/go-colorful v1.2.0 h1:1nnpGOrhyZZuNyfu1QjKiUICQ74+3FNCN69Aj6K7nkY=
 github.com/lucasb-eyer/go-colorful v1.2.0/go.mod h1:R4dSotOR9KMtayYi1e77YzuveK+i7ruzyGqttikkLy0=
+github.com/maruel/panicparse/v2 v2.5.0 h1:yCtuS0FWjfd0RTYMXGpDvWcb0kINm8xJGu18/xMUh00=
+github.com/maruel/panicparse/v2 v2.5.0/go.mod h1:DA2fDiBk63bKfBf4CVZP9gb4fuvzdPbLDsSI873hweQ=
 github.com/mattn/go-colorable v0.1.9/go.mod h1:u6P/XSegPjTcexA+o6vUJrdnUu04hMope9wVRipJSqc=
 github.com/mattn/go-colorable v0.1.12/go.mod h1:u5H1YNBxpqRaxsYJYSkiCWKzEfiAb1Gb520KVy5xxl4=
 github.com/mattn/go-colorable v0.1.13/go.mod h1:7S9/ev0klgBDR4GtXTXX8a3vIGJpMovkB8vQcUbaXHg=

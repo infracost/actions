@@ -4,7 +4,7 @@ go 1.25.7
 
 require (
 	github.com/Masterminds/semver/v3 v3.4.0
-	github.com/infracost/cli v0.0.8-0.20260327122245-24b9485db5f1
+	github.com/infracost/cli v0.0.9
 	github.com/infracost/config v0.4.2
 	github.com/infracost/go-proto v0.11.0
 	github.com/infracost/proto v1.29.0
@@ -52,6 +52,7 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/liamg/tml v0.7.1 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
+	github.com/maruel/panicparse/v2 v2.5.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
