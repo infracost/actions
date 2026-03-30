@@ -1,0 +1,6 @@
+version: "0.1"
+projects:
+  - name: web
+    path: web
+  - name: api
+    path: api
