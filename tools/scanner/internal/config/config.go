@@ -44,7 +44,7 @@ type Config struct {
 	// Common VCS fields.
 	CommitSHA string `env:"GITHUB_SHA" flag:"commit-sha" usage:"Head commit SHA"`
 	RepoURL   string `flag:"repo-url" usage:"Repository URL for source links in comments"`
-	PRNumber  int32  `flag:"pr-number" usage:"Pull request number to comment on"`
+	PRNumber  int    `flag:"pr-number" usage:"Pull request number to comment on"`
 
 	// GitHub-specific fields.
 	GitHubToken string `env:"GITHUB_TOKEN" flag:"github-token" usage:"GitHub API token for posting comments"`
@@ -80,7 +80,7 @@ func (config *Config) VCSClient(ctx context.Context) (vcs.VCS, error) {
 
 	switch config.VCSProvider {
 	case "github":
-		return github.New(ctx, config.GitHubOwner, config.GitHubRepo, config.GitHubToken, config.PRNumber, github.Options{})
+		return github.New(ctx, config.GitHubOwner, config.GitHubRepo, config.GitHubToken, int32(config.PRNumber), github.Options{}) //nolint:gosec // PR numbers won't overflow int32
 	default:
 		return nil, fmt.Errorf("unsupported VCS provider: %q", config.VCSProvider)
 	}
