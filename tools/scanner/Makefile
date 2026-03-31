@@ -18,7 +18,7 @@ test-unit: ## Run unit tests only (skips integration tests)
 
 .PHONY: test-integration
 test-integration: ## Run integration tests only
-	go test -v -run TestScan ./internal/config/
+	go test -v -run 'TestDiff|TestScan' ./internal/commands/
 
 .PHONY: lint_install
 lint_install: ## Install golangci-lint

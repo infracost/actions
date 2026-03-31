@@ -58,6 +58,7 @@ func run() int {
 
 	var results commands.ScanResult
 	cmd.AddCommand(commands.Diff(cfg, &results))
+	cmd.AddCommand(commands.Scan(cfg))
 	cmd.AddCommand(commands.Status(cfg))
 
 	diags.Merge(process.PreProcess(cfg, cmd.PersistentFlags()))
