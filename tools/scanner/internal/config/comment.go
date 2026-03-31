@@ -52,7 +52,7 @@ func buildCommentData(
 	projects := make([]comment.ProjectResult, 0, len(projectNames))
 	var summary comment.ResourceSummary
 	var allFinops, allPrevFinops []*provider.FinopsPolicyResult
-	var allTagging, allPrevTagging []*goprotoevent.TaggingPolicyResult
+	var allTagging, allPrevTagging []goprotoevent.TaggingPolicyResult
 	totalMonthlyCost := rat.Zero
 	pastTotalMonthlyCost := rat.Zero
 
@@ -83,9 +83,7 @@ func buildCommentData(
 			}
 
 			allFinops = append(allFinops, head.FinopsResults...)
-			for i := range head.TagPolicyResults {
-				allTagging = append(allTagging, &head.TagPolicyResults[i])
-			}
+			allTagging = append(allTagging, head.TagPolicyResults...)
 		}
 
 		if base != nil {
@@ -97,9 +95,7 @@ func buildCommentData(
 			pastTotalMonthlyCost = pastTotalMonthlyCost.Add(orZero(base.TotalMonthlyCost))
 
 			allPrevFinops = append(allPrevFinops, base.FinopsResults...)
-			for i := range base.TagPolicyResults {
-				allPrevTagging = append(allPrevTagging, &base.TagPolicyResults[i])
-			}
+			allPrevTagging = append(allPrevTagging, base.TagPolicyResults...)
 		}
 
 		// Compute diff breakdown.
@@ -110,16 +106,6 @@ func buildCommentData(
 		}
 
 		projects = append(projects, pr)
-	}
-
-	// Convert guardrail results to pointers.
-	guardrailPtrs := make([]*goprotoevent.GuardrailResult, 0, len(guardrailResults))
-	for i := range guardrailResults {
-		guardrailPtrs = append(guardrailPtrs, &guardrailResults[i])
-	}
-	prevGuardrailPtrs := make([]*goprotoevent.GuardrailResult, 0, len(previousGuardrailResults))
-	for i := range previousGuardrailResults {
-		prevGuardrailPtrs = append(prevGuardrailPtrs, &previousGuardrailResults[i])
 	}
 
 	// Compute carbon diff across all projects.
@@ -161,8 +147,8 @@ func buildCommentData(
 		PreviousSecurityPolicyResults:   prevSecurityPolicies,
 		TaggingPolicyResults:            allTagging,
 		PreviousTaggingPolicyResults:    allPrevTagging,
-		GuardrailResults:                guardrailPtrs,
-		PreviousGuardrailResults:        prevGuardrailPtrs,
+		GuardrailResults:                guardrailResults,
+		PreviousGuardrailResults:        previousGuardrailResults,
 	}
 }
 

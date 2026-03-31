@@ -13,7 +13,9 @@ import (
 	repoconfig "github.com/infracost/config"
 	gorat "github.com/infracost/go-proto/pkg/rat"
 	"github.com/infracost/proto/gen/go/infracost/parser/event"
+	"github.com/infracost/proto/gen/go/infracost/provider"
 	"github.com/infracost/vcs/pkg/vcs"
+	"github.com/infracost/vcs/pkg/vcs/comment"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -100,38 +102,45 @@ func parseRunParameters(raw dashboard.RunParameters) (*parsedRunParameters, erro
 	return parsed, nil
 }
 
-func (config *Config) Scan() error {
+// ScanResult holds the outcome of a scan, including whether policies or
+// guardrails require the PR to be blocked.
+type ScanResult struct {
+	BlockPR bool
+	Reasons []string
+}
+
+func (config *Config) Scan() (*ScanResult, error) {
 	ctx := context.Background()
 
 	if len(config.Auth.AuthenticationToken) == 0 {
-		return fmt.Errorf("authentication token is required: set INFRACOST_CLI_AUTHENTICATION_TOKEN")
+		return nil, fmt.Errorf("authentication token is required: set INFRACOST_CLI_AUTHENTICATION_TOKEN")
 	}
 
 	tokenSource, err := config.Auth.Token(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to retrieve access token: %w", err)
+		return nil, fmt.Errorf("failed to retrieve access token: %w", err)
 	}
 	httpClient := api.Client(ctx, tokenSource, config.OrgID)
 
 	dashboardClient := config.Dashboard.Client(httpClient)
-	rawRunParams, err := dashboardClient.RunParameters(ctx, "", "")
+	rawRunParams, err := dashboardClient.RunParameters(ctx, config.RepoURL, config.Branch)
 	if err != nil {
-		return fmt.Errorf("failed to fetch run parameters: %w", err)
+		return nil, fmt.Errorf("failed to fetch run parameters: %w", err)
 	}
 
 	runParams, err := parseRunParameters(rawRunParams)
 	if err != nil {
-		return fmt.Errorf("failed to parse run parameters: %w", err)
+		return nil, fmt.Errorf("failed to parse run parameters: %w", err)
 	}
 
 	token, err := tokenSource.Token()
 	if err != nil {
-		return fmt.Errorf("failed to retrieve access token: %w", err)
+		return nil, fmt.Errorf("failed to retrieve access token: %w", err)
 	}
 
 	baseResult, err := config.scanDirectory(ctx, config.BasePath, token.AccessToken, runParams, nil)
 	if err != nil {
-		return fmt.Errorf("failed to scan base path: %w", err)
+		return nil, fmt.Errorf("failed to scan base path: %w", err)
 	}
 
 	// Build previous resource addresses from base results so the head scan
@@ -147,7 +156,7 @@ func (config *Config) Scan() error {
 
 	headResult, err := config.scanDirectory(ctx, config.HeadPath, token.AccessToken, runParams, previousAddresses)
 	if err != nil {
-		return fmt.Errorf("failed to scan head path: %w", err)
+		return nil, fmt.Errorf("failed to scan head path: %w", err)
 	}
 
 	guardrailResults := pkgscanner.EvaluateGuardrails(runParams.Guardrails, baseResult.Projects, headResult.Projects)
@@ -162,19 +171,72 @@ func (config *Config) Scan() error {
 
 	vcsClient, err := config.VCSClient(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to create VCS client: %w", err)
+		return nil, fmt.Errorf("failed to create VCS client: %w", err)
 	}
 
 	body, err := vcsClient.GenerateComment(data)
 	if err != nil {
-		return fmt.Errorf("failed to generate comment: %w", err)
+		return nil, fmt.Errorf("failed to generate comment: %w", err)
 	}
 
 	if _, err := vcsClient.PostComment(ctx, body, vcs.BehaviorUpdate); err != nil {
-		return fmt.Errorf("failed to post comment: %w", err)
+		return nil, fmt.Errorf("failed to post comment: %w", err)
 	}
 
-	return nil
+	return checkBlockingViolations(data, runParams.Guardrails), nil
+}
+
+// checkBlockingViolations inspects the comment data for new guardrail or
+// policy violations that should block the PR.
+func checkBlockingViolations(data comment.Data, guardrails []*event.Guardrail) *ScanResult {
+	result := &ScanResult{}
+
+	// Build a set of guardrail IDs that only use total thresholds (no increase
+	// thresholds) and were already triggered in the base branch. Only these
+	// are eligible for suppression — increase thresholds measure the delta
+	// between base and head, so "already triggered in base" is not meaningful.
+	totalOnly := make(map[string]bool, len(guardrails))
+	for _, g := range guardrails {
+		if g.TotalThreshold != nil && g.IncreaseThreshold == nil && g.IncreasePercentThreshold == nil {
+			totalOnly[g.Id] = true
+		}
+	}
+
+	previouslyTriggered := make(map[string]bool, len(data.PreviousGuardrailResults))
+	for _, gr := range data.PreviousGuardrailResults {
+		if gr.Triggered && totalOnly[gr.GuardrailID] {
+			previouslyTriggered[gr.GuardrailID] = true
+		}
+	}
+
+	for _, gr := range data.GuardrailResults {
+		if gr.Triggered && gr.BlockPR && !previouslyTriggered[gr.GuardrailID] {
+			result.BlockPR = true
+			result.Reasons = append(result.Reasons, fmt.Sprintf("guardrail %q triggered", gr.GuardrailName))
+		}
+	}
+
+	// Build a set of policy slugs that were already failing in the base branch.
+	previouslyFailing := make(map[string]bool)
+	for _, policies := range [][]*provider.FinopsPolicyResult{data.PreviousFinOpsPolicyResults, data.PreviousSecurityPolicyResults} {
+		for _, p := range policies {
+			if len(p.FailingResources) > 0 {
+				previouslyFailing[p.PolicySlug] = true
+			}
+		}
+	}
+
+	// Check policies (FinOps + Security) for new blocking failures.
+	for _, policies := range [][]*provider.FinopsPolicyResult{data.FinOpsPolicyResults, data.SecurityPolicyResults} {
+		for _, p := range policies {
+			if p.BlockPullRequest && len(p.FailingResources) > 0 && !previouslyFailing[p.PolicySlug] {
+				result.BlockPR = true
+				result.Reasons = append(result.Reasons, fmt.Sprintf("policy %q has failing resources", p.PolicyName))
+			}
+		}
+	}
+
+	return result
 }
 
 func (config *Config) scanDirectory(ctx context.Context, dir string, accessToken string, runParams *parsedRunParameters, previousAddresses map[string][]string) (*DirectoryResult, error) {

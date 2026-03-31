@@ -35,6 +35,8 @@ func run() int {
 		}
 	}()
 
+	var scanResult *config.ScanResult
+
 	cmd := &cobra.Command{
 		Use:           "scanner",
 		Version:       version.Version,
@@ -52,7 +54,9 @@ func run() int {
 			}())
 
 			process.Process(cfg)
-			return cfg.Scan()
+			var err error
+			scanResult, err = cfg.Scan()
+			return err
 		},
 	}
 
@@ -78,6 +82,13 @@ func run() int {
 		client := cfg.Events.Client(api.Client(context.Background(), cfg.Auth.TokenFromCache(context.Background()), cfg.OrgID))
 		for _, diag := range diags.Critical().Unwrap() {
 			client.Push(context.Background(), "infracost-error", "error", diag.String())
+		}
+		return 1
+	}
+
+	if scanResult != nil && scanResult.BlockPR {
+		for _, reason := range scanResult.Reasons {
+			_, _ = fmt.Fprintf(os.Stderr, "Blocking: %s\n", reason)
 		}
 		return 1
 	}

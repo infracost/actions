@@ -123,7 +123,7 @@ runs:
         fi
 
         if [ -z "$BRANCH" ]; then
-          BRANCH="${{ github.event.pull_request.head.ref }}"
+          BRANCH="${{ github.event.pull_request.base.ref }}"
           if [ -z "$BRANCH" ]; then
             BRANCH="main"
           fi

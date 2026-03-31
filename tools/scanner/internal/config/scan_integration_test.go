@@ -95,7 +95,7 @@ func TestScan_BasicCostDiff(t *testing.T) {
 
 	data := setupVCSMocks(m)
 
-	if err := cfg.Scan(); err != nil {
+	if _, err := cfg.Scan(); err != nil {
 		t.Fatalf("Scan() returned error: %v", err)
 	}
 
@@ -131,7 +131,7 @@ func TestScan_NoChanges(t *testing.T) {
 
 	data := setupVCSMocks(m)
 
-	if err := cfg.Scan(); err != nil {
+	if _, err := cfg.Scan(); err != nil {
 		t.Fatalf("Scan() returned error: %v", err)
 	}
 
@@ -157,7 +157,7 @@ func TestScan_DashboardError(t *testing.T) {
 		RunParameters(mock.Anything, mock.Anything, mock.Anything).
 		Return(dashboard.RunParameters{}, errors.New("dashboard unavailable"))
 
-	err := cfg.Scan()
+	_, err := cfg.Scan()
 	if err == nil {
 		t.Fatal("expected error from Scan() when dashboard fails")
 	}
@@ -189,7 +189,8 @@ func TestScan_GuardrailTriggered(t *testing.T) {
 
 	data := setupVCSMocks(m)
 
-	if err := cfg.Scan(); err != nil {
+	result, err := cfg.Scan()
+	if err != nil {
 		t.Fatalf("Scan() returned error: %v", err)
 	}
 
@@ -203,6 +204,14 @@ func TestScan_GuardrailTriggered(t *testing.T) {
 	}
 	if !triggered {
 		t.Error("expected at least one triggered guardrail result")
+	}
+
+	// The blocking guardrail should cause the scan to block the PR.
+	if !result.BlockPR {
+		t.Error("expected BlockPR to be true")
+	}
+	if len(result.Reasons) == 0 {
+		t.Error("expected at least one blocking reason")
 	}
 }
 
@@ -233,13 +242,19 @@ func TestScan_GuardrailSuppressed(t *testing.T) {
 
 	data := setupVCSMocks(m)
 
-	if err := cfg.Scan(); err != nil {
+	result, err := cfg.Scan()
+	if err != nil {
 		t.Fatalf("Scan() returned error: %v", err)
 	}
 
 	// The guardrail should appear in PreviousGuardrailResults (already triggered in base).
 	if len(data.PreviousGuardrailResults) == 0 {
 		t.Error("expected guardrail in PreviousGuardrailResults (suppressed)")
+	}
+
+	// Suppressed guardrails should not block the PR.
+	if result.BlockPR {
+		t.Errorf("expected BlockPR to be false for suppressed guardrails, got reasons: %v", result.Reasons)
 	}
 }
 
@@ -276,7 +291,7 @@ func TestScan_FinOpsPolicy(t *testing.T) {
 
 	data := setupVCSMocks(m)
 
-	if err := cfg.Scan(); err != nil {
+	if _, err := cfg.Scan(); err != nil {
 		t.Fatalf("Scan() returned error: %v", err)
 	}
 
@@ -315,7 +330,7 @@ func TestScan_UsageDefaults(t *testing.T) {
 
 	data := setupVCSMocks(m)
 
-	if err := cfg.Scan(); err != nil {
+	if _, err := cfg.Scan(); err != nil {
 		t.Fatalf("Scan() returned error: %v", err)
 	}
 
@@ -337,7 +352,7 @@ func TestScan_SingleProjectFilter(t *testing.T) {
 
 	data := setupVCSMocks(m)
 
-	if err := cfg.Scan(); err != nil {
+	if _, err := cfg.Scan(); err != nil {
 		t.Fatalf("Scan() returned error: %v", err)
 	}
 
