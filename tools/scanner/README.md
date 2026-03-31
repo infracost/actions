@@ -6,7 +6,8 @@ The tool has no external runtime dependencies — scanning and diffing logic is 
 
 ## Commands
 
-- `scanner diff` — Scan base and head branches, compute a cost diff, post a PR comment, and upload results to the Infracost dashboard.
+- `scanner diff` — Scan base and head branches, compute a cost diff, post a PR comment, and upload results to the Infracost dashboard. Powers [`infracost/actions/diff`](../../diff).
+- `scanner scan` — Scan a single directory and upload baseline results to the Infracost dashboard. Powers [`infracost/actions/scan`](../../scan).
 - `scanner status` — Update the pull request status in the Infracost dashboard (OPEN, MERGED, CLOSED).
 
 ## Development
