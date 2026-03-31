@@ -48,10 +48,11 @@ runs:
       id: version
       shell: bash
       env:
+        GH_TOKEN: ${{ inputs.github-token }}
         VERSION: ${{ inputs.version }}
       run: |
         if [ "$VERSION" = "latest" ]; then
-          RELEASE=$(gh release list --repo "${{ github.repository }}" --limit 50 --json tagName --jq '[.[] | select(.tagName | startswith("scanner/v"))][0].tagName')
+          RELEASE=$(gh release list --repo "infracost/actions" --limit 50 --json tagName --jq '[.[] | select(.tagName | startswith("scanner/v"))][0].tagName')
           if [ -z "$RELEASE" ]; then
             echo "::error::No scanner release found"
             exit 1
@@ -79,7 +80,7 @@ runs:
         DEST="${RUNNER_TEMP}/infracost-scanner"
 
         gh release download "$TAG" \
-          --repo "${{ github.repository }}" \
+          --repo "infracost/actions" \
           --pattern "$ARCHIVE" \
           --dir "$RUNNER_TEMP"
 
