@@ -7,6 +7,7 @@ import (
 	"runtime/debug"
 
 	"github.com/infracost/actions/tools/scanner/internal/api"
+	"github.com/infracost/actions/tools/scanner/internal/api/dashboard"
 	"github.com/infracost/actions/tools/scanner/internal/api/events"
 	"github.com/infracost/actions/tools/scanner/internal/config"
 	"github.com/infracost/actions/tools/scanner/internal/version"
@@ -60,7 +61,30 @@ func run() int {
 		},
 	}
 
-	diags.Merge(process.PreProcess(cfg, cmd.Flags()))
+	statusCmd := &cobra.Command{
+		Use:   "status",
+		Short: "Update pull request status in the Infracost dashboard",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			events.RegisterMetadata("command", cmd.Name())
+
+			process.Process(cfg)
+
+			s, _ := cmd.Flags().GetString("status")
+			status := dashboard.PullRequestStatus(s)
+			switch status {
+			case dashboard.PullRequestStatusOpen, dashboard.PullRequestStatusMerged, dashboard.PullRequestStatusClosed:
+			default:
+				return fmt.Errorf("invalid status %q: must be OPEN, MERGED, or CLOSED", s)
+			}
+
+			return cfg.UpdatePullRequestStatus(status)
+		},
+	}
+	statusCmd.Flags().String("status", "", "Pull request status (OPEN, MERGED, CLOSED)")
+	_ = statusCmd.MarkFlagRequired("status")
+	cmd.AddCommand(statusCmd)
+
+	diags.Merge(process.PreProcess(cfg, cmd.PersistentFlags()))
 	if diags.Critical().Len() > 0 {
 		for _, diag := range diags.Critical().Unwrap() {
 			_, _ = fmt.Fprintf(os.Stderr, "%s\n", diag.FormatMessage())

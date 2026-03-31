@@ -44,6 +44,16 @@ func emptyRunParams() dashboard.RunParameters {
 	}
 }
 
+// setupDashboardAddRun configures the dashboard mock to accept AddRun and return a test URL.
+func setupDashboardAddRun(m *testingconfig.Mocks) {
+	m.Dashboard.EXPECT().
+		AddRun(mock.Anything, mock.Anything).
+		Return(dashboard.AddRunResult{
+			ID:       "test-run-id",
+			CloudURL: "https://dashboard.infracost.io/org/test-org/repos/test-repo-id/runs/test-run-id",
+		}, nil)
+}
+
 // setupVCSMocks configures the VCS mock to capture comment.Data and accept PostComment.
 func setupVCSMocks(m *testingconfig.Mocks) *comment.Data {
 	var captured comment.Data
@@ -93,6 +103,7 @@ func TestScan_BasicCostDiff(t *testing.T) {
 		RunParameters(mock.Anything, mock.Anything, mock.Anything).
 		Return(emptyRunParams(), nil)
 
+	setupDashboardAddRun(m)
 	data := setupVCSMocks(m)
 
 	if _, err := cfg.Scan(); err != nil {
@@ -129,6 +140,7 @@ func TestScan_NoChanges(t *testing.T) {
 		RunParameters(mock.Anything, mock.Anything, mock.Anything).
 		Return(emptyRunParams(), nil)
 
+	setupDashboardAddRun(m)
 	data := setupVCSMocks(m)
 
 	if _, err := cfg.Scan(); err != nil {
@@ -187,6 +199,7 @@ func TestScan_GuardrailTriggered(t *testing.T) {
 		RunParameters(mock.Anything, mock.Anything, mock.Anything).
 		Return(params, nil)
 
+	setupDashboardAddRun(m)
 	data := setupVCSMocks(m)
 
 	result, err := cfg.Scan()
@@ -240,6 +253,7 @@ func TestScan_GuardrailSuppressed(t *testing.T) {
 		RunParameters(mock.Anything, mock.Anything, mock.Anything).
 		Return(params, nil)
 
+	setupDashboardAddRun(m)
 	data := setupVCSMocks(m)
 
 	result, err := cfg.Scan()
@@ -289,6 +303,7 @@ func TestScan_FinOpsPolicy(t *testing.T) {
 		RunParameters(mock.Anything, mock.Anything, mock.Anything).
 		Return(params, nil)
 
+	setupDashboardAddRun(m)
 	data := setupVCSMocks(m)
 
 	if _, err := cfg.Scan(); err != nil {
@@ -328,6 +343,7 @@ func TestScan_UsageDefaults(t *testing.T) {
 		RunParameters(mock.Anything, mock.Anything, mock.Anything).
 		Return(params, nil)
 
+	setupDashboardAddRun(m)
 	data := setupVCSMocks(m)
 
 	if _, err := cfg.Scan(); err != nil {
@@ -350,6 +366,7 @@ func TestScan_SingleProjectFilter(t *testing.T) {
 		RunParameters(mock.Anything, mock.Anything, mock.Anything).
 		Return(emptyRunParams(), nil)
 
+	setupDashboardAddRun(m)
 	data := setupVCSMocks(m)
 
 	if _, err := cfg.Scan(); err != nil {
