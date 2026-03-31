@@ -9,9 +9,9 @@ import (
 	"github.com/infracost/vcs/pkg/vcs/comment"
 )
 
-// buildCommentData converts base and head scan results into the comment.Data
+// BuildCommentData converts base and head scan results into the comment.Data
 // format required by the VCS library to generate a PR comment.
-func buildCommentData(
+func BuildCommentData(
 	baseResult *DirectoryResult,
 	headResult *DirectoryResult,
 	guardrailResults []goprotoevent.GuardrailResult,

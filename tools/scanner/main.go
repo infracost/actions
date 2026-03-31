@@ -7,8 +7,8 @@ import (
 	"runtime/debug"
 
 	"github.com/infracost/actions/tools/scanner/internal/api"
-	"github.com/infracost/actions/tools/scanner/internal/api/dashboard"
 	"github.com/infracost/actions/tools/scanner/internal/api/events"
+	"github.com/infracost/actions/tools/scanner/internal/commands"
 	"github.com/infracost/actions/tools/scanner/internal/config"
 	"github.com/infracost/actions/tools/scanner/internal/version"
 	"github.com/infracost/cli/pkg/config/process"
@@ -36,15 +36,11 @@ func run() int {
 		}
 	}()
 
-	var scanResult *config.ScanResult
-
 	cmd := &cobra.Command{
-		Use:           "scanner",
-		Version:       version.Version,
-		Short:         "Cloud cost estimates for IaC in your CI pipeline",
-		SilenceUsage:  true,
-		SilenceErrors: true,
-		RunE: func(cmd *cobra.Command, _ []string) error {
+		Use:     "scanner",
+		Version: version.Version,
+		Short:   "Cloud cost estimates for IaC in your CI pipeline",
+		PersistentPreRun: func(cmd *cobra.Command, _ []string) {
 			events.RegisterMetadata("command", cmd.Name())
 			events.RegisterMetadata("flags", func() []string {
 				var flags []string
@@ -55,34 +51,14 @@ func run() int {
 			}())
 
 			process.Process(cfg)
-			var err error
-			scanResult, err = cfg.Scan()
-			return err
 		},
+		SilenceUsage:  true,
+		SilenceErrors: true,
 	}
 
-	statusCmd := &cobra.Command{
-		Use:   "status",
-		Short: "Update pull request status in the Infracost dashboard",
-		RunE: func(cmd *cobra.Command, _ []string) error {
-			events.RegisterMetadata("command", cmd.Name())
-
-			process.Process(cfg)
-
-			s, _ := cmd.Flags().GetString("status")
-			status := dashboard.PullRequestStatus(s)
-			switch status {
-			case dashboard.PullRequestStatusOpen, dashboard.PullRequestStatusMerged, dashboard.PullRequestStatusClosed:
-			default:
-				return fmt.Errorf("invalid status %q: must be OPEN, MERGED, or CLOSED", s)
-			}
-
-			return cfg.UpdatePullRequestStatus(status)
-		},
-	}
-	statusCmd.Flags().String("status", "", "Pull request status (OPEN, MERGED, CLOSED)")
-	_ = statusCmd.MarkFlagRequired("status")
-	cmd.AddCommand(statusCmd)
+	var results commands.ScanResult
+	cmd.AddCommand(commands.Diff(cfg, &results))
+	cmd.AddCommand(commands.Status(cfg))
 
 	diags.Merge(process.PreProcess(cfg, cmd.PersistentFlags()))
 	if diags.Critical().Len() > 0 {
@@ -110,8 +86,8 @@ func run() int {
 		return 1
 	}
 
-	if scanResult != nil && scanResult.BlockPR {
-		for _, reason := range scanResult.Reasons {
+	if results.BlockPR {
+		for _, reason := range results.Reasons {
 			_, _ = fmt.Fprintf(os.Stderr, "Blocking: %s\n", reason)
 		}
 		return 1

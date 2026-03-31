@@ -1,4 +1,4 @@
-package config_test
+package commands
 
 import (
 	"encoding/json"
@@ -93,10 +93,18 @@ func ratProto(num int64) *rational.Rat {
 	}
 }
 
-func TestScan_BasicCostDiff(t *testing.T) {
+func runDiff(t *testing.T, cfg *config.Config, m *testingconfig.Mocks, basePath, headPath string) (*ScanResult, error) {
+	t.Helper()
+	var results ScanResult
+	err := diff(cfg, &diffArgs{
+		basePath: basePath,
+		headPath: headPath,
+	}, m.VCS, &results)
+	return &results, err
+}
+
+func TestDiff_BasicCostDiff(t *testing.T) {
 	cfg, m := testingconfig.Config(t)
-	cfg.BasePath = filepath.Join(testdataDir(), "basic", "base")
-	cfg.HeadPath = filepath.Join(testdataDir(), "basic", "head")
 	processPlugins(&cfg)
 
 	m.Dashboard.EXPECT().
@@ -106,8 +114,9 @@ func TestScan_BasicCostDiff(t *testing.T) {
 	setupDashboardAddRun(m)
 	data := setupVCSMocks(m)
 
-	if _, err := cfg.Scan(); err != nil {
-		t.Fatalf("Scan() returned error: %v", err)
+	_, err := runDiff(t, &cfg, m, filepath.Join(testdataDir(), "basic", "base"), filepath.Join(testdataDir(), "basic", "head"))
+	if err != nil {
+		t.Fatalf("diff() returned error: %v", err)
 	}
 
 	if len(data.Projects) == 0 {
@@ -116,7 +125,6 @@ func TestScan_BasicCostDiff(t *testing.T) {
 
 	project := data.Projects[0]
 
-	// Head has two instances (web + api), base has one (web).
 	if project.PastTotalMonthlyCost == nil || project.PastTotalMonthlyCost.IsZero() {
 		t.Error("expected non-zero past total monthly cost")
 	}
@@ -124,16 +132,13 @@ func TestScan_BasicCostDiff(t *testing.T) {
 		t.Error("expected non-zero total monthly cost")
 	}
 
-	// The diff breakdown should show a cost increase (new api instance).
 	if project.DiffBreakdown == nil || project.DiffBreakdown.TotalMonthlyCost == nil || project.DiffBreakdown.TotalMonthlyCost.IsZero() {
 		t.Error("expected non-zero diff breakdown cost")
 	}
 }
 
-func TestScan_NoChanges(t *testing.T) {
+func TestDiff_NoChanges(t *testing.T) {
 	cfg, m := testingconfig.Config(t)
-	cfg.BasePath = filepath.Join(testdataDir(), "no-changes", "base")
-	cfg.HeadPath = filepath.Join(testdataDir(), "no-changes", "head")
 	processPlugins(&cfg)
 
 	m.Dashboard.EXPECT().
@@ -143,8 +148,9 @@ func TestScan_NoChanges(t *testing.T) {
 	setupDashboardAddRun(m)
 	data := setupVCSMocks(m)
 
-	if _, err := cfg.Scan(); err != nil {
-		t.Fatalf("Scan() returned error: %v", err)
+	_, err := runDiff(t, &cfg, m, filepath.Join(testdataDir(), "no-changes", "base"), filepath.Join(testdataDir(), "no-changes", "head"))
+	if err != nil {
+		t.Fatalf("diff() returned error: %v", err)
 	}
 
 	if len(data.Projects) == 0 {
@@ -153,43 +159,37 @@ func TestScan_NoChanges(t *testing.T) {
 
 	project := data.Projects[0]
 
-	// Same base and head — diff breakdown should be nil or zero.
 	if project.DiffBreakdown != nil && project.DiffBreakdown.TotalMonthlyCost != nil && !project.DiffBreakdown.TotalMonthlyCost.IsZero() {
 		t.Errorf("expected zero diff, got %s", project.DiffBreakdown.TotalMonthlyCost.String())
 	}
 }
 
-func TestScan_DashboardError(t *testing.T) {
+func TestDiff_DashboardError(t *testing.T) {
 	cfg, m := testingconfig.Config(t)
-	cfg.BasePath = filepath.Join(testdataDir(), "basic", "base")
-	cfg.HeadPath = filepath.Join(testdataDir(), "basic", "head")
 	processPlugins(&cfg)
 
 	m.Dashboard.EXPECT().
 		RunParameters(mock.Anything, mock.Anything, mock.Anything).
 		Return(dashboard.RunParameters{}, errors.New("dashboard unavailable"))
 
-	_, err := cfg.Scan()
+	_, err := runDiff(t, &cfg, m, filepath.Join(testdataDir(), "basic", "base"), filepath.Join(testdataDir(), "basic", "head"))
 	if err == nil {
-		t.Fatal("expected error from Scan() when dashboard fails")
+		t.Fatal("expected error from diff() when dashboard fails")
 	}
 }
 
-func TestScan_GuardrailTriggered(t *testing.T) {
+func TestDiff_GuardrailTriggered(t *testing.T) {
 	cfg, m := testingconfig.Config(t)
-	cfg.BasePath = filepath.Join(testdataDir(), "basic", "base")
-	cfg.HeadPath = filepath.Join(testdataDir(), "basic", "head")
 	processPlugins(&cfg)
 
-	// Guardrail with a $1 increase threshold — the new instance will trigger it.
 	guardrail := mustProtoJSON(t, &event.Guardrail{
-		Id:                 "gr-1",
-		Name:               "Cost increase limit",
-		Scope:              event.Guardrail_REPO,
-		IncreaseThreshold:  ratProto(1),
-		PrComment:          true,
-		BlockPr:            true,
-		Message:            "Cost increase exceeds threshold",
+		Id:                "gr-1",
+		Name:              "Cost increase limit",
+		Scope:             event.Guardrail_REPO,
+		IncreaseThreshold: ratProto(1),
+		PrComment:         true,
+		BlockPr:           true,
+		Message:           "Cost increase exceeds threshold",
 	})
 
 	params := emptyRunParams()
@@ -202,12 +202,11 @@ func TestScan_GuardrailTriggered(t *testing.T) {
 	setupDashboardAddRun(m)
 	data := setupVCSMocks(m)
 
-	result, err := cfg.Scan()
+	result, err := runDiff(t, &cfg, m, filepath.Join(testdataDir(), "basic", "base"), filepath.Join(testdataDir(), "basic", "head"))
 	if err != nil {
-		t.Fatalf("Scan() returned error: %v", err)
+		t.Fatalf("diff() returned error: %v", err)
 	}
 
-	// At least one guardrail result should exist and be triggered.
 	triggered := false
 	for _, gr := range data.GuardrailResults {
 		if gr.Triggered {
@@ -219,7 +218,6 @@ func TestScan_GuardrailTriggered(t *testing.T) {
 		t.Error("expected at least one triggered guardrail result")
 	}
 
-	// The blocking guardrail should cause the scan to block the PR.
 	if !result.BlockPR {
 		t.Error("expected BlockPR to be true")
 	}
@@ -228,15 +226,10 @@ func TestScan_GuardrailTriggered(t *testing.T) {
 	}
 }
 
-func TestScan_GuardrailSuppressed(t *testing.T) {
+func TestDiff_GuardrailSuppressed(t *testing.T) {
 	cfg, m := testingconfig.Config(t)
-	// Use no-changes fixture: base and head are identical, so any guardrail
-	// triggered in base should also appear in PreviousGuardrailResults.
-	cfg.BasePath = filepath.Join(testdataDir(), "no-changes", "base")
-	cfg.HeadPath = filepath.Join(testdataDir(), "no-changes", "head")
 	processPlugins(&cfg)
 
-	// Guardrail with $0 total threshold — both base and head exceed it.
 	guardrail := mustProtoJSON(t, &event.Guardrail{
 		Id:             "gr-suppress",
 		Name:           "Total cost limit",
@@ -256,26 +249,22 @@ func TestScan_GuardrailSuppressed(t *testing.T) {
 	setupDashboardAddRun(m)
 	data := setupVCSMocks(m)
 
-	result, err := cfg.Scan()
+	result, err := runDiff(t, &cfg, m, filepath.Join(testdataDir(), "no-changes", "base"), filepath.Join(testdataDir(), "no-changes", "head"))
 	if err != nil {
-		t.Fatalf("Scan() returned error: %v", err)
+		t.Fatalf("diff() returned error: %v", err)
 	}
 
-	// The guardrail should appear in PreviousGuardrailResults (already triggered in base).
 	if len(data.PreviousGuardrailResults) == 0 {
 		t.Error("expected guardrail in PreviousGuardrailResults (suppressed)")
 	}
 
-	// Suppressed guardrails should not block the PR.
 	if result.BlockPR {
 		t.Errorf("expected BlockPR to be false for suppressed guardrails, got reasons: %v", result.Reasons)
 	}
 }
 
-func TestScan_FinOpsPolicy(t *testing.T) {
+func TestDiff_FinOpsPolicy(t *testing.T) {
 	cfg, m := testingconfig.Config(t)
-	cfg.BasePath = filepath.Join(testdataDir(), "basic", "base")
-	cfg.HeadPath = filepath.Join(testdataDir(), "basic", "head")
 	processPlugins(&cfg)
 
 	finopsPolicy := mustProtoJSON(t, &event.FinopsPolicySettings{
@@ -306,20 +295,18 @@ func TestScan_FinOpsPolicy(t *testing.T) {
 	setupDashboardAddRun(m)
 	data := setupVCSMocks(m)
 
-	if _, err := cfg.Scan(); err != nil {
-		t.Fatalf("Scan() returned error: %v", err)
+	_, err := runDiff(t, &cfg, m, filepath.Join(testdataDir(), "basic", "base"), filepath.Join(testdataDir(), "basic", "head"))
+	if err != nil {
+		t.Fatalf("diff() returned error: %v", err)
 	}
 
-	// Verify the scan completed with policies configured and projects populated.
 	if len(data.Projects) == 0 {
 		t.Error("expected at least one project")
 	}
 }
 
-func TestScan_UsageDefaults(t *testing.T) {
+func TestDiff_UsageDefaults(t *testing.T) {
 	cfg, m := testingconfig.Config(t)
-	cfg.BasePath = filepath.Join(testdataDir(), "basic", "base")
-	cfg.HeadPath = filepath.Join(testdataDir(), "basic", "head")
 	processPlugins(&cfg)
 
 	usageDefaults := mustProtoJSON(t, &event.UsageDefaults{
@@ -346,8 +333,9 @@ func TestScan_UsageDefaults(t *testing.T) {
 	setupDashboardAddRun(m)
 	data := setupVCSMocks(m)
 
-	if _, err := cfg.Scan(); err != nil {
-		t.Fatalf("Scan() returned error: %v", err)
+	_, err := runDiff(t, &cfg, m, filepath.Join(testdataDir(), "basic", "base"), filepath.Join(testdataDir(), "basic", "head"))
+	if err != nil {
+		t.Fatalf("diff() returned error: %v", err)
 	}
 
 	if !data.UsageAPIEnabled {
@@ -355,10 +343,8 @@ func TestScan_UsageDefaults(t *testing.T) {
 	}
 }
 
-func TestScan_SingleProjectFilter(t *testing.T) {
+func TestDiff_SingleProjectFilter(t *testing.T) {
 	cfg, m := testingconfig.Config(t)
-	cfg.BasePath = filepath.Join(testdataDir(), "multi-project", "base")
-	cfg.HeadPath = filepath.Join(testdataDir(), "multi-project", "head")
 	cfg.Project = "web"
 	processPlugins(&cfg)
 
@@ -369,8 +355,9 @@ func TestScan_SingleProjectFilter(t *testing.T) {
 	setupDashboardAddRun(m)
 	data := setupVCSMocks(m)
 
-	if _, err := cfg.Scan(); err != nil {
-		t.Fatalf("Scan() returned error: %v", err)
+	_, err := runDiff(t, &cfg, m, filepath.Join(testdataDir(), "multi-project", "base"), filepath.Join(testdataDir(), "multi-project", "head"))
+	if err != nil {
+		t.Fatalf("diff() returned error: %v", err)
 	}
 
 	if len(data.Projects) != 1 {
