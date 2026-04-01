@@ -38,6 +38,72 @@ func (_m *MockClient) EXPECT() *MockClient_Expecter {
 	return &MockClient_Expecter{mock: &_m.Mock}
 }
 
+// AddRun provides a mock function for the type MockClient
+func (_mock *MockClient) AddRun(ctx context.Context, input dashboard.RunInput) (dashboard.AddRunResult, error) {
+	ret := _mock.Called(ctx, input)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AddRun")
+	}
+
+	var r0 dashboard.AddRunResult
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, dashboard.RunInput) (dashboard.AddRunResult, error)); ok {
+		return returnFunc(ctx, input)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, dashboard.RunInput) dashboard.AddRunResult); ok {
+		r0 = returnFunc(ctx, input)
+	} else {
+		r0 = ret.Get(0).(dashboard.AddRunResult)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, dashboard.RunInput) error); ok {
+		r1 = returnFunc(ctx, input)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClient_AddRun_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddRun'
+type MockClient_AddRun_Call struct {
+	*mock.Call
+}
+
+// AddRun is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input dashboard.RunInput
+func (_e *MockClient_Expecter) AddRun(ctx interface{}, input interface{}) *MockClient_AddRun_Call {
+	return &MockClient_AddRun_Call{Call: _e.mock.On("AddRun", ctx, input)}
+}
+
+func (_c *MockClient_AddRun_Call) Run(run func(ctx context.Context, input dashboard.RunInput)) *MockClient_AddRun_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 dashboard.RunInput
+		if args[1] != nil {
+			arg1 = args[1].(dashboard.RunInput)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockClient_AddRun_Call) Return(addRunResult dashboard.AddRunResult, err error) *MockClient_AddRun_Call {
+	_c.Call.Return(addRunResult, err)
+	return _c
+}
+
+func (_c *MockClient_AddRun_Call) RunAndReturn(run func(ctx context.Context, input dashboard.RunInput) (dashboard.AddRunResult, error)) *MockClient_AddRun_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RunParameters provides a mock function for the type MockClient
 func (_mock *MockClient) RunParameters(ctx context.Context, repoURL string, branchName string) (dashboard.RunParameters, error) {
 	ret := _mock.Called(ctx, repoURL, branchName)
@@ -106,6 +172,69 @@ func (_c *MockClient_RunParameters_Call) Return(runParameters dashboard.RunParam
 }
 
 func (_c *MockClient_RunParameters_Call) RunAndReturn(run func(ctx context.Context, repoURL string, branchName string) (dashboard.RunParameters, error)) *MockClient_RunParameters_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdatePullRequestStatus provides a mock function for the type MockClient
+func (_mock *MockClient) UpdatePullRequestStatus(ctx context.Context, prURL string, status dashboard.PullRequestStatus) error {
+	ret := _mock.Called(ctx, prURL, status)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdatePullRequestStatus")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, dashboard.PullRequestStatus) error); ok {
+		r0 = returnFunc(ctx, prURL, status)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockClient_UpdatePullRequestStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdatePullRequestStatus'
+type MockClient_UpdatePullRequestStatus_Call struct {
+	*mock.Call
+}
+
+// UpdatePullRequestStatus is a helper method to define mock.On call
+//   - ctx context.Context
+//   - prURL string
+//   - status dashboard.PullRequestStatus
+func (_e *MockClient_Expecter) UpdatePullRequestStatus(ctx interface{}, prURL interface{}, status interface{}) *MockClient_UpdatePullRequestStatus_Call {
+	return &MockClient_UpdatePullRequestStatus_Call{Call: _e.mock.On("UpdatePullRequestStatus", ctx, prURL, status)}
+}
+
+func (_c *MockClient_UpdatePullRequestStatus_Call) Run(run func(ctx context.Context, prURL string, status dashboard.PullRequestStatus)) *MockClient_UpdatePullRequestStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 dashboard.PullRequestStatus
+		if args[2] != nil {
+			arg2 = args[2].(dashboard.PullRequestStatus)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockClient_UpdatePullRequestStatus_Call) Return(err error) *MockClient_UpdatePullRequestStatus_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockClient_UpdatePullRequestStatus_Call) RunAndReturn(run func(ctx context.Context, prURL string, status dashboard.PullRequestStatus) error) *MockClient_UpdatePullRequestStatus_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/infracost/actions/tools/scanner/internal/api"
 	"github.com/infracost/actions/tools/scanner/internal/api/dashboard"
 	"github.com/infracost/actions/tools/scanner/internal/api/events"
 	"github.com/infracost/cli/pkg/auth"
@@ -37,6 +38,10 @@ type Config struct {
 
 	// Branch is the branch name used for policy filtering. Applied to both base and head scans.
 	Branch string `flag:"branch" usage:"Branch name used for policy filtering" default:"main"`
+
+	// EnableDashboard controls whether scan results are uploaded to the
+	// Infracost dashboard via the addRun mutation. Defaults to true.
+	EnableDashboard bool `flag:"enable-dashboard" usage:"Upload scan results to the Infracost dashboard" default:"true"`
 
 	// VCS provider configuration.
 	VCSProvider string `flag:"vcs-provider" usage:"VCS provider to use for posting comments (github)" default:"github"`
@@ -71,6 +76,37 @@ type Config struct {
 	Plugins plugins.Config
 }
 
+// PullRequestURL constructs the full pull request URL from RepoURL and PRNumber.
+func (config *Config) PullRequestURL() string {
+	if config.RepoURL == "" || config.PRNumber == 0 {
+		return ""
+	}
+	return fmt.Sprintf("%s/pull/%d", config.RepoURL, config.PRNumber)
+}
+
+// UpdatePullRequestStatus updates the pull request status in the dashboard.
+func (config *Config) UpdatePullRequestStatus(status dashboard.PullRequestStatus) error {
+	ctx := context.Background()
+
+	if len(config.Auth.AuthenticationToken) == 0 {
+		return fmt.Errorf("authentication token is required: set INFRACOST_CLI_AUTHENTICATION_TOKEN")
+	}
+
+	prURL := config.PullRequestURL()
+	if prURL == "" {
+		return fmt.Errorf("cannot determine pull request URL: repo-url and pr-number are required")
+	}
+
+	tokenSource, err := config.Auth.Token(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve access token: %w", err)
+	}
+
+	httpClient := api.Client(ctx, tokenSource, config.OrgID)
+	dashboardClient := config.Dashboard.Client(httpClient)
+	return dashboardClient.UpdatePullRequestStatus(ctx, prURL, status)
+}
+
 // VCSClient constructs the appropriate VCS provider based on the configured
 // VCSProvider flag. If VCSClientFn is set, it is used instead.
 func (config *Config) VCSClient(ctx context.Context) (vcs.VCS, error) {
@@ -88,7 +124,7 @@ func (config *Config) VCSClient(ctx context.Context) (vcs.VCS, error) {
 
 func (config *Config) Process() {
 	events.RegisterMetadata("cloudEnabled", os.Getenv("INFRACOST_ENABLE_CLOUD") == "true")
-	events.RegisterMetadata("dashboardEnabled", os.Getenv("INFRACOST_ENABLE_DASHBOARD") == "true")
+	events.RegisterMetadata("dashboardEnabled", config.EnableDashboard)
 	events.RegisterMetadata("environment", config.Environment.String())
 	events.RegisterMetadata("isDefaultPricingApiEndpoint", config.PricingEndpoint == "https://pricing.api.infracost.io")
 }

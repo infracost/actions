@@ -169,6 +169,18 @@ func (config *Config) Scan() (*ScanResult, error) {
 
 	data := buildCommentData(baseResult, headResult, guardrailResults, previousGuardrailResults, runParams.FinopsPolicies, usageAPIEnabled, headResult.Currency, config.RepoURL, config.CommitSHA, config.Branch, runParams.OrganizationSlug, runParams.RepositoryID)
 
+	// Upload run results to the dashboard and set the cloud URL in the comment.
+	// TODO: on failure, post the comment without the cloud URL and include a
+	// message explaining that this run could not be uploaded to the dashboard.
+	if config.EnableDashboard {
+		runInput := buildRunInput(baseResult, headResult, guardrailResults, true, headResult.Currency, config.RepoURL, config.PullRequestURL(), config.CommitSHA, config.Branch)
+		addRunResult, err := dashboardClient.AddRun(ctx, runInput)
+		if err != nil {
+			return nil, fmt.Errorf("failed to upload run to dashboard: %w", err)
+		}
+		data.CloudURL = addRunResult.CloudURL
+	}
+
 	vcsClient, err := config.VCSClient(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create VCS client: %w", err)

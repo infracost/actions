@@ -8,28 +8,37 @@ We recommend using the [Infracost GitHub App](https://www.infracost.io/docs/inte
 
 ### [`scan`](scan/)
 
-The recommended action when using GitHub Actions. Scans two checkouts of your infrastructure code (base branch and PR branch), calculates a cost diff, and posts a PR comment — all in a single step.
+The recommended action when using GitHub Actions. Scans two checkouts of your infrastructure code (base branch and PR branch), calculates a cost diff, posts a PR comment, and manages PR status in the Infracost dashboard — all in a single step.
 
 ```yaml
+on:
+  pull_request:
+    types: [opened, synchronize, closed, reopened]
+
 permissions:
   contents: read
   pull-requests: write
 
-steps:
-  - uses: actions/checkout@v4
-    with:
-      path: head
+jobs:
+  infracost:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        if: github.event.action != 'closed'
+        with:
+          path: head
 
-  - uses: actions/checkout@v4
-    with:
-      ref: ${{ github.event.pull_request.base.ref }}
-      path: base
+      - uses: actions/checkout@v4
+        if: github.event.action != 'closed'
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          path: base
 
-  - uses: infracost/actions/scan@v4
-    with:
-      api-key: ${{ secrets.INFRACOST_API_KEY }}
-      base-path: base
-      head-path: head
+      - uses: infracost/actions/scan@v4
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+          base-path: base
+          head-path: head
 ```
 
 See the [`scan` README](scan/README.md) for the full list of inputs.
