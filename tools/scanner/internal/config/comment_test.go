@@ -104,7 +104,7 @@ func TestConvertCostComponent(t *testing.T) {
 			wantQty:         "1",
 		},
 		{
-			name:       "usage based flag preserved",
+			name: "usage based flag preserved",
 			component: &provider.CostComponent{
 				Name:       "Requests",
 				Unit:       "requests",
@@ -158,10 +158,10 @@ func TestConvertCostComponent(t *testing.T) {
 
 func TestBuildCostBreakdown(t *testing.T) {
 	tests := []struct {
-		name           string
-		resources      []*provider.Resource
-		wantTotal      string
-		wantResources  int
+		name          string
+		resources     []*provider.Resource
+		wantTotal     string
+		wantResources int
 	}{
 		{
 			name:          "nil resources",
@@ -497,7 +497,7 @@ func TestBuildCommentData(t *testing.T) {
 		}
 		base := &DirectoryResult{}
 
-		data := buildCommentData(base, head, nil, nil, nil, false, "USD", "", "", "main", "", "")
+		data := BuildCommentData(base, head, nil, nil, nil, false, "USD", "", "", "main", "", "")
 
 		if len(data.Projects) != 1 {
 			t.Fatalf("expected 1 project, got %d", len(data.Projects))
@@ -531,7 +531,7 @@ func TestBuildCommentData(t *testing.T) {
 			TotalMonthlyCost: rat.New(50),
 		}
 
-		data := buildCommentData(base, head, nil, nil, nil, false, "USD", "", "", "main", "", "")
+		data := BuildCommentData(base, head, nil, nil, nil, false, "USD", "", "", "main", "", "")
 
 		if len(data.Projects) != 1 {
 			t.Fatalf("expected 1 project, got %d", len(data.Projects))
@@ -592,7 +592,7 @@ func TestBuildCommentData(t *testing.T) {
 			TotalMonthlyCost: rat.New(100),
 		}
 
-		data := buildCommentData(base, head, nil, nil, nil, false, "USD", "", "", "main", "", "")
+		data := BuildCommentData(base, head, nil, nil, nil, false, "USD", "", "", "main", "", "")
 
 		if len(data.Projects) != 1 {
 			t.Fatalf("expected 1 project, got %d", len(data.Projects))
@@ -611,7 +611,7 @@ func TestBuildCommentData(t *testing.T) {
 		head := &DirectoryResult{EstimatedUsageCounts: map[string]int{"a": 1}}
 		base := &DirectoryResult{}
 
-		data := buildCommentData(base, head, nil, nil, nil, false, "EUR", "https://github.com/org/repo", "abc123", "develop", "", "")
+		data := BuildCommentData(base, head, nil, nil, nil, false, "EUR", "https://github.com/org/repo", "abc123", "develop", "", "")
 
 		if data.Currency != "EUR" {
 			t.Errorf("Currency = %q, want EUR", data.Currency)
@@ -655,7 +655,7 @@ func TestBuildCommentData(t *testing.T) {
 			},
 		}
 
-		data := buildCommentData(base, head, nil, nil, nil, false, "USD", "", "", "main", "", "")
+		data := BuildCommentData(base, head, nil, nil, nil, false, "USD", "", "", "main", "", "")
 
 		if len(data.FinOpsPolicyResults) != 2 {
 			t.Errorf("expected 2 FinOpsPolicyResults, got %d", len(data.FinOpsPolicyResults))
@@ -700,7 +700,7 @@ func TestBuildCommentData(t *testing.T) {
 		}
 		base := &DirectoryResult{}
 
-		data := buildCommentData(base, head, nil, nil, nil, false, "USD", "", "", "main", "", "")
+		data := BuildCommentData(base, head, nil, nil, nil, false, "USD", "", "", "main", "", "")
 
 		pr := data.Projects[0]
 		if pr.TotalMonthlyUsageCost == nil {
@@ -769,7 +769,7 @@ func TestBuildCommentData(t *testing.T) {
 			},
 		}
 
-		data := buildCommentData(base, head, nil, nil, nil, false, "USD", "", "", "main", "", "")
+		data := BuildCommentData(base, head, nil, nil, nil, false, "USD", "", "", "main", "", "")
 
 		if data.DiffTotalMonthlyCarbonGramsCo2e == nil {
 			t.Fatal("expected DiffTotalMonthlyCarbonGramsCo2e to be set")
@@ -800,7 +800,7 @@ func TestBuildCommentData(t *testing.T) {
 		}
 		base := &DirectoryResult{}
 
-		data := buildCommentData(base, head, nil, nil, nil, false, "USD", "", "", "main", "", "")
+		data := BuildCommentData(base, head, nil, nil, nil, false, "USD", "", "", "main", "", "")
 
 		// No environmental metrics on any component, so carbon should still be computed
 		// (it'll be zero for head, zero for base). The diff is only nil when neither side
@@ -825,7 +825,7 @@ func TestBuildCommentData(t *testing.T) {
 			{GuardrailID: "g2", Triggered: false},
 		}
 
-		data := buildCommentData(base, head, guardrails, nil, nil, false, "USD", "", "", "main", "", "")
+		data := BuildCommentData(base, head, guardrails, nil, nil, false, "USD", "", "", "main", "", "")
 
 		if len(data.GuardrailResults) != 2 {
 			t.Fatalf("expected 2 GuardrailResults, got %d", len(data.GuardrailResults))

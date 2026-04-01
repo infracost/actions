@@ -1,7 +1,6 @@
 package testing
 
 import (
-	"context"
 	"net/http"
 	"os"
 	"testing"
@@ -16,7 +15,6 @@ import (
 	"github.com/infracost/cli/pkg/environment"
 	"github.com/infracost/cli/pkg/logging"
 	"github.com/infracost/cli/pkg/plugins"
-	"github.com/infracost/vcs/pkg/vcs"
 	"github.com/rs/zerolog"
 )
 
@@ -79,9 +77,6 @@ func Config(t *testing.T) (config.Config, *Mocks) {
 		},
 		Logging: logging.Config{
 			WriteLevel: zerolog.TraceLevel.String(),
-		},
-		VCSClientFn: func(_ context.Context) (vcs.VCS, error) {
-			return m.VCS, nil
 		},
 	}
 	cfg.Logging.ForTest(t)

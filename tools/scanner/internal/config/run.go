@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/infracost/actions/tools/scanner/internal/api/dashboard"
@@ -12,28 +13,84 @@ import (
 	"github.com/infracost/proto/gen/go/infracost/provider"
 )
 
-// buildRunInput converts scan results into the dashboard addRun mutation input.
-func buildRunInput(
-	baseResult *DirectoryResult,
-	headResult *DirectoryResult,
-	guardrailResults []goprotoevent.GuardrailResult,
-	commentPosted bool,
-	currency string,
-	repoURL string,
-	prURL string,
-	commitSHA string,
-	branch string,
-) dashboard.RunInput {
-	projectResults := make([]dashboard.ProjectResultInput, 0, len(headResult.Projects))
+// RunInputOptions contains the parameters needed to build an addRun mutation input.
+type RunInputOptions struct {
+	BaseResult       *DirectoryResult
+	HeadResult       *DirectoryResult
+	GuardrailResults []goprotoevent.GuardrailResult
+	CommentPosted    bool
+	Currency         string
 
-	// Match projects by name between base and head (same logic as buildCommentData).
-	baseByName := make(map[string]*pkgscanner.ProjectResult, len(baseResult.Projects))
-	for i := range baseResult.Projects {
-		baseByName[baseResult.Projects[i].Name] = &baseResult.Projects[i]
+	// Command identifies the type of run: "comment" for diff/PR runs,
+	// "upload" for baseline scans.
+	Command string
+
+	// VCS metadata — used by the dashboard to create repo, branch, and PR records.
+	// See the README for the full addRun metadata reference.
+	RepoURL    string
+	PRNumber   int
+	CommitSHA  string
+	Branch     string
+	BaseBranch string
+}
+
+// runMetadata is the top-level metadata sent with the addRun mutation.
+// The dashboard reads specific fields from this to create VCS records,
+// store commit info, and control run behavior.
+type runMetadata struct {
+	// Run context
+	Command    string `json:"command"`
+	Version    string `json:"version"`
+	CIPlatform string `json:"ciPlatform"`
+
+	// VCS provider
+	VCSProvider string `json:"vcsProvider"`
+
+	// Repository
+	VCSRepositoryURL string `json:"vcsRepositoryUrl"`
+
+	// Branch
+	VCSBranch     string `json:"vcsBranch"`
+	VCSBaseBranch string `json:"vcsBaseBranch,omitempty"`
+
+	// Commit
+	VCSCommitSHA string `json:"vcsCommitSha"`
+
+	// Pull request (only for diff/comment runs)
+	VCSPullRequestURL string `json:"vcsPullRequestUrl,omitempty"`
+	VCSPullRequestID  string `json:"vcsPullRequestId,omitempty"`
+
+	// Dashboard
+	DashboardEnabled bool `json:"dashboardEnabled"`
+
+	// Nested repo metadata for backwards compatibility — the dashboard
+	// merges this into combinedMetadata alongside top-level fields.
+	RepoMetadata repoMetadata `json:"repoMetadata"`
+}
+
+// repoMetadata is the nested metadata the dashboard merges with top-level fields.
+type repoMetadata struct {
+	VCSRepositoryURL  string `json:"vcsRepositoryUrl"`
+	VCSBranch         string `json:"vcsBranch"`
+	VCSBaseBranch     string `json:"vcsBaseBranch,omitempty"`
+	VCSCommitSHA      string `json:"vcsCommitSha"`
+	VCSPullRequestURL string `json:"vcsPullRequestUrl,omitempty"`
+}
+
+// BuildRunInput converts scan results into the dashboard addRun mutation input.
+func BuildRunInput(opts RunInputOptions) dashboard.RunInput {
+	projectResults := make([]dashboard.ProjectResultInput, 0, len(opts.HeadResult.Projects))
+
+	var baseByName map[string]*pkgscanner.ProjectResult
+	if opts.BaseResult != nil {
+		baseByName = make(map[string]*pkgscanner.ProjectResult, len(opts.BaseResult.Projects))
+		for i := range opts.BaseResult.Projects {
+			baseByName[opts.BaseResult.Projects[i].Name] = &opts.BaseResult.Projects[i]
+		}
 	}
 
-	for i := range headResult.Projects {
-		head := &headResult.Projects[i]
+	for i := range opts.HeadResult.Projects {
+		head := &opts.HeadResult.Projects[i]
 		base := baseByName[head.Name]
 
 		pr := dashboard.ProjectResultInput{
@@ -54,28 +111,46 @@ func buildRunInput(
 		projectResults = append(projectResults, pr)
 	}
 
-	posted := commentPosted
-	input := dashboard.RunInput{
-		ProjectResults:           projectResults,
-		Currency:                 currency,
-		TimeGenerated:            time.Now().UTC().Format(time.RFC3339),
-		PoliciesAlreadyEvaluated: true,
-		ClientPostedComment:      &posted,
-		Metadata: map[string]any{
-			"vcsProvider":      "github",
-			"infracostCommand": "scan",
-			"version":          version.Version,
-			"repoMetadata": map[string]any{
-				"repoUrl":            repoURL,
-				"vcsPullRequestUrl":  prURL,
-				"commitSha":          commitSHA,
-				"branch":             branch,
-			},
+	var prURL string
+	var prID string
+	if opts.PRNumber > 0 && opts.RepoURL != "" {
+		prURL = fmt.Sprintf("%s/pull/%d", opts.RepoURL, opts.PRNumber)
+		prID = fmt.Sprintf("%d", opts.PRNumber)
+	}
+
+	metadata := runMetadata{
+		Command:          opts.Command,
+		Version:          version.Version,
+		CIPlatform:       "github_actions",
+		VCSProvider:      "github",
+		VCSRepositoryURL: opts.RepoURL,
+		VCSBranch:        opts.Branch,
+		VCSBaseBranch:    opts.BaseBranch,
+		VCSCommitSHA:     opts.CommitSHA,
+		VCSPullRequestURL: prURL,
+		VCSPullRequestID:  prID,
+		DashboardEnabled: true,
+		RepoMetadata: repoMetadata{
+			VCSRepositoryURL:  opts.RepoURL,
+			VCSBranch:         opts.Branch,
+			VCSBaseBranch:     opts.BaseBranch,
+			VCSCommitSHA:      opts.CommitSHA,
+			VCSPullRequestURL: prURL,
 		},
 	}
 
-	if len(guardrailResults) > 0 {
-		input.GuardrailResults = buildGuardrailResults(guardrailResults)
+	posted := opts.CommentPosted
+	input := dashboard.RunInput{
+		ProjectResults:           projectResults,
+		Currency:                 opts.Currency,
+		TimeGenerated:            time.Now().UTC().Format(time.RFC3339),
+		PoliciesAlreadyEvaluated: true,
+		ClientPostedComment:      &posted,
+		Metadata:                 structToJSON(metadata),
+	}
+
+	if len(opts.GuardrailResults) > 0 {
+		input.GuardrailResults = buildGuardrailResults(opts.GuardrailResults)
 	}
 
 	return input

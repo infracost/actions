@@ -187,6 +187,7 @@ runs:
         fi
 
         ARGS=(
+          diff
           --base-path "${{ inputs.base-path }}"
           --head-path "${{ inputs.head-path }}"
           --github-owner "${{ steps.context.outputs.owner }}"
