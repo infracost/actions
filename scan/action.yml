@@ -1,16 +1,13 @@
 name: "Infracost Scan"
-description: "Scan infrastructure code for cost changes, post a PR comment, and manage PR status in the Infracost dashboard."
+description: "Scan infrastructure code and upload baseline cost data to the Infracost dashboard."
 
 inputs:
   api-key:
     description: "Infracost API key for authentication."
     required: true
-  base-path:
-    description: "Path to the base branch checkout. Required for scanning (not needed when only updating PR status)."
-    required: false
-  head-path:
-    description: "Path to the head (PR) branch checkout. Required for scanning (not needed when only updating PR status)."
-    required: false
+  path:
+    description: "Path to the directory to scan."
+    required: true
   version:
     description: "Version of the scanner to use (e.g. 0.1.0). Defaults to latest."
     required: false
@@ -19,34 +16,18 @@ inputs:
     description: "Filter scanning to a single project."
     required: false
   branch:
-    description: "Branch name used for policy filtering."
-    required: false
-  enable-dashboard:
-    description: "Upload scan results to the Infracost dashboard and manage PR status. Set to false to skip all dashboard interactions."
-    required: false
-    default: "true"
-  pr-status:
-    description: "Explicitly set the PR status (OPEN, MERGED, CLOSED). If not set, derived automatically from the GitHub event context."
-    required: false
-  github-token:
-    description: "GitHub API token for posting PR comments."
-    required: false
-    default: ${{ github.token }}
-  github-owner:
-    description: "GitHub repository owner. Defaults to the current repository owner."
-    required: false
-  github-repo:
-    description: "GitHub repository name. Defaults to the current repository name."
-    required: false
-  pr-number:
-    description: "Pull request number to comment on. Defaults to the current PR."
+    description: "Branch name for metadata."
     required: false
   commit-sha:
-    description: "Head commit SHA for source links. Defaults to GITHUB_SHA."
+    description: "Commit SHA for metadata. Defaults to GITHUB_SHA."
     required: false
   repo-url:
-    description: "Repository URL for source links in comments."
+    description: "Repository URL for metadata."
     required: false
+  github-token:
+    description: "GitHub API token used to download the scanner binary."
+    required: false
+    default: ${{ github.token }}
 
 runs:
   using: composite
@@ -100,27 +81,9 @@ runs:
       id: context
       shell: bash
       run: |
-        OWNER="${{ inputs.github-owner }}"
-        REPO="${{ inputs.github-repo }}"
-        PR="${{ inputs.pr-number }}"
         COMMIT="${{ inputs.commit-sha }}"
         REPO_URL="${{ inputs.repo-url }}"
         BRANCH="${{ inputs.branch }}"
-        PR_STATUS="${{ inputs.pr-status }}"
-
-        if [ -z "$OWNER" ] || [ -z "$REPO" ]; then
-          OWNER="${GITHUB_REPOSITORY_OWNER}"
-          REPO="${GITHUB_REPOSITORY#*/}"
-        fi
-
-        if [ -z "$PR" ]; then
-          PR="${{ github.event.pull_request.number }}"
-        fi
-
-        if [ -z "$PR" ] || [ "$PR" = "0" ]; then
-          echo "::error::Could not determine PR number. Either run on a pull_request event or set the pr-number input."
-          exit 1
-        fi
 
         if [ -z "$COMMIT" ]; then
           COMMIT="${GITHUB_SHA}"
@@ -131,72 +94,28 @@ runs:
         fi
 
         if [ -z "$BRANCH" ]; then
-          BRANCH="${{ github.event.pull_request.base.ref }}"
+          BRANCH="${GITHUB_REF_NAME}"
           if [ -z "$BRANCH" ]; then
             BRANCH="main"
           fi
         fi
 
-        # Determine the action mode and PR status from the event context
-        # if not explicitly provided.
-        MODE="scan"
-        if [ -z "$PR_STATUS" ]; then
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            case "${{ github.event.action }}" in
-              closed)
-                MODE="status-only"
-                if [ "${{ github.event.pull_request.merged }}" = "true" ]; then
-                  PR_STATUS="MERGED"
-                else
-                  PR_STATUS="CLOSED"
-                fi
-                ;;
-              *)
-                PR_STATUS="OPEN"
-                ;;
-            esac
-          fi
-        else
-          # User provided an explicit status. If base-path and head-path
-          # are not set, skip scanning and only update the status.
-          if [ -z "${{ inputs.base-path }}" ] || [ -z "${{ inputs.head-path }}" ]; then
-            MODE="status-only"
-          fi
-        fi
-
-        echo "owner=${OWNER}" >> $GITHUB_OUTPUT
-        echo "repo=${REPO}" >> $GITHUB_OUTPUT
-        echo "pr=${PR}" >> $GITHUB_OUTPUT
         echo "commit=${COMMIT}" >> $GITHUB_OUTPUT
         echo "repo-url=${REPO_URL}" >> $GITHUB_OUTPUT
         echo "branch=${BRANCH}" >> $GITHUB_OUTPUT
-        echo "mode=${MODE}" >> $GITHUB_OUTPUT
-        echo "pr-status=${PR_STATUS}" >> $GITHUB_OUTPUT
 
     - name: Run scanner
-      if: steps.context.outputs.mode == 'scan'
       shell: bash
       env:
         INFRACOST_CLI_AUTHENTICATION_TOKEN: ${{ inputs.api-key }}
         INFRACOST_CLI_LOG_LEVEL: info
-        GITHUB_TOKEN: ${{ inputs.github-token }}
       run: |
-        if [ -z "${{ inputs.base-path }}" ] || [ -z "${{ inputs.head-path }}" ]; then
-          echo "::error::base-path and head-path are required for scanning."
-          exit 1
-        fi
-
         ARGS=(
-          diff
-          --base-path "${{ inputs.base-path }}"
-          --head-path "${{ inputs.head-path }}"
-          --github-owner "${{ steps.context.outputs.owner }}"
-          --github-repo "${{ steps.context.outputs.repo }}"
-          --pr-number "${{ steps.context.outputs.pr }}"
+          scan
+          --path "${{ inputs.path }}"
           --commit-sha "${{ steps.context.outputs.commit }}"
           --repo-url "${{ steps.context.outputs.repo-url }}"
           --branch "${{ steps.context.outputs.branch }}"
-          --enable-dashboard="${{ inputs.enable-dashboard }}"
         )
 
         if [ -n "${{ inputs.project }}" ]; then
@@ -204,15 +123,3 @@ runs:
         fi
 
         infracost-scanner "${ARGS[@]}"
-
-    - name: Update PR status
-      if: steps.context.outputs.pr-status != '' && inputs.enable-dashboard == 'true'
-      shell: bash
-      env:
-        INFRACOST_CLI_AUTHENTICATION_TOKEN: ${{ inputs.api-key }}
-        INFRACOST_CLI_LOG_LEVEL: info
-      run: |
-        infracost-scanner status \
-          --repo-url "${{ steps.context.outputs.repo-url }}" \
-          --pr-number "${{ steps.context.outputs.pr }}" \
-          --status "${{ steps.context.outputs.pr-status }}"
