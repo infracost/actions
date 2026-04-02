@@ -18,13 +18,6 @@ inputs:
   project:
     description: "Filter scanning to a single project."
     required: false
-  branch:
-    description: "Branch name used for policy filtering."
-    required: false
-  enable-dashboard:
-    description: "Upload scan results to the Infracost dashboard and manage PR status. Set to false to skip all dashboard interactions."
-    required: false
-    default: "true"
   pr-status:
     description: "Explicitly set the PR status (OPEN, MERGED, CLOSED). If not set, derived automatically from the GitHub event context."
     required: false
@@ -40,9 +33,6 @@ inputs:
     required: false
   pr-number:
     description: "Pull request number to comment on. Defaults to the current PR."
-    required: false
-  commit-sha:
-    description: "Head commit SHA for source links. Defaults to GITHUB_SHA."
     required: false
   repo-url:
     description: "Repository URL for source links in comments."
@@ -103,9 +93,7 @@ runs:
         OWNER="${{ inputs.github-owner }}"
         REPO="${{ inputs.github-repo }}"
         PR="${{ inputs.pr-number }}"
-        COMMIT="${{ inputs.commit-sha }}"
         REPO_URL="${{ inputs.repo-url }}"
-        BRANCH="${{ inputs.branch }}"
         PR_STATUS="${{ inputs.pr-status }}"
 
         if [ -z "$OWNER" ] || [ -z "$REPO" ]; then
@@ -122,20 +110,14 @@ runs:
           exit 1
         fi
 
-        if [ -z "$COMMIT" ]; then
-          COMMIT="${GITHUB_SHA}"
-        fi
-
         if [ -z "$REPO_URL" ]; then
           REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
         fi
 
-        if [ -z "$BRANCH" ]; then
-          BRANCH="${{ github.event.pull_request.base.ref }}"
-          if [ -z "$BRANCH" ]; then
-            BRANCH="main"
-          fi
-        fi
+        PR_TITLE="${{ github.event.pull_request.title }}"
+        PR_AUTHOR="${{ github.event.pull_request.user.login }}"
+        PR_LABELS=$(echo '${{ toJson(github.event.pull_request.labels.*.name) }}' | jq -r 'join(",")')
+        PIPELINE_RUN_ID="${GITHUB_RUN_ID}"
 
         # Determine the action mode and PR status from the event context
         # if not explicitly provided.
@@ -167,9 +149,11 @@ runs:
         echo "owner=${OWNER}" >> $GITHUB_OUTPUT
         echo "repo=${REPO}" >> $GITHUB_OUTPUT
         echo "pr=${PR}" >> $GITHUB_OUTPUT
-        echo "commit=${COMMIT}" >> $GITHUB_OUTPUT
         echo "repo-url=${REPO_URL}" >> $GITHUB_OUTPUT
-        echo "branch=${BRANCH}" >> $GITHUB_OUTPUT
+        echo "pr-title=${PR_TITLE}" >> $GITHUB_OUTPUT
+        echo "pr-author=${PR_AUTHOR}" >> $GITHUB_OUTPUT
+        echo "pr-labels=${PR_LABELS}" >> $GITHUB_OUTPUT
+        echo "pipeline-run-id=${PIPELINE_RUN_ID}" >> $GITHUB_OUTPUT
         echo "mode=${MODE}" >> $GITHUB_OUTPUT
         echo "pr-status=${PR_STATUS}" >> $GITHUB_OUTPUT
 
@@ -193,10 +177,11 @@ runs:
           --github-owner "${{ steps.context.outputs.owner }}"
           --github-repo "${{ steps.context.outputs.repo }}"
           --pr-number "${{ steps.context.outputs.pr }}"
-          --commit-sha "${{ steps.context.outputs.commit }}"
           --repo-url "${{ steps.context.outputs.repo-url }}"
-          --branch "${{ steps.context.outputs.branch }}"
-          --enable-dashboard="${{ inputs.enable-dashboard }}"
+          --pr-title "${{ steps.context.outputs.pr-title }}"
+          --pr-author "${{ steps.context.outputs.pr-author }}"
+          --pr-labels "${{ steps.context.outputs.pr-labels }}"
+          --pipeline-run-id "${{ steps.context.outputs.pipeline-run-id }}"
         )
 
         if [ -n "${{ inputs.project }}" ]; then
@@ -206,7 +191,7 @@ runs:
         infracost-scanner "${ARGS[@]}"
 
     - name: Update PR status
-      if: steps.context.outputs.pr-status != '' && inputs.enable-dashboard == 'true'
+      if: steps.context.outputs.pr-status != ''
       shell: bash
       env:
         INFRACOST_CLI_AUTHENTICATION_TOKEN: ${{ inputs.api-key }}

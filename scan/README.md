@@ -29,11 +29,9 @@ jobs:
 | `path` | Yes | | Path to the directory to scan |
 | `version` | No | `latest` | Scanner version to use (e.g. `0.1.0`) |
 | `project` | No | | Filter scanning to a single project |
-| `branch` | No | Current branch | Branch name for metadata |
-| `commit-sha` | No | `GITHUB_SHA` | Commit SHA for metadata |
 | `repo-url` | No | Current repo URL | Repository URL for metadata |
 | `github-token` | No | `github.token` | GitHub API token used to download the scanner binary |
 
 ## Requirements
 
-- The `gh` CLI must be available on the runner. GitHub-hosted runners include it by default; self-hosted runners may need to [install it](https://github.com/cli/cli#installation).
+- Both `git` and `gh` (GitHub CLI) must be available on the runner. GitHub-hosted runners include them by default; self-hosted runners may need to install them.

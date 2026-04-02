@@ -52,8 +52,6 @@ func Config(t *testing.T) (config.Config, *Mocks) {
 		},
 		OrgID:           "testing-organization",
 		PricingEndpoint: "https://pricing.api.infracost.io",
-		Branch:          "main",
-		EnableDashboard: true,
 		Plugins: plugins.Config{
 			ManifestURL: "https://releases.infracost.io/plugins/manifest.json",
 			AutoUpdate:  false,

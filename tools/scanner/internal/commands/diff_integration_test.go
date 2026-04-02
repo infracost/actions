@@ -95,11 +95,15 @@ func ratProto(num int64) *rational.Rat {
 
 func runDiff(t *testing.T, cfg *config.Config, m *testingconfig.Mocks, basePath, headPath string) (*ScanResult, error) {
 	t.Helper()
+	return runDiffWithArgs(t, cfg, m, basePath, headPath, diffArgs{})
+}
+
+func runDiffWithArgs(t *testing.T, cfg *config.Config, m *testingconfig.Mocks, basePath, headPath string, extra diffArgs) (*ScanResult, error) {
+	t.Helper()
+	extra.basePath = basePath
+	extra.headPath = headPath
 	var results ScanResult
-	err := diff(cfg, &diffArgs{
-		basePath: basePath,
-		headPath: headPath,
-	}, m.VCS, &results)
+	err := diff(cfg, &extra, m.VCS, &results)
 	return &results, err
 }
 
@@ -175,6 +179,44 @@ func TestDiff_DashboardError(t *testing.T) {
 	_, err := runDiff(t, &cfg, m, filepath.Join(testdataDir(), "basic", "base"), filepath.Join(testdataDir(), "basic", "head"))
 	if err == nil {
 		t.Fatal("expected error from diff() when dashboard fails")
+	}
+}
+
+func TestDiff_ScanFailureUploadsErrorRun(t *testing.T) {
+	cfg, m := testingconfig.Config(t)
+	processPlugins(&cfg)
+
+	m.Dashboard.EXPECT().
+		RunParameters(mock.Anything, mock.Anything, mock.Anything).
+		Return(emptyRunParams(), nil)
+
+	// When scanning fails, an error run should be uploaded to the dashboard.
+	m.Dashboard.EXPECT().
+		AddRun(mock.Anything, mock.MatchedBy(func(input dashboard.RunInput) bool {
+			return input.Error != nil && input.Error.Level == "error"
+		})).
+		Return(dashboard.AddRunResult{}, nil)
+
+	_, err := runDiff(t, &cfg, m, filepath.Join(testdataDir(), "nonexistent"), filepath.Join(testdataDir(), "basic", "head"))
+	if err == nil {
+		t.Fatal("expected error from diff() when base path does not exist")
+	}
+}
+
+func TestDiff_ScanFailureDashboardDisabled(t *testing.T) {
+	cfg, m := testingconfig.Config(t)
+	cfg.DisableDashboard = true
+	processPlugins(&cfg)
+
+	m.Dashboard.EXPECT().
+		RunParameters(mock.Anything, mock.Anything, mock.Anything).
+		Return(emptyRunParams(), nil)
+
+	// AddRun should NOT be called when dashboard is disabled, even on error.
+
+	_, err := runDiff(t, &cfg, m, filepath.Join(testdataDir(), "nonexistent"), filepath.Join(testdataDir(), "basic", "head"))
+	if err == nil {
+		t.Fatal("expected error from diff() when base path does not exist")
 	}
 }
 
@@ -345,7 +387,6 @@ func TestDiff_UsageDefaults(t *testing.T) {
 
 func TestDiff_SingleProjectFilter(t *testing.T) {
 	cfg, m := testingconfig.Config(t)
-	cfg.Project = "web"
 	processPlugins(&cfg)
 
 	m.Dashboard.EXPECT().
@@ -355,7 +396,7 @@ func TestDiff_SingleProjectFilter(t *testing.T) {
 	setupDashboardAddRun(m)
 	data := setupVCSMocks(m)
 
-	_, err := runDiff(t, &cfg, m, filepath.Join(testdataDir(), "multi-project", "base"), filepath.Join(testdataDir(), "multi-project", "head"))
+	_, err := runDiffWithArgs(t, &cfg, m, filepath.Join(testdataDir(), "multi-project", "base"), filepath.Join(testdataDir(), "multi-project", "head"), diffArgs{project: "web"})
 	if err != nil {
 		t.Fatalf("diff() returned error: %v", err)
 	}
