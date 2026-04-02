@@ -25,7 +25,7 @@ func GetCommitInfo(dir, sha string) CommitInfo {
 }
 
 func RevParse(dir string, args ...string) string {
-	cmd := exec.Command("git", append([]string{"rev-parse"}, args...)...)
+	cmd := exec.Command("git", append([]string{"rev-parse"}, args...)...) // #nosec G204 -- args are controlled by caller
 	if dir != "" {
 		cmd.Dir = dir
 	}
@@ -46,12 +46,12 @@ func HasChanges(baseDir, headDir, path string) bool {
 		basePath = basePath + "/" + path
 		headPath = headPath + "/" + path
 	}
-	cmd := exec.Command("git", "diff", "--no-index", "--quiet", basePath, headPath)
+	cmd := exec.Command("git", "diff", "--no-index", "--quiet", basePath, headPath) // #nosec G204 -- paths are controlled by caller
 	return cmd.Run() != nil
 }
 
 func Log(dir, sha, format string) string {
-	cmd := exec.Command("git", "log", "-1", "--format="+format, sha)
+	cmd := exec.Command("git", "log", "-1", "--format="+format, sha) // #nosec G204 -- args are controlled by caller
 	if dir != "" {
 		cmd.Dir = dir
 	}
