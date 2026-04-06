@@ -110,7 +110,11 @@ Installs the Infracost CLI into your workflow. This requires you to manually run
 
 ## Contributing
 
-Issues and pull requests are welcome! For major changes, including interface changes, please open an issue first to discuss what you would like to change.
+We welcome contributions! Please start by opening a thread in [GitHub Discussions](https://github.com/infracost/infracost/discussions) to discuss your idea before submitting a PR.
+
+## Bugs and feedback
+
+If you run into any issues or have feedback, please open a thread in [GitHub Discussions](https://github.com/infracost/infracost/discussions). We'd love to hear from you!
 
 ## License
 
