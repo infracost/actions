@@ -60,7 +60,7 @@ func TestScan_BasicUpload(t *testing.T) {
 
 func TestScan_DashboardDisabled(t *testing.T) {
 	cfg, m := testingconfig.Config(t)
-	cfg.EnableDashboard = false
+	cfg.DisableDashboard = true
 	processPlugins(&cfg)
 
 	m.Dashboard.EXPECT().
@@ -72,6 +72,43 @@ func TestScan_DashboardDisabled(t *testing.T) {
 	err := runScan(t, &cfg, filepath.Join(testdataDir(), "basic", "head"))
 	if err != nil {
 		t.Fatalf("scan() returned error: %v", err)
+	}
+}
+
+func TestScan_ScanFailureUploadsErrorRun(t *testing.T) {
+	cfg, m := testingconfig.Config(t)
+	processPlugins(&cfg)
+
+	m.Dashboard.EXPECT().
+		RunParameters(mock.Anything, mock.Anything, mock.Anything).
+		Return(emptyRunParams(), nil)
+
+	m.Dashboard.EXPECT().
+		AddRun(mock.Anything, mock.MatchedBy(func(input dashboard.RunInput) bool {
+			return input.Error != nil && input.Error.Level == "error"
+		})).
+		Return(dashboard.AddRunResult{}, nil)
+
+	err := runScan(t, &cfg, filepath.Join(testdataDir(), "nonexistent"))
+	if err == nil {
+		t.Fatal("expected error from scan() when path does not exist")
+	}
+}
+
+func TestScan_ScanFailureDashboardDisabled(t *testing.T) {
+	cfg, m := testingconfig.Config(t)
+	cfg.DisableDashboard = true
+	processPlugins(&cfg)
+
+	m.Dashboard.EXPECT().
+		RunParameters(mock.Anything, mock.Anything, mock.Anything).
+		Return(emptyRunParams(), nil)
+
+	// AddRun should NOT be called when dashboard is disabled, even on error.
+
+	err := runScan(t, &cfg, filepath.Join(testdataDir(), "nonexistent"))
+	if err == nil {
+		t.Fatal("expected error from scan() when path does not exist")
 	}
 }
 

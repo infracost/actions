@@ -32,6 +32,11 @@ type DirectoryResult struct {
 	EstimatedUsageCounts map[string]int
 	// UnestimatedUsageCounts tracks usage parameters with zero/empty values.
 	UnestimatedUsageCounts map[string]int
+
+	// Config metadata — surfaced in the addRun mutation metadata.
+	HasConfigFile          bool
+	UsageFilePath          string
+	ConfigFileHasUsageFile bool
 }
 
 // ParsedRunParameters holds the unmarshalled run parameters from the dashboard API.
@@ -98,7 +103,7 @@ func ParseRunParameters(raw dashboard.RunParameters) (*ParsedRunParameters, erro
 	return parsed, nil
 }
 
-func (config *Config) ScanDirectory(ctx context.Context, dir string, accessToken string, runParams *ParsedRunParameters, previousAddresses map[string][]string) (*DirectoryResult, error) {
+func (config *Config) ScanDirectory(ctx context.Context, dir string, accessToken string, runParams *ParsedRunParameters, previousAddresses map[string][]string, projectFilter string, branch string) (*DirectoryResult, error) {
 	absoluteDir, err := filepath.Abs(dir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve absolute path for %q: %w", dir, err)
@@ -145,7 +150,7 @@ func (config *Config) ScanDirectory(ctx context.Context, dir string, accessToken
 
 	var projects []pkgscanner.ProjectResult
 	for _, project := range repoConfig.Projects {
-		if config.Project != "" && project.Name != config.Project {
+		if projectFilter != "" && project.Name != projectFilter {
 			continue
 		}
 
@@ -155,7 +160,7 @@ func (config *Config) ScanDirectory(ctx context.Context, dir string, accessToken
 			RepoConfig:                repoConfig,
 			Project:                   project,
 			AccessToken:               accessToken,
-			BranchName:                config.Branch,
+			BranchName:                branch,
 			RepositoryName:            runParams.RepositoryName,
 			OrgID:                     runParams.OrganizationID,
 			PricingEndpoint:           config.PricingEndpoint,
@@ -183,11 +188,26 @@ func (config *Config) ScanDirectory(ctx context.Context, dir string, accessToken
 		}
 	}
 
+	// Detect whether the user has a config file (infracost.yml or template).
+	hasConfigFile := fileExistsAt(filepath.Join(absoluteDir, pkgscanner.RepoConfigFilename)) ||
+		fileExistsAt(filepath.Join(absoluteDir, pkgscanner.RepoConfigTemplateFilename))
+
 	return &DirectoryResult{
 		Projects:               projects,
 		TotalMonthlyCost:       totalMonthlyCost,
 		Currency:               repoConfig.Currency,
 		EstimatedUsageCounts:   estimatedUsageCounts,
 		UnestimatedUsageCounts: unestimatedUsageCounts,
+		HasConfigFile:          hasConfigFile,
+		UsageFilePath:          repoConfig.UsageFilePath,
+		ConfigFileHasUsageFile: repoConfig.UsageFilePath != "",
 	}, nil
+}
+
+func fileExistsAt(path string) bool {
+	stat, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	return !stat.IsDir()
 }

@@ -2,7 +2,7 @@
 
 Scanner is the Go CLI that powers the Infracost GitHub Actions. It embeds the Infracost CLI as a library to scan directories of infrastructure code, calculate cost diffs, and post comments on pull requests.
 
-The tool has no external runtime dependencies — scanning and diffing logic is imported directly via `github.com/infracost/cli/pkg/scanner` rather than shelling out to the CLI.
+The tool requires `git` at runtime to derive commit SHAs, branch names, and commit metadata from the checkout directories. Scanning and diffing logic is imported directly via `github.com/infracost/cli/pkg/scanner` rather than shelling out to the Infracost CLI.
 
 ## Commands
 

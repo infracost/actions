@@ -15,12 +15,6 @@ inputs:
   project:
     description: "Filter scanning to a single project."
     required: false
-  branch:
-    description: "Branch name for metadata."
-    required: false
-  commit-sha:
-    description: "Commit SHA for metadata. Defaults to GITHUB_SHA."
-    required: false
   repo-url:
     description: "Repository URL for metadata."
     required: false
@@ -81,28 +75,13 @@ runs:
       id: context
       shell: bash
       run: |
-        COMMIT="${{ inputs.commit-sha }}"
         REPO_URL="${{ inputs.repo-url }}"
-        BRANCH="${{ inputs.branch }}"
-
-        if [ -z "$COMMIT" ]; then
-          COMMIT="${GITHUB_SHA}"
-        fi
 
         if [ -z "$REPO_URL" ]; then
           REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
         fi
 
-        if [ -z "$BRANCH" ]; then
-          BRANCH="${GITHUB_REF_NAME}"
-          if [ -z "$BRANCH" ]; then
-            BRANCH="main"
-          fi
-        fi
-
-        echo "commit=${COMMIT}" >> $GITHUB_OUTPUT
         echo "repo-url=${REPO_URL}" >> $GITHUB_OUTPUT
-        echo "branch=${BRANCH}" >> $GITHUB_OUTPUT
 
     - name: Run scanner
       shell: bash
@@ -113,9 +92,8 @@ runs:
         ARGS=(
           scan
           --path "${{ inputs.path }}"
-          --commit-sha "${{ steps.context.outputs.commit }}"
           --repo-url "${{ steps.context.outputs.repo-url }}"
-          --branch "${{ steps.context.outputs.branch }}"
+          --pipeline-run-id "${GITHUB_RUN_ID}"
         )
 
         if [ -n "${{ inputs.project }}" ]; then
