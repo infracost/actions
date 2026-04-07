@@ -47,7 +47,7 @@ function getDownloadObject(version: string): {
 // Rename infracost-<platform>-<arch> to infracost
 async function renameBinary(
   pathToCLI: string,
-  binaryName: string
+  binaryName: string,
 ): Promise<void> {
   if (!binaryName.endsWith('.exe')) {
     const source = path.join(pathToCLI, binaryName);
@@ -87,7 +87,7 @@ async function getAllVersions(): Promise<string[]> {
   const allVersions: string[] = [];
   for await (const response of octokit.paginate.iterator(
     octokit.rest.repos.listReleases,
-    { owner: 'infracost', repo: 'infracost' }
+    { owner: 'infracost', repo: 'infracost' },
   )) {
     for (const release of response.data) {
       if (release.name) {
@@ -153,7 +153,7 @@ async function setup(): Promise<void> {
       ]);
       if (returnCode !== 0) {
         throw new Error(
-          `Error running infracost configure set api_key: ${returnCode}`
+          `Error running infracost configure set api_key: ${returnCode}`,
         );
       }
     }
@@ -168,7 +168,7 @@ async function setup(): Promise<void> {
       ]);
       if (returnCode !== 0) {
         throw new Error(
-          `Error running infracost configure set currency: ${returnCode}`
+          `Error running infracost configure set currency: ${returnCode}`,
         );
       }
     }
@@ -183,7 +183,7 @@ async function setup(): Promise<void> {
       ]);
       if (returnCode !== 0) {
         throw new Error(
-          `Error running infracost configure set pricing_api_endpoint: ${returnCode}`
+          `Error running infracost configure set pricing_api_endpoint: ${returnCode}`,
         );
       }
     }
@@ -198,7 +198,7 @@ async function setup(): Promise<void> {
       ]);
       if (returnCode !== 0) {
         throw new Error(
-          `Error running infracost configure set enable_dashboard: ${returnCode}`
+          `Error running infracost configure set enable_dashboard: ${returnCode}`,
         );
       }
     }
