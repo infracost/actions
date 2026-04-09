@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"math/big"
@@ -52,6 +53,29 @@ func setupDashboardAddRun(m *testingconfig.Mocks) {
 			ID:       "test-run-id",
 			CloudURL: "https://dashboard.infracost.io/org/test-org/repos/test-repo-id/runs/test-run-id",
 		}, nil)
+}
+
+// setupEventsMocks configures the events mock to accept Push calls and captures
+// the infracost-run event metadata for verification.
+func setupEventsMocks(m *testingconfig.Mocks) *map[string]interface{} {
+	captured := make(map[string]interface{})
+	m.Events.EXPECT().
+		Push(mock.Anything, "infracost-run", mock.Anything).
+		Run(func(_ context.Context, _ string, extra ...interface{}) {
+			for i := 0; i < len(extra); i += 2 {
+				if key, ok := extra[i].(string); ok {
+					captured[key] = extra[i+1]
+				}
+			}
+		}).
+		Return().
+		Once()
+	// Allow any number of cloud-issue-fixed events.
+	m.Events.EXPECT().
+		Push(mock.Anything, "cloud-issue-fixed", mock.Anything).
+		Return().
+		Maybe()
+	return &captured
 }
 
 // setupVCSMocks configures the VCS mock to capture comment.Data and accept PostComment.
@@ -117,6 +141,7 @@ func TestDiff_BasicCostDiff(t *testing.T) {
 
 	setupDashboardAddRun(m)
 	data := setupVCSMocks(m)
+	runEvent := setupEventsMocks(m)
 
 	_, err := runDiff(t, &cfg, m, filepath.Join(testdataDir(), "basic", "base"), filepath.Join(testdataDir(), "basic", "head"))
 	if err != nil {
@@ -139,6 +164,15 @@ func TestDiff_BasicCostDiff(t *testing.T) {
 	if project.DiffBreakdown == nil || project.DiffBreakdown.TotalMonthlyCost == nil || project.DiffBreakdown.TotalMonthlyCost.IsZero() {
 		t.Error("expected non-zero diff breakdown cost")
 	}
+
+	// Verify event tracking was called with diff metadata.
+	env := *runEvent
+	if env["outputFormat"] != "comment" {
+		t.Errorf("expected outputFormat 'comment', got %v", env["outputFormat"])
+	}
+	if _, ok := env["newResourceCount"]; !ok {
+		t.Error("expected newResourceCount in infracost-run event for diff")
+	}
 }
 
 func TestDiff_NoChanges(t *testing.T) {
@@ -151,6 +185,7 @@ func TestDiff_NoChanges(t *testing.T) {
 
 	setupDashboardAddRun(m)
 	data := setupVCSMocks(m)
+	setupEventsMocks(m)
 
 	_, err := runDiff(t, &cfg, m, filepath.Join(testdataDir(), "no-changes", "base"), filepath.Join(testdataDir(), "no-changes", "head"))
 	if err != nil {
@@ -243,6 +278,7 @@ func TestDiff_GuardrailTriggered(t *testing.T) {
 
 	setupDashboardAddRun(m)
 	data := setupVCSMocks(m)
+	setupEventsMocks(m)
 
 	result, err := runDiff(t, &cfg, m, filepath.Join(testdataDir(), "basic", "base"), filepath.Join(testdataDir(), "basic", "head"))
 	if err != nil {
@@ -290,6 +326,7 @@ func TestDiff_GuardrailSuppressed(t *testing.T) {
 
 	setupDashboardAddRun(m)
 	data := setupVCSMocks(m)
+	setupEventsMocks(m)
 
 	result, err := runDiff(t, &cfg, m, filepath.Join(testdataDir(), "no-changes", "base"), filepath.Join(testdataDir(), "no-changes", "head"))
 	if err != nil {
@@ -336,6 +373,7 @@ func TestDiff_FinOpsPolicy(t *testing.T) {
 
 	setupDashboardAddRun(m)
 	data := setupVCSMocks(m)
+	setupEventsMocks(m)
 
 	_, err := runDiff(t, &cfg, m, filepath.Join(testdataDir(), "basic", "base"), filepath.Join(testdataDir(), "basic", "head"))
 	if err != nil {
@@ -374,6 +412,7 @@ func TestDiff_UsageDefaults(t *testing.T) {
 
 	setupDashboardAddRun(m)
 	data := setupVCSMocks(m)
+	setupEventsMocks(m)
 
 	_, err := runDiff(t, &cfg, m, filepath.Join(testdataDir(), "basic", "base"), filepath.Join(testdataDir(), "basic", "head"))
 	if err != nil {
@@ -395,6 +434,7 @@ func TestDiff_SingleProjectFilter(t *testing.T) {
 
 	setupDashboardAddRun(m)
 	data := setupVCSMocks(m)
+	setupEventsMocks(m)
 
 	_, err := runDiffWithArgs(t, &cfg, m, filepath.Join(testdataDir(), "multi-project", "base"), filepath.Join(testdataDir(), "multi-project", "head"), diffArgs{project: "web"})
 	if err != nil {

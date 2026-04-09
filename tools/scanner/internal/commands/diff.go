@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/infracost/actions/tools/scanner/internal/api"
 	"github.com/infracost/actions/tools/scanner/internal/config"
@@ -91,6 +92,7 @@ func newVCSClient(ctx context.Context, args *diffArgs) (vcs.VCS, error) {
 
 func diff(cfg *config.Config, args *diffArgs, vcsClient vcs.VCS, results *ScanResult) error {
 	ctx := context.Background()
+	startTime := time.Now()
 
 	headCommitSHA := git.RevParse(args.headPath, "HEAD")
 	headBranch := git.RevParse(args.headPath, "--abbrev-ref", "HEAD")
@@ -211,6 +213,10 @@ func diff(cfg *config.Config, args *diffArgs, vcsClient vcs.VCS, results *ScanRe
 	if _, err := vcsClient.PostComment(ctx, body, vcs.BehaviorUpdate); err != nil {
 		return fmt.Errorf("failed to post comment: %w", err)
 	}
+
+	eventsClient := cfg.Events.Client(httpClient)
+	trackRun(ctx, eventsClient, headResult, baseResult, time.Since(startTime).Seconds(), "comment")
+	trackDiff(ctx, eventsClient, headResult, baseResult)
 
 	checkBlockingViolations(data, runParams.Guardrails, results)
 	return nil
