@@ -12,6 +12,24 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+// setupScanEventsMocks configures the events mock to expect a single
+// infracost-run push and captures the metadata for verification.
+func setupScanEventsMocks(m *testingconfig.Mocks) *map[string]interface{} {
+	captured := make(map[string]interface{})
+	m.Events.EXPECT().
+		Push(mock.Anything, "infracost-run", mock.Anything).
+		Run(func(_ context.Context, _ string, extra ...interface{}) {
+			for i := 0; i < len(extra); i += 2 {
+				if key, ok := extra[i].(string); ok {
+					captured[key] = extra[i+1]
+				}
+			}
+		}).
+		Return().
+		Once()
+	return &captured
+}
+
 func runScan(t *testing.T, cfg *config.Config, path string) error {
 	t.Helper()
 	return scan(cfg, &scanArgs{path: path})
@@ -24,6 +42,9 @@ func TestScan_BasicUpload(t *testing.T) {
 	m.Dashboard.EXPECT().
 		RunParameters(mock.Anything, mock.Anything, mock.Anything).
 		Return(emptyRunParams(), nil)
+
+	runEvent := setupScanEventsMocks(m)
+	_ = runEvent // used below after scan
 
 	m.Dashboard.EXPECT().
 		AddRun(mock.Anything, mock.Anything).
@@ -56,6 +77,14 @@ func TestScan_BasicUpload(t *testing.T) {
 	if err != nil {
 		t.Fatalf("scan() returned error: %v", err)
 	}
+
+	env := *runEvent
+	if env["outputFormat"] != "upload" {
+		t.Errorf("expected outputFormat 'upload', got %v", env["outputFormat"])
+	}
+	if env["totalResources"] == nil || env["totalResources"].(int) == 0 {
+		t.Error("expected non-zero totalResources in infracost-run event")
+	}
 }
 
 func TestScan_DashboardDisabled(t *testing.T) {
@@ -68,6 +97,7 @@ func TestScan_DashboardDisabled(t *testing.T) {
 		Return(emptyRunParams(), nil)
 
 	// AddRun should NOT be called when dashboard is disabled.
+	setupScanEventsMocks(m)
 
 	err := runScan(t, &cfg, filepath.Join(testdataDir(), "basic", "head"))
 	if err != nil {

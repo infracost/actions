@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/infracost/actions/tools/scanner/internal/api"
 	"github.com/infracost/actions/tools/scanner/internal/config"
@@ -41,6 +42,7 @@ func Scan(cfg *config.Config) *cobra.Command {
 
 func scan(cfg *config.Config, args *scanArgs) error {
 	ctx := context.Background()
+	startTime := time.Now()
 
 	if len(cfg.Auth.AuthenticationToken) == 0 {
 		return fmt.Errorf("authentication token is required: set INFRACOST_CLI_AUTHENTICATION_TOKEN")
@@ -108,6 +110,9 @@ func scan(cfg *config.Config, args *scanArgs) error {
 			return fmt.Errorf("failed to upload run to dashboard: %w", err)
 		}
 	}
+
+	eventsClient := cfg.Events.Client(httpClient)
+	trackRun(ctx, eventsClient, result, nil, time.Since(startTime).Seconds(), "upload")
 
 	return nil
 }
