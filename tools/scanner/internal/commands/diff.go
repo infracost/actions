@@ -177,9 +177,27 @@ func diff(cfg *config.Config, args *diffArgs, vcsClient vcs.VCS, results *ScanRe
 	// already triggered before this PR — these are suppressed in the comment.
 	previousGuardrailResults := pkgscanner.EvaluateGuardrails(runParams.Guardrails, nil, baseResult.Projects)
 
+	// Evaluate budgets against all head resources.
+	budgetResults := config.EvaluateBudgets(runParams.Budgets, headResult.Projects)
+
 	usageAPIEnabled := runParams.UsageDefaults != nil && len(runParams.UsageDefaults.Resources) > 0
 
-	data := config.BuildCommentData(baseResult, headResult, guardrailResults, previousGuardrailResults, runParams.FinopsPolicies, usageAPIEnabled, headResult.Currency, args.repoURL, headCommitSHA, baseBranch, runParams.OrganizationSlug, runParams.RepositoryID)
+	data := config.BuildCommentData(config.CommentDataOptions{
+		BaseResult:               baseResult,
+		HeadResult:               headResult,
+		GuardrailResults:         guardrailResults,
+		PreviousGuardrailResults: previousGuardrailResults,
+		BudgetResults:            budgetResults,
+		FinopsPolicySettings:     runParams.FinopsPolicies,
+		UsageAPIEnabled:          usageAPIEnabled,
+		Currency:                 headResult.Currency,
+		RepoURL:                  args.repoURL,
+		CommitSHA:                headCommitSHA,
+		Branch:                   baseBranch,
+		OrgSlug:                  runParams.OrganizationSlug,
+		RepoID:                   runParams.RepositoryID,
+		RepoName:                 runParams.RepositoryName,
+	})
 
 	// Upload run results to the dashboard and set the cloud URL in the comment.
 	// TODO: on failure, post the comment without the cloud URL and include a
@@ -188,6 +206,7 @@ func diff(cfg *config.Config, args *diffArgs, vcsClient vcs.VCS, results *ScanRe
 		runOpts.BaseResult = baseResult
 		runOpts.HeadResult = headResult
 		runOpts.GuardrailResults = guardrailResults
+		runOpts.BudgetResults = budgetResults
 		runOpts.CommentPosted = true
 		runOpts.Currency = headResult.Currency
 		runOpts.Command = "comment"

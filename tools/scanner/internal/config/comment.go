@@ -9,22 +9,29 @@ import (
 	"github.com/infracost/vcs/pkg/vcs/comment"
 )
 
+// CommentDataOptions contains the parameters needed to build a PR comment.
+type CommentDataOptions struct {
+	BaseResult               *DirectoryResult
+	HeadResult               *DirectoryResult
+	GuardrailResults         []goprotoevent.GuardrailResult
+	PreviousGuardrailResults []goprotoevent.GuardrailResult
+	BudgetResults            []goprotoevent.BudgetResult
+	FinopsPolicySettings     []*event.FinopsPolicySettings
+	UsageAPIEnabled          bool
+	Currency                 string
+	RepoURL                  string
+	CommitSHA                string
+	Branch                   string
+	OrgSlug                  string
+	RepoID                   string
+	RepoName                 string
+}
+
 // BuildCommentData converts base and head scan results into the comment.Data
 // format required by the VCS library to generate a PR comment.
-func BuildCommentData(
-	baseResult *DirectoryResult,
-	headResult *DirectoryResult,
-	guardrailResults []goprotoevent.GuardrailResult,
-	previousGuardrailResults []goprotoevent.GuardrailResult,
-	finopsPolicySettings []*event.FinopsPolicySettings,
-	usageAPIEnabled bool,
-	currency string,
-	repoURL string,
-	commitSHA string,
-	branch string,
-	orgSlug string,
-	repoID string,
-) comment.Data {
+func BuildCommentData(opts CommentDataOptions) comment.Data {
+	baseResult := opts.BaseResult
+	headResult := opts.HeadResult
 	// Match projects by name between base and head.
 	baseByName := make(map[string]*pkgscanner.ProjectResult, len(baseResult.Projects))
 	for i := range baseResult.Projects {
@@ -117,8 +124,8 @@ func BuildCommentData(
 	}
 
 	// Build slug-to-group map from policy settings to split results.
-	policyGroupBySlug := make(map[string]event.FinopsPolicySettings_Group, len(finopsPolicySettings))
-	for _, s := range finopsPolicySettings {
+	policyGroupBySlug := make(map[string]event.FinopsPolicySettings_Group, len(opts.FinopsPolicySettings))
+	for _, s := range opts.FinopsPolicySettings {
 		policyGroupBySlug[s.Slug] = s.Group
 	}
 
@@ -128,17 +135,17 @@ func BuildCommentData(
 	return comment.Data{
 		EnableEnvironmentalMetrics:      true,
 		UsedUsageFile:                   headResult.EstimatedUsageCounts != nil,
-		UsageAPIEnabled:                 usageAPIEnabled,
-		OrgSlug:                         orgSlug,
-		RepoID:                          repoID,
-		BaseBranchName:                  branch,
-		Currency:                        currency,
+		UsageAPIEnabled:                 opts.UsageAPIEnabled,
+		OrgSlug:                         opts.OrgSlug,
+		RepoID:                          opts.RepoID,
+		BaseBranchName:                  opts.Branch,
+		Currency:                        opts.Currency,
 		TotalMonthlyCost:                totalMonthlyCost,
 		PastTotalMonthlyCost:            pastTotalMonthlyCost,
 		DiffTotalMonthlyCarbonGramsCo2e: diffCarbon,
 		CloudURL:                        "", // TODO: We need to implement addRun first.
-		RepoURL:                         repoURL,
-		CommitSHA:                       commitSHA,
+		RepoURL:                         opts.RepoURL,
+		CommitSHA:                       opts.CommitSHA,
 		Summary:                         summary,
 		Projects:                        projects,
 		FinOpsPolicyResults:             finopsPolicies,
@@ -147,8 +154,10 @@ func BuildCommentData(
 		PreviousSecurityPolicyResults:   prevSecurityPolicies,
 		TaggingPolicyResults:            allTagging,
 		PreviousTaggingPolicyResults:    allPrevTagging,
-		GuardrailResults:                guardrailResults,
-		PreviousGuardrailResults:        previousGuardrailResults,
+		GuardrailResults:                opts.GuardrailResults,
+		PreviousGuardrailResults:        opts.PreviousGuardrailResults,
+		BudgetResults:                   convertBudgetResults(opts.BudgetResults),
+		RepoName:                        opts.RepoName,
 	}
 }
 
@@ -187,10 +196,51 @@ func buildCostBreakdown(resources []*provider.Resource) *comment.CostBreakdown {
 	return breakdown
 }
 
+// EvaluateBudgets pre-computes resource cost info from head projects and
+// evaluates budgets using go-proto.
+func EvaluateBudgets(budgets []*event.Budget, projects []pkgscanner.ProjectResult) []goprotoevent.BudgetResult {
+	if len(budgets) == 0 {
+		return nil
+	}
+
+	var costInfos []goprotoevent.ResourceCostInfo
+	for _, p := range projects {
+		costInfos = append(costInfos, pkgscanner.ResourceCostInfos(p.Resources)...)
+	}
+
+	return goprotoevent.Budgets(budgets).Evaluate(costInfos)
+}
+
+func convertBudgetResults(results []goprotoevent.BudgetResult) []comment.BudgetResult {
+	out := make([]comment.BudgetResult, 0, len(results))
+	for _, r := range results {
+		tags := make([]comment.BudgetTag, 0, len(r.Tags))
+		for _, t := range r.Tags {
+			tags = append(tags, comment.BudgetTag{Key: t.Key, Value: t.Value})
+		}
+		out = append(out, comment.BudgetResult{
+			Tags:                 tags,
+			StartDate:            r.StartDate,
+			EndDate:              r.EndDate,
+			Amount:               r.Amount,
+			CurrentCost:          r.CurrentCost,
+			CustomOverrunMessage: r.CustomOverrunMessage,
+		})
+	}
+	return out
+}
+
 func convertResource(r *provider.Resource) comment.BreakdownResource {
 	br := comment.BreakdownResource{
 		Name:        r.Name,
 		MonthlyCost: rat.Zero,
+	}
+
+	if r.Tagging != nil && len(r.Tagging.Tags) > 0 {
+		br.Tags = make(map[string]string, len(r.Tagging.Tags))
+		for _, t := range r.Tagging.Tags {
+			br.Tags[t.Key] = t.Value
+		}
 	}
 
 	if r.Costs != nil {

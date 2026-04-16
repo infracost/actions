@@ -20,6 +20,7 @@ type RunInputOptions struct {
 	BaseResult       *DirectoryResult
 	HeadResult       *DirectoryResult
 	GuardrailResults []goprotoevent.GuardrailResult
+	BudgetResults    []goprotoevent.BudgetResult
 	CommentPosted    bool
 	Currency         string
 
@@ -245,6 +246,10 @@ func buildRunInputFromMetadata(opts RunInputOptions, projectResults []dashboard.
 		input.GuardrailResults = buildGuardrailResults(opts.GuardrailResults)
 	}
 
+	if len(opts.BudgetResults) > 0 {
+		input.BudgetResults = buildBudgetResults(opts.BudgetResults)
+	}
+
 	return input
 }
 
@@ -272,6 +277,26 @@ func buildDiffBreakdownInput(base, head *pkgscanner.ProjectResult) dashboard.Bre
 		TotalHourlyCost:  diffCost.Div(rat.New(730)).String(),
 		TotalMonthlyCost: diffCost.String(),
 	}
+}
+
+func buildBudgetResults(results []goprotoevent.BudgetResult) []dashboard.BudgetResultInput {
+	out := make([]dashboard.BudgetResultInput, 0, len(results))
+	for _, br := range results {
+		tags := make([]dashboard.BudgetTagInput, 0, len(br.Tags))
+		for _, t := range br.Tags {
+			tags = append(tags, dashboard.BudgetTagInput{Key: t.Key, Value: t.Value})
+		}
+		out = append(out, dashboard.BudgetResultInput{
+			BudgetID:             br.BudgetID,
+			Tags:                 tags,
+			StartDate:            br.StartDate.Format("2006-01-02T15:04:05Z"),
+			EndDate:              br.EndDate.Format("2006-01-02T15:04:05Z"),
+			Amount:               ratString(br.Amount),
+			CurrentCost:          ratString(br.CurrentCost),
+			CustomOverrunMessage: br.CustomOverrunMessage,
+		})
+	}
+	return out
 }
 
 func buildGuardrailResults(results []goprotoevent.GuardrailResult) []dashboard.GuardrailResultInput {

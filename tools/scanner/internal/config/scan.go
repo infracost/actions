@@ -51,6 +51,7 @@ type ParsedRunParameters struct {
 	TagPolicies       []*event.TagPolicy
 	FinopsPolicies    []*event.FinopsPolicySettings
 	Guardrails        []*event.Guardrail
+	Budgets           []*event.Budget
 }
 
 func ParseRunParameters(raw dashboard.RunParameters) (*ParsedRunParameters, error) {
@@ -98,6 +99,14 @@ func ParseRunParameters(raw dashboard.RunParameters) (*ParsedRunParameters, erro
 			return nil, fmt.Errorf("failed to unmarshal guardrail: %w", err)
 		}
 		parsed.Guardrails = append(parsed.Guardrails, guardrail)
+	}
+
+	for _, b := range raw.Budgets {
+		budget := new(event.Budget)
+		if err := pj.Unmarshal(b, budget); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal budget: %w", err)
+		}
+		parsed.Budgets = append(parsed.Budgets, budget)
 	}
 
 	return parsed, nil
