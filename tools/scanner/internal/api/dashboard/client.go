@@ -22,6 +22,7 @@ type RunParameters struct {
 	TagPolicies       []json.RawMessage `json:"tagPolicies"`
 	FinopsPolicies    []json.RawMessage `json:"finopsPolicies"`
 	Guardrails        []json.RawMessage `json:"guardrails"`
+	Budgets           []json.RawMessage `json:"budgets"`
 }
 
 // RunInput is the input to the addRun mutation.
@@ -31,6 +32,7 @@ type RunInput struct {
 	TimeGenerated            string                 `json:"timeGenerated,omitempty"`
 	Metadata                 map[string]interface{} `json:"metadata,omitempty"`
 	GuardrailResults         []GuardrailResultInput `json:"guardrailResults,omitempty"`
+	BudgetResults            []BudgetResultInput    `json:"budgetResults,omitempty"`
 	PoliciesAlreadyEvaluated bool                   `json:"policiesAlreadyEvaluated,omitempty"`
 	ClientPostedComment      *bool                  `json:"clientPostedComment,omitempty"`
 
@@ -199,6 +201,23 @@ type BreakdownInput struct {
 	Resources                   []map[string]interface{} `json:"resources,omitempty"`
 }
 
+// BudgetResultInput represents a budget evaluation result.
+type BudgetResultInput struct {
+	BudgetID             string              `json:"budgetId"`
+	Tags                 []BudgetTagInput    `json:"tags"`
+	StartDate            string              `json:"startDate"`
+	EndDate              string              `json:"endDate"`
+	Amount               string              `json:"amount"`
+	CurrentCost          string              `json:"currentCost"`
+	CustomOverrunMessage string              `json:"customOverrunMessage,omitempty"`
+}
+
+// BudgetTagInput represents a budget tag key-value pair.
+type BudgetTagInput struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
 // GuardrailResultInput represents a guardrail evaluation result.
 type GuardrailResultInput struct {
 	GuardrailID            string   `json:"guardrailId"`
@@ -253,6 +272,7 @@ func (c *client) RunParameters(ctx context.Context, repoURL, branchName string) 
     tagPolicies
     finopsPolicies
     guardrails
+    budgets
   }
 }`
 
