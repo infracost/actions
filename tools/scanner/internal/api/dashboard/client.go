@@ -14,6 +14,7 @@ import (
 type RunParameters struct {
 	OrganizationID   string `json:"organizationId"`
 	OrganizationSlug string `json:"organizationSlug"`
+	CloudEnabled     bool   `json:"cloudEnabled"`
 	RepositoryID     string `json:"repositoryId"`
 	RepositoryName   string `json:"repositoryName"`
 
@@ -265,6 +266,7 @@ func (c *client) RunParameters(ctx context.Context, repoURL, branchName string) 
   runParameters(repoUrl: $repoUrl, branchName: $branchName) {
     organizationId
     organizationSlug
+    cloudEnabled
     repositoryId
     repositoryName
     usageDefaults

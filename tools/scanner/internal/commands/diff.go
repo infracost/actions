@@ -144,9 +144,11 @@ func diff(cfg *config.Config, args *diffArgs, vcsClient vcs.VCS, results *ScanRe
 		PipelineRunID:     args.pipelineRunID,
 	}
 
+	uploadEnabled := !cfg.DisableDashboard && runParams.CloudEnabled
+
 	baseResult, err := cfg.ScanDirectory(ctx, args.basePath, token.AccessToken, runParams, nil, args.project, baseBranch)
 	if err != nil {
-		if !cfg.DisableDashboard {
+		if uploadEnabled {
 			errInput := config.BuildErrorRunInput(runOpts, diagnostic.ErrorCodeCLIBreakdownError, "Failed to scan base branch", err.Error())
 			_, _ = dashboardClient.AddRun(ctx, errInput)
 		}
@@ -166,7 +168,7 @@ func diff(cfg *config.Config, args *diffArgs, vcsClient vcs.VCS, results *ScanRe
 
 	headResult, err := cfg.ScanDirectory(ctx, args.headPath, token.AccessToken, runParams, previousAddresses, args.project, baseBranch)
 	if err != nil {
-		if !cfg.DisableDashboard {
+		if uploadEnabled {
 			errInput := config.BuildErrorRunInput(runOpts, diagnostic.ErrorCodeCLIBreakdownError, "Failed to scan head branch", err.Error())
 			_, _ = dashboardClient.AddRun(ctx, errInput)
 		}
@@ -204,7 +206,7 @@ func diff(cfg *config.Config, args *diffArgs, vcsClient vcs.VCS, results *ScanRe
 	// Upload run results to the dashboard and set the cloud URL in the comment.
 	// TODO: on failure, post the comment without the cloud URL and include a
 	// message explaining that this run could not be uploaded to the dashboard.
-	if !cfg.DisableDashboard {
+	if uploadEnabled {
 		runOpts.BaseResult = baseResult
 		runOpts.HeadResult = headResult
 		runOpts.GuardrailResults = guardrailResults

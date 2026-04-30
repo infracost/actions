@@ -43,6 +43,7 @@ type DirectoryResult struct {
 type ParsedRunParameters struct {
 	OrganizationID   string
 	OrganizationSlug string
+	CloudEnabled     bool
 	RepositoryID     string
 	RepositoryName   string
 
@@ -58,6 +59,7 @@ func ParseRunParameters(raw dashboard.RunParameters) (*ParsedRunParameters, erro
 	parsed := &ParsedRunParameters{
 		OrganizationID:   raw.OrganizationID,
 		OrganizationSlug: raw.OrganizationSlug,
+		CloudEnabled:     raw.CloudEnabled,
 		RepositoryID:     raw.RepositoryID,
 		RepositoryName:   raw.RepositoryName,
 	}
