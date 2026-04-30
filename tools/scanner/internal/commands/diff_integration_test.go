@@ -40,6 +40,7 @@ func emptyRunParams() dashboard.RunParameters {
 	return dashboard.RunParameters{
 		OrganizationID:   "test-org-id",
 		OrganizationSlug: "test-org",
+		CloudEnabled:     true,
 		RepositoryID:     "test-repo-id",
 		RepositoryName:   "test-repo",
 	}
