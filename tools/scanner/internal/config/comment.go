@@ -75,7 +75,6 @@ func BuildCommentData(opts CommentDataOptions) comment.Data {
 			pr.Breakdown = buildCostBreakdown(head.Resources)
 			pr.TotalMonthlyCost = head.TotalMonthlyCost
 			pr.TotalMonthlyUsageCost = totalMonthlyUsageCostFromResources(head.Resources)
-			pr.Resources = head.Resources
 			pr.Diagnostics = head.Diagnostics
 
 			if head.Config != nil {
@@ -280,6 +279,11 @@ func convertCostComponent(c *provider.CostComponent) comment.BreakdownCostCompon
 }
 
 // diffCostBreakdown computes the difference between two cost breakdowns.
+// It mirrors the runner's pricing/schema CalculateDiff: a resource is included
+// in the diff when any cost component, sub-resource, or resource-level cost
+// changed (including resources that were added or removed). A resource whose
+// total monthly cost happens to be unchanged but whose components shifted is
+// still considered changed, matching the dashboard's hasDiff criterion.
 func diffCostBreakdown(past, current *comment.CostBreakdown) *comment.CostBreakdown {
 	if past == nil {
 		return current
@@ -289,40 +293,161 @@ func diffCostBreakdown(past, current *comment.CostBreakdown) *comment.CostBreakd
 	}
 
 	diff := &comment.CostBreakdown{
-		TotalMonthlyCost: current.TotalMonthlyCost.Sub(past.TotalMonthlyCost),
+		TotalMonthlyCost: orZero(current.TotalMonthlyCost).Sub(orZero(past.TotalMonthlyCost)),
 	}
 
-	// Build map of past resources by name for matching.
-	pastByName := make(map[string]*comment.BreakdownResource, len(past.Resources))
-	for i := range past.Resources {
-		pastByName[past.Resources[i].Name] = &past.Resources[i]
-	}
+	pastByName := indexBreakdownResources(past.Resources)
+	currentByName := indexBreakdownResources(current.Resources)
 
+	seen := make(map[string]bool, len(past.Resources)+len(current.Resources))
+	// Walk past first to keep removed/changed resources in past order, then
+	// append any current-only (added) resources in current order.
+	for _, r := range past.Resources {
+		if seen[r.Name] {
+			continue
+		}
+		seen[r.Name] = true
+		if changed, dr := diffResource(pastByName[r.Name], currentByName[r.Name]); changed {
+			diff.Resources = append(diff.Resources, dr)
+		}
+	}
 	for _, r := range current.Resources {
-		if pastR, ok := pastByName[r.Name]; ok {
-			costDiff := orZero(r.MonthlyCost).Sub(orZero(pastR.MonthlyCost))
-			if !costDiff.IsZero() {
-				diff.Resources = append(diff.Resources, comment.BreakdownResource{
-					Name:        r.Name,
-					MonthlyCost: costDiff,
-				})
-			}
-			delete(pastByName, r.Name)
-		} else {
-			// New resource.
-			diff.Resources = append(diff.Resources, r)
+		if seen[r.Name] {
+			continue
+		}
+		seen[r.Name] = true
+		if changed, dr := diffResource(pastByName[r.Name], currentByName[r.Name]); changed {
+			diff.Resources = append(diff.Resources, dr)
 		}
 	}
 
-	// Remaining past resources were removed.
-	for _, r := range pastByName {
-		diff.Resources = append(diff.Resources, comment.BreakdownResource{
-			Name:        r.Name,
-			MonthlyCost: orZero(r.MonthlyCost).Mul(rat.New(-1)),
-		})
+	return diff
+}
+
+func indexBreakdownResources(resources []comment.BreakdownResource) map[string]*comment.BreakdownResource {
+	m := make(map[string]*comment.BreakdownResource, len(resources))
+	for i := range resources {
+		m[resources[i].Name] = &resources[i]
+	}
+	return m
+}
+
+// diffResource recursively compares a past and current breakdown resource and
+// returns whether they differ along with a synthesised "diff" resource whose
+// fields hold the deltas (old=0 for adds, current=0 for removes).
+func diffResource(past, current *comment.BreakdownResource) (bool, comment.BreakdownResource) {
+	pastSafe := past
+	if pastSafe == nil {
+		pastSafe = &comment.BreakdownResource{}
+	}
+	currentSafe := current
+	if currentSafe == nil {
+		currentSafe = &comment.BreakdownResource{}
 	}
 
-	return diff
+	name := currentSafe.Name
+	if name == "" {
+		name = pastSafe.Name
+	}
+
+	monthlyCostDiff := orZero(currentSafe.MonthlyCost).Sub(orZero(pastSafe.MonthlyCost))
+	out := comment.BreakdownResource{
+		Name:        name,
+		MonthlyCost: monthlyCostDiff,
+	}
+
+	changed := past == nil || current == nil || !monthlyCostDiff.IsZero()
+
+	pastSubs := indexBreakdownResources(pastSafe.SubResources)
+	currentSubs := indexBreakdownResources(currentSafe.SubResources)
+	seenSub := make(map[string]bool, len(pastSafe.SubResources)+len(currentSafe.SubResources))
+	for _, sr := range pastSafe.SubResources {
+		if seenSub[sr.Name] {
+			continue
+		}
+		seenSub[sr.Name] = true
+		if subChanged, sd := diffResource(pastSubs[sr.Name], currentSubs[sr.Name]); subChanged {
+			out.SubResources = append(out.SubResources, sd)
+			changed = true
+		}
+	}
+	for _, sr := range currentSafe.SubResources {
+		if seenSub[sr.Name] {
+			continue
+		}
+		seenSub[sr.Name] = true
+		if subChanged, sd := diffResource(pastSubs[sr.Name], currentSubs[sr.Name]); subChanged {
+			out.SubResources = append(out.SubResources, sd)
+			changed = true
+		}
+	}
+
+	if ccChanged, ccDiff := diffCostComponents(pastSafe.CostComponents, currentSafe.CostComponents); ccChanged {
+		out.CostComponents = ccDiff
+		changed = true
+	}
+
+	return changed, out
+}
+
+func diffCostComponents(past, current []comment.BreakdownCostComponent) (bool, []comment.BreakdownCostComponent) {
+	currentByName := make(map[string]*comment.BreakdownCostComponent, len(current))
+	for i := range current {
+		currentByName[current[i].Name] = &current[i]
+	}
+
+	var out []comment.BreakdownCostComponent
+	changed := false
+	seen := make(map[string]bool, len(past))
+	for i := range past {
+		seen[past[i].Name] = true
+		if cChanged, cd := diffCostComponent(&past[i], currentByName[past[i].Name]); cChanged {
+			out = append(out, cd)
+			changed = true
+		}
+	}
+	for i := range current {
+		if seen[current[i].Name] {
+			continue
+		}
+		if cChanged, cd := diffCostComponent(nil, &current[i]); cChanged {
+			out = append(out, cd)
+			changed = true
+		}
+	}
+	return changed, out
+}
+
+func diffCostComponent(past, current *comment.BreakdownCostComponent) (bool, comment.BreakdownCostComponent) {
+	pastSafe := past
+	if pastSafe == nil {
+		pastSafe = &comment.BreakdownCostComponent{}
+	}
+	currentSafe := current
+	if currentSafe == nil {
+		currentSafe = &comment.BreakdownCostComponent{}
+	}
+
+	base := current
+	if base == nil {
+		base = past
+	}
+
+	priceDiff := orZero(currentSafe.Price).Sub(orZero(pastSafe.Price))
+	qtyDiff := orZero(currentSafe.MonthlyQuantity).Sub(orZero(pastSafe.MonthlyQuantity))
+	costDiff := orZero(currentSafe.MonthlyCost).Sub(orZero(pastSafe.MonthlyCost))
+
+	out := comment.BreakdownCostComponent{
+		Name:            base.Name,
+		Unit:            base.Unit,
+		UsageBased:      base.UsageBased,
+		Price:           priceDiff,
+		MonthlyQuantity: qtyDiff,
+		MonthlyCost:     costDiff,
+	}
+
+	changed := !priceDiff.IsZero() || !qtyDiff.IsZero() || !costDiff.IsZero()
+	return changed, out
 }
 
 // totalMonthlyUsageCostFromResources sums only usage-based cost components
