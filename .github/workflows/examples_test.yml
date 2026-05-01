@@ -16,13 +16,13 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout source code so we can install the action locally
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup Infracost
         uses: ./setup
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
       - name: Checkout base branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with: {}
       - name: Generate Infracost cost estimate baseline
         run: |
@@ -30,7 +30,7 @@ jobs:
                               --format=json \
                               --out-file=/tmp/infracost-base.json
       - name: Checkout PR branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Replace m5 instance
         run: >-
           find testdata/code -type f  -name '*.tf' -o -name '*.hcl' -o -name
