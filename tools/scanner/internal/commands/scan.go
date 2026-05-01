@@ -89,16 +89,18 @@ func scan(cfg *config.Config, args *scanArgs) error {
 		UsageAPIEnabled: runParams.UsageDefaults != nil && len(runParams.UsageDefaults.Resources) > 0,
 	}
 
+	uploadEnabled := !cfg.DisableDashboard && runParams.CloudEnabled
+
 	result, err := cfg.ScanDirectory(ctx, args.path, token.AccessToken, runParams, nil, args.project, branch)
 	if err != nil {
-		if !cfg.DisableDashboard {
+		if uploadEnabled {
 			errInput := config.BuildErrorRunInput(runOpts, diagnostic.ErrorCodeCLIBreakdownError, "Failed to scan", err.Error())
 			_, _ = dashboardClient.AddRun(ctx, errInput)
 		}
 		return fmt.Errorf("failed to scan path: %w", err)
 	}
 
-	if !cfg.DisableDashboard {
+	if uploadEnabled {
 		runOpts.HeadResult = result
 		runOpts.Currency = result.Currency
 		runOpts.UsageFilePath = result.UsageFilePath

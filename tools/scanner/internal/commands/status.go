@@ -61,5 +61,18 @@ func updatePullRequestStatus(cfg *config.Config, repoURL string, prNumber int, s
 
 	httpClient := api.Client(ctx, tokenSource, cfg.OrgID)
 	dashboardClient := cfg.Dashboard.Client(httpClient)
+
+	if cfg.DisableDashboard {
+		return nil
+	}
+
+	runParams, err := dashboardClient.RunParameters(ctx, repoURL, "")
+	if err != nil {
+		return fmt.Errorf("failed to fetch run parameters: %w", err)
+	}
+	if !runParams.CloudEnabled {
+		return nil
+	}
+
 	return dashboardClient.UpdatePullRequestStatus(ctx, prURL, status)
 }
