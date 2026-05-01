@@ -348,6 +348,46 @@ func TestDiffCostBreakdown(t *testing.T) {
 			wantTotalDiff:     "-10",
 			wantDiffResources: 3, // a changed, c new, b removed
 		},
+		{
+			name: "components shift but total cost unchanged",
+			past: mkBreakdown(comment.BreakdownResource{
+				Name:        "a",
+				MonthlyCost: rat.New(10),
+				CostComponents: []comment.BreakdownCostComponent{
+					{Name: "x", MonthlyCost: rat.New(7)},
+					{Name: "y", MonthlyCost: rat.New(3)},
+				},
+			}),
+			current: mkBreakdown(comment.BreakdownResource{
+				Name:        "a",
+				MonthlyCost: rat.New(10),
+				CostComponents: []comment.BreakdownCostComponent{
+					{Name: "x", MonthlyCost: rat.New(4)},
+					{Name: "y", MonthlyCost: rat.New(6)},
+				},
+			}),
+			wantTotalDiff:     "0",
+			wantDiffResources: 1,
+		},
+		{
+			name: "sub-resource cost change",
+			past: mkBreakdown(comment.BreakdownResource{
+				Name:        "a",
+				MonthlyCost: rat.New(10),
+				SubResources: []comment.BreakdownResource{
+					{Name: "a.disk", MonthlyCost: rat.New(10)},
+				},
+			}),
+			current: mkBreakdown(comment.BreakdownResource{
+				Name:        "a",
+				MonthlyCost: rat.New(15),
+				SubResources: []comment.BreakdownResource{
+					{Name: "a.disk", MonthlyCost: rat.New(15)},
+				},
+			}),
+			wantTotalDiff:     "5",
+			wantDiffResources: 1,
+		},
 	}
 
 	for _, tt := range tests {
