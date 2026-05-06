@@ -6,11 +6,78 @@ We recommend using the [Infracost GitHub App](https://www.infracost.io/docs/inte
 
 ## Actions
 
-### [`setup`](setup/)
+### [`diff`](diff/) and [`scan`](scan/)
 
-Installs the Infracost CLI into your workflow. You then run `infracost breakdown`, `infracost diff`, and `infracost comment` as separate steps to generate cost estimates and post PR comments.
+A streamlined alternative to chaining `setup` plus individual CLI steps. These actions integrate directly with the Infracost dashboard and handle the full PR lifecycle — scanning on open/sync/reopen, updating status on close.
 
-### Full example
+#### [`diff`](diff/)
+
+Computes cost differences between two branches, posts a PR comment, and manages PR status in the Infracost dashboard. Handles the full PR lifecycle — scans on open/sync/reopen, and marks the PR as **merged** or **closed** in the dashboard when it ends.
+
+#### [`scan`](scan/)
+
+Scans a single directory and uploads baseline cost data to the Infracost dashboard. Use this on pushes to your default branch to keep the dashboard up to date.
+
+#### Example
+
+```yaml
+on:
+  pull_request:
+    types: [opened, synchronize, closed, reopened]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  diff:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout steps are skipped on closed PRs since diffing is not needed —
+      # the diff action below detects the closed event and updates the PR's
+      # status in the Infracost dashboard (MERGED or CLOSED) without scanning.
+      - uses: actions/checkout@v4
+        if: github.event.action != 'closed'
+        with:
+          path: head
+
+      - uses: actions/checkout@v4
+        if: github.event.action != 'closed'
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          path: base
+
+      - uses: infracost/actions/diff@v4
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+          base-path: base
+          head-path: head
+
+  scan:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: infracost/actions/scan@v4
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+          path: .
+```
+
+See the [`diff` README](diff/README.md) and [`scan` README](scan/README.md) for the full list of inputs.
+
+### [`setup`](setup/) (legacy)
+
+Installs the Infracost CLI into your workflow. You then run `infracost breakdown`, `infracost diff`, and `infracost comment` as separate steps to generate cost estimates and post PR comments. New integrations should prefer [`diff`](diff/) and [`scan`](scan/) above.
+
+<details>
+<summary>Legacy setup action</summary>
+
+#### Full example
 
 ```yaml
 - name: Setup Infracost
@@ -49,70 +116,6 @@ Installs the Infracost CLI into your workflow. You then run `infracost breakdown
 ```
 
 See the [`setup` README](setup/README.md) for the full list of inputs.
-
-### [`diff`](diff/) and [`scan`](scan/) (early access)
-
-We are developing a new generation of GitHub Actions that simplify setup and provide deeper integration with the Infracost dashboard. These actions are currently in early access and require enablement on your account. Please contact your sales representative to get access.
-
-<details>
-<summary>Early access actions</summary>
-
-#### [`diff`](diff/)
-
-Computes cost differences between two branches, posts a PR comment, and manages PR status in the Infracost dashboard. Handles the full PR lifecycle — scans on open/sync/reopen, updates status on close.
-
-#### [`scan`](scan/)
-
-Scans a single directory and uploads baseline cost data to the Infracost dashboard. Use this on pushes to your default branch to keep the dashboard up to date.
-
-#### Example
-
-```yaml
-on:
-  pull_request:
-    types: [opened, synchronize, closed, reopened]
-  push:
-    branches: [main]
-
-permissions:
-  contents: read
-  pull-requests: write
-
-jobs:
-  diff:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        if: github.event.action != 'closed'
-        with:
-          path: head
-
-      - uses: actions/checkout@v4
-        if: github.event.action != 'closed'
-        with:
-          ref: ${{ github.event.pull_request.base.ref }}
-          path: base
-
-      - uses: infracost/actions/diff@v4
-        with:
-          api-key: ${{ secrets.INFRACOST_API_KEY }}
-          base-path: base
-          head-path: head
-
-  scan:
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: infracost/actions/scan@v4
-        with:
-          api-key: ${{ secrets.INFRACOST_API_KEY }}
-          path: .
-```
-
-See the [`diff` README](diff/README.md) and [`scan` README](scan/README.md) for the full list of inputs.
 
 </details>
 
