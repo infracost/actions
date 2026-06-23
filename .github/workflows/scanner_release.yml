@@ -23,13 +23,29 @@ jobs:
       version: ${{ steps.version.outputs.VERSION }}
     steps:
       - id: version
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_VERSION: ${{ github.event.inputs.version }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            RAW_VERSION="${{ github.event.inputs.version }}"
+          write_output() {
+            local name="$1"
+            local value="$2"
+            local delimiter
+            delimiter="ghadelimiter_${RANDOM}_${RANDOM}_${RANDOM}_${RANDOM}"
+
+            {
+              printf '%s<<%s\n' "$name" "$delimiter"
+              printf '%s\n' "$value"
+              printf '%s\n' "$delimiter"
+            } >> "$GITHUB_OUTPUT"
+          }
+
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            RAW_VERSION="$INPUT_VERSION"
           else
             RAW_VERSION="${GITHUB_REF#refs/tags/scanner/v}"
           fi
-          echo "VERSION=${RAW_VERSION#v}" >> $GITHUB_OUTPUT
+          write_output "VERSION" "${RAW_VERSION#v}"
 
   draft-release:
     runs-on: ubuntu-24.04
@@ -42,11 +58,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: scanner/v${{ needs.version.outputs.version }}
+          REPOSITORY: ${{ github.repository }}
         run: |
-          if gh release view "$VERSION" --repo "${{ github.repository }}" >/dev/null 2>&1; then
-            echo "EXISTS=true" >> $GITHUB_OUTPUT
+          if gh release view "$VERSION" --repo "$REPOSITORY" >/dev/null 2>&1; then
+            echo "EXISTS=true" >> "$GITHUB_OUTPUT"
           else
-            echo "EXISTS=false" >> $GITHUB_OUTPUT
+            echo "EXISTS=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Create draft release
@@ -54,10 +71,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: scanner/v${{ needs.version.outputs.version }}
+          RELEASE_VERSION: ${{ needs.version.outputs.version }}
+          REPOSITORY: ${{ github.repository }}
         run: |
           gh release create "$VERSION" \
-            --repo "${{ github.repository }}" \
-            --title "Scanner ${{ needs.version.outputs.version }}" \
+            --repo "$REPOSITORY" \
+            --title "Scanner $RELEASE_VERSION" \
             --draft
 
       - name: Reset to draft
@@ -65,9 +84,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: scanner/v${{ needs.version.outputs.version }}
+          REPOSITORY: ${{ github.repository }}
         run: |
           gh release edit "$VERSION" \
-            --repo "${{ github.repository }}" \
+            --repo "$REPOSITORY" \
             --draft
 
   build-and-release:
@@ -118,9 +138,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: scanner/v${{ needs.version.outputs.version }}
+          REPOSITORY: ${{ github.repository }}
         run: |
           gh release upload "$VERSION" ./dist/* \
-            --repo "${{ github.repository }}" \
+            --repo "$REPOSITORY" \
             --clobber
 
   publish-release:
@@ -133,7 +154,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: scanner/v${{ needs.version.outputs.version }}
+          REPOSITORY: ${{ github.repository }}
         run: |
           gh release edit "$VERSION" \
-            --repo "${{ github.repository }}" \
+            --repo "$REPOSITORY" \
             --draft=false

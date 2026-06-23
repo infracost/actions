@@ -48,6 +48,19 @@ runs:
         GH_TOKEN: ${{ inputs.github-token }}
         VERSION: ${{ inputs.version }}
       run: |
+        write_output() {
+          local name="$1"
+          local value="$2"
+          local delimiter
+          delimiter="ghadelimiter_${RANDOM}_${RANDOM}_${RANDOM}_${RANDOM}"
+
+          {
+            printf '%s<<%s\n' "$name" "$delimiter"
+            printf '%s\n' "$value"
+            printf '%s\n' "$delimiter"
+          } >> "$GITHUB_OUTPUT"
+        }
+
         if [ "$VERSION" = "latest" ]; then
           RELEASE=$(gh release list --repo "infracost/actions" --limit 50 --json tagName --jq '[.[] | select(.tagName | startswith("scanner/v"))][0].tagName')
           if [ -z "$RELEASE" ]; then
@@ -56,8 +69,8 @@ runs:
           fi
           VERSION="${RELEASE#scanner/v}"
         fi
-        echo "version=${VERSION}" >> $GITHUB_OUTPUT
-        echo "tag=scanner/v${VERSION}" >> $GITHUB_OUTPUT
+        write_output "version" "$VERSION"
+        write_output "tag" "scanner/v${VERSION}"
 
     - name: Download scanner
       shell: bash
@@ -89,12 +102,42 @@ runs:
     - name: Derive context
       id: context
       shell: bash
+      env:
+        INPUT_GITHUB_OWNER: ${{ inputs.github-owner }}
+        INPUT_GITHUB_REPO: ${{ inputs.github-repo }}
+        INPUT_PR_NUMBER: ${{ inputs.pr-number }}
+        INPUT_REPO_URL: ${{ inputs.repo-url }}
+        INPUT_PR_STATUS: ${{ inputs.pr-status }}
+        INPUT_BASE_PATH: ${{ inputs.base-path }}
+        INPUT_HEAD_PATH: ${{ inputs.head-path }}
+        EVENT_PR_NUMBER: ${{ github.event.pull_request.number }}
+        EVENT_PR_TITLE: ${{ github.event.pull_request.title }}
+        EVENT_PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+        EVENT_PR_LABELS_JSON: ${{ toJson(github.event.pull_request.labels.*.name) }}
+        EVENT_NAME: ${{ github.event_name }}
+        EVENT_ACTION: ${{ github.event.action }}
+        EVENT_PR_MERGED: ${{ github.event.pull_request.merged }}
       run: |
-        OWNER="${{ inputs.github-owner }}"
-        REPO="${{ inputs.github-repo }}"
-        PR="${{ inputs.pr-number }}"
-        REPO_URL="${{ inputs.repo-url }}"
-        PR_STATUS="${{ inputs.pr-status }}"
+        set -euo pipefail
+
+        write_output() {
+          local name="$1"
+          local value="$2"
+          local delimiter
+          delimiter="ghadelimiter_${RANDOM}_${RANDOM}_${RANDOM}_${RANDOM}"
+
+          {
+            printf '%s<<%s\n' "$name" "$delimiter"
+            printf '%s\n' "$value"
+            printf '%s\n' "$delimiter"
+          } >> "$GITHUB_OUTPUT"
+        }
+
+        OWNER="$INPUT_GITHUB_OWNER"
+        REPO="$INPUT_GITHUB_REPO"
+        PR="$INPUT_PR_NUMBER"
+        REPO_URL="$INPUT_REPO_URL"
+        PR_STATUS="$INPUT_PR_STATUS"
 
         if [ -z "$OWNER" ] || [ -z "$REPO" ]; then
           OWNER="${GITHUB_REPOSITORY_OWNER}"
@@ -102,7 +145,7 @@ runs:
         fi
 
         if [ -z "$PR" ]; then
-          PR="${{ github.event.pull_request.number }}"
+          PR="$EVENT_PR_NUMBER"
         fi
 
         if [ -z "$PR" ] || [ "$PR" = "0" ]; then
@@ -114,20 +157,23 @@ runs:
           REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
         fi
 
-        PR_TITLE="${{ github.event.pull_request.title }}"
-        PR_AUTHOR="${{ github.event.pull_request.user.login }}"
-        PR_LABELS=$(echo '${{ toJson(github.event.pull_request.labels.*.name) }}' | jq -r 'join(",")')
+        PR_TITLE="$EVENT_PR_TITLE"
+        PR_AUTHOR="$EVENT_PR_AUTHOR"
+        PR_LABELS=""
+        if [ -n "$EVENT_PR_LABELS_JSON" ]; then
+          PR_LABELS=$(jq -r 'if type == "array" then join(",") else "" end' <<< "$EVENT_PR_LABELS_JSON")
+        fi
         PIPELINE_RUN_ID="${GITHUB_RUN_ID}"
 
         # Determine the action mode and PR status from the event context
         # if not explicitly provided.
         MODE="scan"
         if [ -z "$PR_STATUS" ]; then
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            case "${{ github.event.action }}" in
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            case "$EVENT_ACTION" in
               closed)
                 MODE="status-only"
-                if [ "${{ github.event.pull_request.merged }}" = "true" ]; then
+                if [ "$EVENT_PR_MERGED" = "true" ]; then
                   PR_STATUS="MERGED"
                 else
                   PR_STATUS="CLOSED"
@@ -141,21 +187,21 @@ runs:
         else
           # User provided an explicit status. If base-path and head-path
           # are not set, skip scanning and only update the status.
-          if [ -z "${{ inputs.base-path }}" ] || [ -z "${{ inputs.head-path }}" ]; then
+          if [ -z "$INPUT_BASE_PATH" ] || [ -z "$INPUT_HEAD_PATH" ]; then
             MODE="status-only"
           fi
         fi
 
-        echo "owner=${OWNER}" >> $GITHUB_OUTPUT
-        echo "repo=${REPO}" >> $GITHUB_OUTPUT
-        echo "pr=${PR}" >> $GITHUB_OUTPUT
-        echo "repo-url=${REPO_URL}" >> $GITHUB_OUTPUT
-        echo "pr-title=${PR_TITLE}" >> $GITHUB_OUTPUT
-        echo "pr-author=${PR_AUTHOR}" >> $GITHUB_OUTPUT
-        echo "pr-labels=${PR_LABELS}" >> $GITHUB_OUTPUT
-        echo "pipeline-run-id=${PIPELINE_RUN_ID}" >> $GITHUB_OUTPUT
-        echo "mode=${MODE}" >> $GITHUB_OUTPUT
-        echo "pr-status=${PR_STATUS}" >> $GITHUB_OUTPUT
+        write_output "owner" "$OWNER"
+        write_output "repo" "$REPO"
+        write_output "pr" "$PR"
+        write_output "repo-url" "$REPO_URL"
+        write_output "pr-title" "$PR_TITLE"
+        write_output "pr-author" "$PR_AUTHOR"
+        write_output "pr-labels" "$PR_LABELS"
+        write_output "pipeline-run-id" "$PIPELINE_RUN_ID"
+        write_output "mode" "$MODE"
+        write_output "pr-status" "$PR_STATUS"
 
     - name: Run scanner
       if: steps.context.outputs.mode == 'scan'
@@ -164,28 +210,39 @@ runs:
         INFRACOST_CLI_AUTHENTICATION_TOKEN: ${{ inputs.api-key }}
         INFRACOST_CLI_LOG_LEVEL: info
         GITHUB_TOKEN: ${{ inputs.github-token }}
+        INPUT_BASE_PATH: ${{ inputs.base-path }}
+        INPUT_HEAD_PATH: ${{ inputs.head-path }}
+        INPUT_PROJECT: ${{ inputs.project }}
+        CONTEXT_OWNER: ${{ steps.context.outputs.owner }}
+        CONTEXT_REPO: ${{ steps.context.outputs.repo }}
+        CONTEXT_PR: ${{ steps.context.outputs.pr }}
+        CONTEXT_REPO_URL: ${{ steps.context.outputs.repo-url }}
+        CONTEXT_PR_TITLE: ${{ steps.context.outputs.pr-title }}
+        CONTEXT_PR_AUTHOR: ${{ steps.context.outputs.pr-author }}
+        CONTEXT_PR_LABELS: ${{ steps.context.outputs.pr-labels }}
+        CONTEXT_PIPELINE_RUN_ID: ${{ steps.context.outputs.pipeline-run-id }}
       run: |
-        if [ -z "${{ inputs.base-path }}" ] || [ -z "${{ inputs.head-path }}" ]; then
+        if [ -z "$INPUT_BASE_PATH" ] || [ -z "$INPUT_HEAD_PATH" ]; then
           echo "::error::base-path and head-path are required for scanning."
           exit 1
         fi
 
         ARGS=(
           diff
-          --base-path "${{ inputs.base-path }}"
-          --head-path "${{ inputs.head-path }}"
-          --github-owner "${{ steps.context.outputs.owner }}"
-          --github-repo "${{ steps.context.outputs.repo }}"
-          --pr-number "${{ steps.context.outputs.pr }}"
-          --repo-url "${{ steps.context.outputs.repo-url }}"
-          --pr-title "${{ steps.context.outputs.pr-title }}"
-          --pr-author "${{ steps.context.outputs.pr-author }}"
-          --pr-labels "${{ steps.context.outputs.pr-labels }}"
-          --pipeline-run-id "${{ steps.context.outputs.pipeline-run-id }}"
+          --base-path "$INPUT_BASE_PATH"
+          --head-path "$INPUT_HEAD_PATH"
+          --github-owner "$CONTEXT_OWNER"
+          --github-repo "$CONTEXT_REPO"
+          --pr-number "$CONTEXT_PR"
+          --repo-url "$CONTEXT_REPO_URL"
+          --pr-title "$CONTEXT_PR_TITLE"
+          --pr-author "$CONTEXT_PR_AUTHOR"
+          --pr-labels "$CONTEXT_PR_LABELS"
+          --pipeline-run-id "$CONTEXT_PIPELINE_RUN_ID"
         )
 
-        if [ -n "${{ inputs.project }}" ]; then
-          ARGS+=(--project "${{ inputs.project }}")
+        if [ -n "$INPUT_PROJECT" ]; then
+          ARGS+=(--project "$INPUT_PROJECT")
         fi
 
         infracost-scanner "${ARGS[@]}"
@@ -196,8 +253,11 @@ runs:
       env:
         INFRACOST_CLI_AUTHENTICATION_TOKEN: ${{ inputs.api-key }}
         INFRACOST_CLI_LOG_LEVEL: info
+        CONTEXT_REPO_URL: ${{ steps.context.outputs.repo-url }}
+        CONTEXT_PR: ${{ steps.context.outputs.pr }}
+        CONTEXT_PR_STATUS: ${{ steps.context.outputs.pr-status }}
       run: |
         infracost-scanner status \
-          --repo-url "${{ steps.context.outputs.repo-url }}" \
-          --pr-number "${{ steps.context.outputs.pr }}" \
-          --status "${{ steps.context.outputs.pr-status }}"
+          --repo-url "$CONTEXT_REPO_URL" \
+          --pr-number "$CONTEXT_PR" \
+          --status "$CONTEXT_PR_STATUS"

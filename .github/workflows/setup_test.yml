@@ -33,16 +33,19 @@ jobs:
           pricing-api-endpoint: https://test.test
 
       - name: Get expected version
+        env:
+          MATRIX_VERSION: ${{ matrix.version }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ "${{ matrix.version }}" = "<0.9.11" ]; then
+          if [ "$MATRIX_VERSION" = "<0.9.11" ]; then
             export INFRACOST_EXPECTED_VERSION=v0.9.10
-          elif [ "${{ matrix.version }}" = "0.9.12" ]; then
+          elif [ "$MATRIX_VERSION" = "0.9.12" ]; then
             export INFRACOST_EXPECTED_VERSION=v0.9.12
           else
-            export INFRACOST_EXPECTED_VERSION=$(curl --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/infracost/infracost/releases/latest | jq -r .name )
+            export INFRACOST_EXPECTED_VERSION=$(curl --header "authorization: Bearer $GH_TOKEN" https://api.github.com/repos/infracost/infracost/releases/latest | jq -r .name )
           fi
-          echo "Expected version for ${{ matrix.version }}: $INFRACOST_EXPECTED_VERSION"
-          echo "INFRACOST_EXPECTED_VERSION=Infracost $INFRACOST_EXPECTED_VERSION" >> $GITHUB_ENV
+          echo "Expected version for $MATRIX_VERSION: $INFRACOST_EXPECTED_VERSION"
+          echo "INFRACOST_EXPECTED_VERSION=Infracost $INFRACOST_EXPECTED_VERSION" >> "$GITHUB_ENV"
       - name: Capture infracost version installed
         run: |
           echo "INFRACOST_VERSION_INSTALLED=$( infracost --version )" >> $GITHUB_ENV

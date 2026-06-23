@@ -33,6 +33,19 @@ runs:
         GH_TOKEN: ${{ inputs.github-token }}
         VERSION: ${{ inputs.version }}
       run: |
+        write_output() {
+          local name="$1"
+          local value="$2"
+          local delimiter
+          delimiter="ghadelimiter_${RANDOM}_${RANDOM}_${RANDOM}_${RANDOM}"
+
+          {
+            printf '%s<<%s\n' "$name" "$delimiter"
+            printf '%s\n' "$value"
+            printf '%s\n' "$delimiter"
+          } >> "$GITHUB_OUTPUT"
+        }
+
         if [ "$VERSION" = "latest" ]; then
           RELEASE=$(gh release list --repo "infracost/actions" --limit 50 --json tagName --jq '[.[] | select(.tagName | startswith("scanner/v"))][0].tagName')
           if [ -z "$RELEASE" ]; then
@@ -41,8 +54,8 @@ runs:
           fi
           VERSION="${RELEASE#scanner/v}"
         fi
-        echo "version=${VERSION}" >> $GITHUB_OUTPUT
-        echo "tag=scanner/v${VERSION}" >> $GITHUB_OUTPUT
+        write_output "version" "$VERSION"
+        write_output "tag" "scanner/v${VERSION}"
 
     - name: Download scanner
       shell: bash
@@ -74,30 +87,48 @@ runs:
     - name: Derive context
       id: context
       shell: bash
+      env:
+        INPUT_REPO_URL: ${{ inputs.repo-url }}
       run: |
-        REPO_URL="${{ inputs.repo-url }}"
+        write_output() {
+          local name="$1"
+          local value="$2"
+          local delimiter
+          delimiter="ghadelimiter_${RANDOM}_${RANDOM}_${RANDOM}_${RANDOM}"
+
+          {
+            printf '%s<<%s\n' "$name" "$delimiter"
+            printf '%s\n' "$value"
+            printf '%s\n' "$delimiter"
+          } >> "$GITHUB_OUTPUT"
+        }
+
+        REPO_URL="$INPUT_REPO_URL"
 
         if [ -z "$REPO_URL" ]; then
           REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
         fi
 
-        echo "repo-url=${REPO_URL}" >> $GITHUB_OUTPUT
+        write_output "repo-url" "$REPO_URL"
 
     - name: Run scanner
       shell: bash
       env:
         INFRACOST_CLI_AUTHENTICATION_TOKEN: ${{ inputs.api-key }}
         INFRACOST_CLI_LOG_LEVEL: info
+        INPUT_PATH: ${{ inputs.path }}
+        INPUT_PROJECT: ${{ inputs.project }}
+        CONTEXT_REPO_URL: ${{ steps.context.outputs.repo-url }}
       run: |
         ARGS=(
           scan
-          --path "${{ inputs.path }}"
-          --repo-url "${{ steps.context.outputs.repo-url }}"
+          --path "$INPUT_PATH"
+          --repo-url "$CONTEXT_REPO_URL"
           --pipeline-run-id "${GITHUB_RUN_ID}"
         )
 
-        if [ -n "${{ inputs.project }}" ]; then
-          ARGS+=(--project "${{ inputs.project }}")
+        if [ -n "$INPUT_PROJECT" ]; then
+          ARGS+=(--project "$INPUT_PROJECT")
         fi
 
         infracost-scanner "${ARGS[@]}"
