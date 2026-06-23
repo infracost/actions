@@ -46,10 +46,12 @@ jobs:
                           --compare-to=/tmp/infracost-base.json \
                           --out-file=/tmp/infracost.json
       - name: Post Infracost comment
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |-
           infracost comment github --path=/tmp/infracost.json \
-          --repo=$GITHUB_REPOSITORY \
-          --github-token=${{ github.token }} \
+          --repo="$GITHUB_REPOSITORY" \
+          --github-token="$GITHUB_TOKEN" \
           --pull-request=1 \
           --behavior=update \
           --dry-run true \

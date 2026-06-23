@@ -55,6 +55,10 @@ runs:
 
     - name: Post Infracost comment
       shell: bash
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+        COMMENT_BEHAVIOR: ${{ inputs.behavior }}
       run: |
         # Posts a comment to the PR using the 'update' behavior.
         # This creates a single comment and updates it. The "quietest" option.
@@ -64,7 +68,7 @@ runs:
         #   new - Create a new cost estimate comment on every push.
         # See https://www.infracost.io/docs/features/cli_commands/#comment-on-pull-requests for other options.
         infracost comment github --path=/tmp/infracost.json \
-                                 --repo=$GITHUB_REPOSITORY \
-                                 --github-token=${{github.token}} \
-                                 --pull-request=${{github.event.pull_request.number}} \
-                                 --behavior=${{inputs.behavior}}
+                                 --repo="$GITHUB_REPOSITORY" \
+                                 --github-token="$GITHUB_TOKEN" \
+                                 --pull-request="$PULL_REQUEST_NUMBER" \
+                                 --behavior="$COMMENT_BEHAVIOR"
