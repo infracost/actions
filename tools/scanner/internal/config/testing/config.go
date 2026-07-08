@@ -28,7 +28,7 @@ type Mocks struct {
 
 // Config returns a Config pre-wired with mock clients for testing.
 // Requires INFRACOST_CLI_AUTHENTICATION_TOKEN to be set; skips the test otherwise.
-func Config(t *testing.T) (config.Config, *Mocks) {
+func Config(t *testing.T) (*config.Config, *Mocks) {
 	t.Helper()
 
 	if testing.Short() {
@@ -78,5 +78,5 @@ func Config(t *testing.T) (config.Config, *Mocks) {
 		},
 	}
 	cfg.Logging.ForTest(t)
-	return cfg, m
+	return &cfg, m
 }

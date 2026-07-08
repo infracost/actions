@@ -72,7 +72,7 @@ type MockVCS_GenerateComment_Call struct {
 
 // GenerateComment is a helper method to define mock.On call
 //   - data comment.Data
-func (_e *MockVCS_Expecter) GenerateComment(data interface{}) *MockVCS_GenerateComment_Call {
+func (_e *MockVCS_Expecter) GenerateComment(data any) *MockVCS_GenerateComment_Call {
 	return &MockVCS_GenerateComment_Call{Call: _e.mock.On("GenerateComment", data)}
 }
 
@@ -134,7 +134,7 @@ type MockVCS_PostComment_Call struct {
 //   - ctx context.Context
 //   - body string
 //   - behavior vcs.Behavior
-func (_e *MockVCS_Expecter) PostComment(ctx interface{}, body interface{}, behavior interface{}) *MockVCS_PostComment_Call {
+func (_e *MockVCS_Expecter) PostComment(ctx any, body any, behavior any) *MockVCS_PostComment_Call {
 	return &MockVCS_PostComment_Call{Call: _e.mock.On("PostComment", ctx, body, behavior)}
 }
 

@@ -57,9 +57,9 @@ type MockClient_Push_Call struct {
 //   - ctx context.Context
 //   - event string
 //   - extra ...interface{}
-func (_e *MockClient_Expecter) Push(ctx interface{}, event interface{}, extra ...interface{}) *MockClient_Push_Call {
+func (_e *MockClient_Expecter) Push(ctx any, event any, extra ...any) *MockClient_Push_Call {
 	return &MockClient_Push_Call{Call: _e.mock.On("Push",
-		append([]interface{}{ctx, event}, extra...)...)}
+		append([]any{ctx, event}, extra...)...)}
 }
 
 func (_c *MockClient_Push_Call) Run(run func(ctx context.Context, event string, extra ...interface{})) *MockClient_Push_Call {
