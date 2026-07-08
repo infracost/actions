@@ -26,13 +26,11 @@ func testdataDir() string {
 	return filepath.Join(filepath.Dir(file), "testdata")
 }
 
-// processPlugins initialises the parser and provider Load functions.
+// processPlugins initialises the plugin manager configuration.
 // Must be called after the config is in its final location (pointer-stable)
-// so that the closures capture the correct *parser.Config / *providers.Config.
+// so that the manager captures the correct *plugins.Config.
 func processPlugins(cfg *config.Config) {
 	cfg.Plugins.Process()
-	cfg.Plugins.Parser.Process()
-	cfg.Plugins.Providers.Process()
 }
 
 // emptyRunParams returns dashboard.RunParameters with minimal required fields.
