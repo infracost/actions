@@ -9,8 +9,8 @@ import (
 	"github.com/infracost/actions/tools/scanner/internal/api"
 	"github.com/infracost/actions/tools/scanner/internal/config"
 	"github.com/infracost/actions/tools/scanner/internal/git"
-	"github.com/infracost/go-proto/pkg/diagnostic"
 	pkgscanner "github.com/infracost/cli/pkg/scanner"
+	"github.com/infracost/go-proto/pkg/diagnostic"
 	"github.com/infracost/proto/gen/go/infracost/parser/event"
 	"github.com/infracost/proto/gen/go/infracost/provider"
 	"github.com/infracost/vcs/pkg/vcs"
@@ -30,9 +30,9 @@ type diffArgs struct {
 	project       string
 	pipelineRunID string
 	vcsProvider   string
-	githubToken     string
-	githubOwner     string
-	githubRepo      string
+	githubToken   string
+	githubOwner   string
+	githubRepo    string
 }
 
 // ScanResult holds the outcome of a scan, including whether policies or
@@ -117,6 +117,9 @@ func diff(cfg *config.Config, args *diffArgs, vcsClient vcs.VCS, results *ScanRe
 	runParams, err := config.ParseRunParameters(rawRunParams)
 	if err != nil {
 		return fmt.Errorf("failed to parse run parameters: %w", err)
+	}
+	if err := config.ValidateHeadConfigEnv(ctx, args.basePath, args.headPath, runParams.RepositoryName); err != nil {
+		return fmt.Errorf("repository config environment validation failed: %w", err)
 	}
 
 	token, err := tokenSource.Token()
