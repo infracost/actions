@@ -99,6 +99,59 @@ func (_c *MockVCS_GenerateComment_Call) RunAndReturn(run func(data comment.Data)
 	return _c
 }
 
+// MaxCommentSize provides a mock function for the type MockVCS
+func (_mock *MockVCS) MaxCommentSize() (int, comment.SizeUnit) {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for MaxCommentSize")
+	}
+
+	var r0 int
+	var r1 comment.SizeUnit
+	if returnFunc, ok := ret.Get(0).(func() (int, comment.SizeUnit)); ok {
+		return returnFunc()
+	}
+	if returnFunc, ok := ret.Get(0).(func() int); ok {
+		r0 = returnFunc()
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+	if returnFunc, ok := ret.Get(1).(func() comment.SizeUnit); ok {
+		r1 = returnFunc()
+	} else {
+		r1 = ret.Get(1).(comment.SizeUnit)
+	}
+	return r0, r1
+}
+
+// MockVCS_MaxCommentSize_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MaxCommentSize'
+type MockVCS_MaxCommentSize_Call struct {
+	*mock.Call
+}
+
+// MaxCommentSize is a helper method to define mock.On call
+func (_e *MockVCS_Expecter) MaxCommentSize() *MockVCS_MaxCommentSize_Call {
+	return &MockVCS_MaxCommentSize_Call{Call: _e.mock.On("MaxCommentSize")}
+}
+
+func (_c *MockVCS_MaxCommentSize_Call) Run(run func()) *MockVCS_MaxCommentSize_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockVCS_MaxCommentSize_Call) Return(n int, sizeUnit comment.SizeUnit) *MockVCS_MaxCommentSize_Call {
+	_c.Call.Return(n, sizeUnit)
+	return _c
+}
+
+func (_c *MockVCS_MaxCommentSize_Call) RunAndReturn(run func() (int, comment.SizeUnit)) *MockVCS_MaxCommentSize_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // PostComment provides a mock function for the type MockVCS
 func (_mock *MockVCS) PostComment(ctx context.Context, body string, behavior vcs.Behavior) (vcs.PostResult, error) {
 	ret := _mock.Called(ctx, body, behavior)
@@ -167,6 +220,75 @@ func (_c *MockVCS_PostComment_Call) Return(postResult vcs.PostResult, err error)
 }
 
 func (_c *MockVCS_PostComment_Call) RunAndReturn(run func(ctx context.Context, body string, behavior vcs.Behavior) (vcs.PostResult, error)) *MockVCS_PostComment_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SourceLink provides a mock function for the type MockVCS
+func (_mock *MockVCS) SourceLink(repoURL string, commitSHA string, path string, startLine int) string {
+	ret := _mock.Called(repoURL, commitSHA, path, startLine)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SourceLink")
+	}
+
+	var r0 string
+	if returnFunc, ok := ret.Get(0).(func(string, string, string, int) string); ok {
+		r0 = returnFunc(repoURL, commitSHA, path, startLine)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	return r0
+}
+
+// MockVCS_SourceLink_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SourceLink'
+type MockVCS_SourceLink_Call struct {
+	*mock.Call
+}
+
+// SourceLink is a helper method to define mock.On call
+//   - repoURL string
+//   - commitSHA string
+//   - path string
+//   - startLine int
+func (_e *MockVCS_Expecter) SourceLink(repoURL any, commitSHA any, path any, startLine any) *MockVCS_SourceLink_Call {
+	return &MockVCS_SourceLink_Call{Call: _e.mock.On("SourceLink", repoURL, commitSHA, path, startLine)}
+}
+
+func (_c *MockVCS_SourceLink_Call) Run(run func(repoURL string, commitSHA string, path string, startLine int)) *MockVCS_SourceLink_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 int
+		if args[3] != nil {
+			arg3 = args[3].(int)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockVCS_SourceLink_Call) Return(s string) *MockVCS_SourceLink_Call {
+	_c.Call.Return(s)
+	return _c
+}
+
+func (_c *MockVCS_SourceLink_Call) RunAndReturn(run func(repoURL string, commitSHA string, path string, startLine int) string) *MockVCS_SourceLink_Call {
 	_c.Call.Return(run)
 	return _c
 }
