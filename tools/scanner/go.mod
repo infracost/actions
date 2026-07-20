@@ -4,8 +4,8 @@ go 1.25.11
 
 require (
 	github.com/Masterminds/semver/v3 v3.4.0
-	github.com/infracost/cli v0.0.14-0.20260717082720-73ca53a9446d
-	github.com/infracost/config v0.12.0
+	github.com/infracost/cli v0.0.14-0.20260720155007-e503dbf17a03
+	github.com/infracost/config v0.12.1-0.20260720154204-f44002e58949
 	github.com/infracost/go-proto v1.26.0
 	github.com/infracost/proto v1.159.0
 	github.com/infracost/vcs v0.8.9
