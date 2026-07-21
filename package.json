@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "dotenv": "^16.4.5",
-    "js-yaml": "^4.1.0"
+    "js-yaml": "^4.3.0"
   },
   "dependencies": {
     "@babel/core": "^8.0.1"
