@@ -72,7 +72,7 @@ type MockClient_AddRun_Call struct {
 // AddRun is a helper method to define mock.On call
 //   - ctx context.Context
 //   - input dashboard.RunInput
-func (_e *MockClient_Expecter) AddRun(ctx interface{}, input interface{}) *MockClient_AddRun_Call {
+func (_e *MockClient_Expecter) AddRun(ctx any, input any) *MockClient_AddRun_Call {
 	return &MockClient_AddRun_Call{Call: _e.mock.On("AddRun", ctx, input)}
 }
 
@@ -139,7 +139,7 @@ type MockClient_RunParameters_Call struct {
 //   - ctx context.Context
 //   - repoURL string
 //   - branchName string
-func (_e *MockClient_Expecter) RunParameters(ctx interface{}, repoURL interface{}, branchName interface{}) *MockClient_RunParameters_Call {
+func (_e *MockClient_Expecter) RunParameters(ctx any, repoURL any, branchName any) *MockClient_RunParameters_Call {
 	return &MockClient_RunParameters_Call{Call: _e.mock.On("RunParameters", ctx, repoURL, branchName)}
 }
 
@@ -202,7 +202,7 @@ type MockClient_UpdatePullRequestStatus_Call struct {
 //   - ctx context.Context
 //   - prURL string
 //   - status dashboard.PullRequestStatus
-func (_e *MockClient_Expecter) UpdatePullRequestStatus(ctx interface{}, prURL interface{}, status interface{}) *MockClient_UpdatePullRequestStatus_Call {
+func (_e *MockClient_Expecter) UpdatePullRequestStatus(ctx any, prURL any, status any) *MockClient_UpdatePullRequestStatus_Call {
 	return &MockClient_UpdatePullRequestStatus_Call{Call: _e.mock.On("UpdatePullRequestStatus", ctx, prURL, status)}
 }
 

@@ -26,13 +26,11 @@ func testdataDir() string {
 	return filepath.Join(filepath.Dir(file), "testdata")
 }
 
-// processPlugins initialises the parser and provider Load functions.
+// processPlugins initialises the plugin manager configuration.
 // Must be called after the config is in its final location (pointer-stable)
-// so that the closures capture the correct *parser.Config / *providers.Config.
+// so that the manager captures the correct *plugins.Config.
 func processPlugins(cfg *config.Config) {
 	cfg.Plugins.Process()
-	cfg.Plugins.Parser.Process()
-	cfg.Plugins.Providers.Process()
 }
 
 // emptyRunParams returns dashboard.RunParameters with minimal required fields.
@@ -134,7 +132,7 @@ func runDiffWithArgs(t *testing.T, cfg *config.Config, m *testingconfig.Mocks, b
 
 func TestDiff_BasicCostDiff(t *testing.T) {
 	cfg, m := testingconfig.Config(t)
-	processPlugins(&cfg)
+	processPlugins(cfg)
 
 	m.Dashboard.EXPECT().
 		RunParameters(mock.Anything, mock.Anything, mock.Anything).
@@ -144,7 +142,7 @@ func TestDiff_BasicCostDiff(t *testing.T) {
 	data := setupVCSMocks(m)
 	runEvent := setupEventsMocks(m)
 
-	_, err := runDiff(t, &cfg, m, filepath.Join(testdataDir(), "basic", "base"), filepath.Join(testdataDir(), "basic", "head"))
+	_, err := runDiff(t, cfg, m, filepath.Join(testdataDir(), "basic", "base"), filepath.Join(testdataDir(), "basic", "head"))
 	if err != nil {
 		t.Fatalf("diff() returned error: %v", err)
 	}
@@ -178,7 +176,7 @@ func TestDiff_BasicCostDiff(t *testing.T) {
 
 func TestDiff_NoChanges(t *testing.T) {
 	cfg, m := testingconfig.Config(t)
-	processPlugins(&cfg)
+	processPlugins(cfg)
 
 	m.Dashboard.EXPECT().
 		RunParameters(mock.Anything, mock.Anything, mock.Anything).
@@ -188,7 +186,7 @@ func TestDiff_NoChanges(t *testing.T) {
 	data := setupVCSMocks(m)
 	setupEventsMocks(m)
 
-	_, err := runDiff(t, &cfg, m, filepath.Join(testdataDir(), "no-changes", "base"), filepath.Join(testdataDir(), "no-changes", "head"))
+	_, err := runDiff(t, cfg, m, filepath.Join(testdataDir(), "no-changes", "base"), filepath.Join(testdataDir(), "no-changes", "head"))
 	if err != nil {
 		t.Fatalf("diff() returned error: %v", err)
 	}
@@ -206,13 +204,13 @@ func TestDiff_NoChanges(t *testing.T) {
 
 func TestDiff_DashboardError(t *testing.T) {
 	cfg, m := testingconfig.Config(t)
-	processPlugins(&cfg)
+	processPlugins(cfg)
 
 	m.Dashboard.EXPECT().
 		RunParameters(mock.Anything, mock.Anything, mock.Anything).
 		Return(dashboard.RunParameters{}, errors.New("dashboard unavailable"))
 
-	_, err := runDiff(t, &cfg, m, filepath.Join(testdataDir(), "basic", "base"), filepath.Join(testdataDir(), "basic", "head"))
+	_, err := runDiff(t, cfg, m, filepath.Join(testdataDir(), "basic", "base"), filepath.Join(testdataDir(), "basic", "head"))
 	if err == nil {
 		t.Fatal("expected error from diff() when dashboard fails")
 	}
@@ -220,7 +218,7 @@ func TestDiff_DashboardError(t *testing.T) {
 
 func TestDiff_ScanFailureUploadsErrorRun(t *testing.T) {
 	cfg, m := testingconfig.Config(t)
-	processPlugins(&cfg)
+	processPlugins(cfg)
 
 	m.Dashboard.EXPECT().
 		RunParameters(mock.Anything, mock.Anything, mock.Anything).
@@ -233,7 +231,7 @@ func TestDiff_ScanFailureUploadsErrorRun(t *testing.T) {
 		})).
 		Return(dashboard.AddRunResult{}, nil)
 
-	_, err := runDiff(t, &cfg, m, filepath.Join(testdataDir(), "nonexistent"), filepath.Join(testdataDir(), "basic", "head"))
+	_, err := runDiff(t, cfg, m, filepath.Join(testdataDir(), "nonexistent"), filepath.Join(testdataDir(), "basic", "head"))
 	if err == nil {
 		t.Fatal("expected error from diff() when base path does not exist")
 	}
@@ -242,7 +240,7 @@ func TestDiff_ScanFailureUploadsErrorRun(t *testing.T) {
 func TestDiff_ScanFailureDashboardDisabled(t *testing.T) {
 	cfg, m := testingconfig.Config(t)
 	cfg.DisableDashboard = true
-	processPlugins(&cfg)
+	processPlugins(cfg)
 
 	m.Dashboard.EXPECT().
 		RunParameters(mock.Anything, mock.Anything, mock.Anything).
@@ -250,7 +248,7 @@ func TestDiff_ScanFailureDashboardDisabled(t *testing.T) {
 
 	// AddRun should NOT be called when dashboard is disabled, even on error.
 
-	_, err := runDiff(t, &cfg, m, filepath.Join(testdataDir(), "nonexistent"), filepath.Join(testdataDir(), "basic", "head"))
+	_, err := runDiff(t, cfg, m, filepath.Join(testdataDir(), "nonexistent"), filepath.Join(testdataDir(), "basic", "head"))
 	if err == nil {
 		t.Fatal("expected error from diff() when base path does not exist")
 	}
@@ -258,7 +256,7 @@ func TestDiff_ScanFailureDashboardDisabled(t *testing.T) {
 
 func TestDiff_GuardrailTriggered(t *testing.T) {
 	cfg, m := testingconfig.Config(t)
-	processPlugins(&cfg)
+	processPlugins(cfg)
 
 	guardrail := mustProtoJSON(t, &event.Guardrail{
 		Id:                "gr-1",
@@ -281,7 +279,7 @@ func TestDiff_GuardrailTriggered(t *testing.T) {
 	data := setupVCSMocks(m)
 	setupEventsMocks(m)
 
-	result, err := runDiff(t, &cfg, m, filepath.Join(testdataDir(), "basic", "base"), filepath.Join(testdataDir(), "basic", "head"))
+	result, err := runDiff(t, cfg, m, filepath.Join(testdataDir(), "basic", "base"), filepath.Join(testdataDir(), "basic", "head"))
 	if err != nil {
 		t.Fatalf("diff() returned error: %v", err)
 	}
@@ -307,7 +305,7 @@ func TestDiff_GuardrailTriggered(t *testing.T) {
 
 func TestDiff_GuardrailSuppressed(t *testing.T) {
 	cfg, m := testingconfig.Config(t)
-	processPlugins(&cfg)
+	processPlugins(cfg)
 
 	guardrail := mustProtoJSON(t, &event.Guardrail{
 		Id:             "gr-suppress",
@@ -329,7 +327,7 @@ func TestDiff_GuardrailSuppressed(t *testing.T) {
 	data := setupVCSMocks(m)
 	setupEventsMocks(m)
 
-	result, err := runDiff(t, &cfg, m, filepath.Join(testdataDir(), "no-changes", "base"), filepath.Join(testdataDir(), "no-changes", "head"))
+	result, err := runDiff(t, cfg, m, filepath.Join(testdataDir(), "no-changes", "base"), filepath.Join(testdataDir(), "no-changes", "head"))
 	if err != nil {
 		t.Fatalf("diff() returned error: %v", err)
 	}
@@ -345,7 +343,7 @@ func TestDiff_GuardrailSuppressed(t *testing.T) {
 
 func TestDiff_FinOpsPolicy(t *testing.T) {
 	cfg, m := testingconfig.Config(t)
-	processPlugins(&cfg)
+	processPlugins(cfg)
 
 	finopsPolicy := mustProtoJSON(t, &event.FinopsPolicySettings{
 		Id:        "fp-1",
@@ -376,7 +374,7 @@ func TestDiff_FinOpsPolicy(t *testing.T) {
 	data := setupVCSMocks(m)
 	setupEventsMocks(m)
 
-	_, err := runDiff(t, &cfg, m, filepath.Join(testdataDir(), "basic", "base"), filepath.Join(testdataDir(), "basic", "head"))
+	_, err := runDiff(t, cfg, m, filepath.Join(testdataDir(), "basic", "base"), filepath.Join(testdataDir(), "basic", "head"))
 	if err != nil {
 		t.Fatalf("diff() returned error: %v", err)
 	}
@@ -388,7 +386,7 @@ func TestDiff_FinOpsPolicy(t *testing.T) {
 
 func TestDiff_UsageDefaults(t *testing.T) {
 	cfg, m := testingconfig.Config(t)
-	processPlugins(&cfg)
+	processPlugins(cfg)
 
 	usageDefaults := mustProtoJSON(t, &event.UsageDefaults{
 		Resources: map[string]*event.UsageResourceMap{
@@ -415,7 +413,7 @@ func TestDiff_UsageDefaults(t *testing.T) {
 	data := setupVCSMocks(m)
 	setupEventsMocks(m)
 
-	_, err := runDiff(t, &cfg, m, filepath.Join(testdataDir(), "basic", "base"), filepath.Join(testdataDir(), "basic", "head"))
+	_, err := runDiff(t, cfg, m, filepath.Join(testdataDir(), "basic", "base"), filepath.Join(testdataDir(), "basic", "head"))
 	if err != nil {
 		t.Fatalf("diff() returned error: %v", err)
 	}
@@ -427,7 +425,7 @@ func TestDiff_UsageDefaults(t *testing.T) {
 
 func TestDiff_SingleProjectFilter(t *testing.T) {
 	cfg, m := testingconfig.Config(t)
-	processPlugins(&cfg)
+	processPlugins(cfg)
 
 	m.Dashboard.EXPECT().
 		RunParameters(mock.Anything, mock.Anything, mock.Anything).
@@ -437,7 +435,7 @@ func TestDiff_SingleProjectFilter(t *testing.T) {
 	data := setupVCSMocks(m)
 	setupEventsMocks(m)
 
-	_, err := runDiffWithArgs(t, &cfg, m, filepath.Join(testdataDir(), "multi-project", "base"), filepath.Join(testdataDir(), "multi-project", "head"), diffArgs{project: "web"})
+	_, err := runDiffWithArgs(t, cfg, m, filepath.Join(testdataDir(), "multi-project", "base"), filepath.Join(testdataDir(), "multi-project", "head"), diffArgs{project: "web"})
 	if err != nil {
 		t.Fatalf("diff() returned error: %v", err)
 	}

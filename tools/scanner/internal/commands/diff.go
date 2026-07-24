@@ -223,7 +223,11 @@ func diff(cfg *config.Config, args *diffArgs, vcsClient vcs.VCS, results *ScanRe
 		if err != nil {
 			return fmt.Errorf("failed to upload run to dashboard: %w", err)
 		}
-		data.CloudURL = addRunResult.CloudURL
+		// The VCS library builds the dashboard run link itself from OrgSlug,
+		// RepoID and RunID (see comment.Data.runURL), so pass the run ID and
+		// mark cloud as enabled rather than a pre-built URL.
+		data.CloudEnabled = true
+		data.RunID = addRunResult.ID
 	}
 
 	body, err := vcsClient.GenerateComment(data)

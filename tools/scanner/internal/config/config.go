@@ -6,6 +6,7 @@ import (
 	"github.com/infracost/actions/tools/scanner/internal/api/dashboard"
 	"github.com/infracost/actions/tools/scanner/internal/api/events"
 	"github.com/infracost/cli/pkg/auth"
+	"github.com/infracost/cli/pkg/config/process"
 	"github.com/infracost/cli/pkg/environment"
 	"github.com/infracost/cli/pkg/logging"
 	"github.com/infracost/cli/pkg/plugins"
@@ -25,6 +26,15 @@ type Config struct {
 
 	// DisableDashboard disables uploading scan results to the Infracost dashboard.
 	DisableDashboard bool `env:"INFRACOST_CI_DISABLE_DASHBOARD"`
+
+	// JSON toggles JSON output for logs. Registered here so sub-configs that
+	// bind via `flagvalue:"json"` (e.g. logging) have a flag to reference.
+	// Must stay above Logging so it is registered before logging binds to it.
+	JSON process.BoolFlag `env:"INFRACOST_CLI_LOG_JSON" flag:"json;hidden" usage:"Output logs as JSON"`
+
+	// Debug enables debug logging. Shared with logging via `flagvalue:"debug"`.
+	// Must stay above Logging so it is registered before logging binds to it.
+	Debug process.BoolFlag `flag:"debug;hidden" usage:"Enable debug logging"`
 
 	// Logging contains the configuration for logging.
 	// keep logging above other structs, so it gets processed first and others can log in their process functions.

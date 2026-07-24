@@ -28,7 +28,7 @@ type Mocks struct {
 
 // Config returns a Config pre-wired with mock clients for testing.
 // Requires INFRACOST_CLI_AUTHENTICATION_TOKEN to be set; skips the test otherwise.
-func Config(t *testing.T) (config.Config, *Mocks) {
+func Config(t *testing.T) (*config.Config, *Mocks) {
 	t.Helper()
 
 	if testing.Short() {
@@ -53,8 +53,8 @@ func Config(t *testing.T) (config.Config, *Mocks) {
 		OrgID:           "testing-organization",
 		PricingEndpoint: "https://pricing.api.infracost.io",
 		Plugins: plugins.Config{
-			ManifestURL: "https://releases.infracost.io/plugins/manifest.json",
-			AutoUpdate:  false,
+			BaseURL:    "https://releases.infracost.io",
+			AutoUpdate: false,
 		},
 		Dashboard: dashboard.Config{
 			Environment: environment.Local,
@@ -78,5 +78,5 @@ func Config(t *testing.T) (config.Config, *Mocks) {
 		},
 	}
 	cfg.Logging.ForTest(t)
-	return cfg, m
+	return &cfg, m
 }
