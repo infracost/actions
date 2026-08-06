@@ -125,7 +125,7 @@ func (config *Config) ScanDirectory(ctx context.Context, dir string, accessToken
 		repoConfigOpts = append(repoConfigOpts, repoconfig.WithRepoName(runParams.RepositoryName))
 	}
 
-	repoConfig, err := pkgscanner.LoadOrGenerateRepositoryConfig(ctx, absoluteDir, repoConfigOpts...)
+	repoConfig, err := pkgscanner.LoadOrGenerateRepositoryConfig(ctx, absoluteDir, config.Plugins.PluginDir(), repoConfigOpts...)
 	if err != nil {
 		return nil, fmt.Errorf("repository configuration error: %w", err)
 	}
