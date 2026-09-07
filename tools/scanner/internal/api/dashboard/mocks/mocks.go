@@ -176,6 +176,78 @@ func (_c *MockClient_RunParameters_Call) RunAndReturn(run func(ctx context.Conte
 	return _c
 }
 
+// SavePostedPrComment provides a mock function for the type MockClient
+func (_mock *MockClient) SavePostedPrComment(ctx context.Context, runID string, comment string) (bool, error) {
+	ret := _mock.Called(ctx, runID, comment)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SavePostedPrComment")
+	}
+
+	var r0 bool
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (bool, error)); ok {
+		return returnFunc(ctx, runID, comment)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) bool); ok {
+		r0 = returnFunc(ctx, runID, comment)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = returnFunc(ctx, runID, comment)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClient_SavePostedPrComment_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SavePostedPrComment'
+type MockClient_SavePostedPrComment_Call struct {
+	*mock.Call
+}
+
+// SavePostedPrComment is a helper method to define mock.On call
+//   - ctx context.Context
+//   - runID string
+//   - comment string
+func (_e *MockClient_Expecter) SavePostedPrComment(ctx any, runID any, comment any) *MockClient_SavePostedPrComment_Call {
+	return &MockClient_SavePostedPrComment_Call{Call: _e.mock.On("SavePostedPrComment", ctx, runID, comment)}
+}
+
+func (_c *MockClient_SavePostedPrComment_Call) Run(run func(ctx context.Context, runID string, comment string)) *MockClient_SavePostedPrComment_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockClient_SavePostedPrComment_Call) Return(b bool, err error) *MockClient_SavePostedPrComment_Call {
+	_c.Call.Return(b, err)
+	return _c
+}
+
+func (_c *MockClient_SavePostedPrComment_Call) RunAndReturn(run func(ctx context.Context, runID string, comment string) (bool, error)) *MockClient_SavePostedPrComment_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdatePullRequestStatus provides a mock function for the type MockClient
 func (_mock *MockClient) UpdatePullRequestStatus(ctx context.Context, prURL string, status dashboard.PullRequestStatus) error {
 	ret := _mock.Called(ctx, prURL, status)
