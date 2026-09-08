@@ -27,6 +27,11 @@ type Config struct {
 	// DisableDashboard disables uploading scan results to the Infracost dashboard.
 	DisableDashboard bool `env:"INFRACOST_CI_DISABLE_DASHBOARD"`
 
+	// VCSProvider is the VCS hosting the repository — github, gitlab, azure_repos
+	// or bitbucket. Unprefixed on purpose: INFRACOST_VCS_PROVIDER is the v0.1
+	// contract name, unlike the INFRACOST_CI_* fields above.
+	VCSProvider string `env:"INFRACOST_VCS_PROVIDER" flag:"vcs-provider" usage:"VCS provider hosting the repository"`
+
 	// JSON toggles JSON output for logs. Registered here so sub-configs that
 	// bind via `flagvalue:"json"` (e.g. logging) have a flag to reference.
 	// Must stay above Logging so it is registered before logging binds to it.

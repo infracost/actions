@@ -29,6 +29,8 @@ type RunInputOptions struct {
 	Command string
 
 	// VCS metadata — used by the dashboard to create repo, branch, and PR records.
+	CIPlatform        string
+	VCSProvider       string
 	RepoURL           string
 	RepoID            string
 	RepoName          string
@@ -199,8 +201,8 @@ func buildRunInputFromMetadata(opts RunInputOptions, projectResults []dashboard.
 	metadata := runMetadata{
 		Command:              opts.Command,
 		Version:              version.Version,
-		CIPlatform:           "github_actions",
-		VCSProvider:          "github",
+		CIPlatform:           opts.CIPlatform,
+		VCSProvider:          opts.VCSProvider,
 		VCSRepositoryURL:     opts.RepoURL,
 		RepoID:               opts.RepoID,
 		RepoName:             opts.RepoName,

@@ -447,3 +447,50 @@ func TestDiff_SingleProjectFilter(t *testing.T) {
 		t.Errorf("expected project name 'web', got %q", data.Projects[0].Name)
 	}
 }
+
+func TestDiff_VCSProviderFromConfig(t *testing.T) {
+	cfg, m := testingconfig.Config(t)
+	// gitlab proves the value came from cfg rather than the old literal. diff() runs
+	// below newVCSClient, so a provider the real command rejects is reachable here.
+	cfg.VCSProvider = "gitlab"
+	t.Setenv("INFRACOST_CI_PLATFORM", "test_platform")
+	processPlugins(cfg)
+
+	m.Dashboard.EXPECT().
+		RunParameters(mock.Anything, mock.Anything, mock.Anything).
+		Return(emptyRunParams(), nil)
+
+	var metadata map[string]interface{}
+	m.Dashboard.EXPECT().
+		AddRun(mock.Anything, mock.Anything).
+		Run(func(_ context.Context, input dashboard.RunInput) {
+			metadata = input.Metadata
+		}).
+		Return(dashboard.AddRunResult{ID: "test-run-id"}, nil)
+
+	setupVCSMocks(m)
+	setupEventsMocks(m)
+
+	_, err := runDiff(t, cfg, m, filepath.Join(testdataDir(), "basic", "base"), filepath.Join(testdataDir(), "basic", "head"))
+	if err != nil {
+		t.Fatalf("diff() returned error: %v", err)
+	}
+
+	if metadata["vcsProvider"] != "gitlab" {
+		t.Errorf("expected vcsProvider 'gitlab', got %v", metadata["vcsProvider"])
+	}
+	if metadata["ciPlatform"] != "test_platform" {
+		t.Errorf("expected ciPlatform 'test_platform', got %v", metadata["ciPlatform"])
+	}
+}
+
+func TestNewVCSClient_UnsupportedProvider(t *testing.T) {
+	for _, provider := range []string{"gitlab", "azure_repos", "bitbucket"} {
+		t.Run(provider, func(t *testing.T) {
+			_, err := newVCSClient(context.Background(), provider, &diffArgs{})
+			if err == nil {
+				t.Fatalf("expected newVCSClient to reject %q", provider)
+			}
+		})
+	}
+}

@@ -29,7 +29,6 @@ type diffArgs struct {
 	repoURL       string
 	project       string
 	pipelineRunID string
-	vcsProvider   string
 	githubToken     string
 	githubOwner     string
 	githubRepo      string
@@ -50,7 +49,11 @@ func Diff(cfg *config.Config, results *ScanResult) *cobra.Command {
 		Short: "Scan base and head branches, compute cost diff, and post a PR comment",
 		RunE: func(_ *cobra.Command, _ []string) error {
 			ctx := context.Background()
-			client, err := newVCSClient(ctx, &args)
+			provider, err := resolveVCSProvider(cfg)
+			if err != nil {
+				return err
+			}
+			client, err := newVCSClient(ctx, provider, &args)
 			if err != nil {
 				return fmt.Errorf("failed to create VCS client: %w", err)
 			}
@@ -67,7 +70,6 @@ func Diff(cfg *config.Config, results *ScanResult) *cobra.Command {
 	diffCmd.Flags().StringVar(&args.repoURL, "repo-url", "", "Repository URL for source links in comments")
 	diffCmd.Flags().StringVar(&args.pipelineRunID, "pipeline-run-id", "", "CI pipeline run ID (e.g. GitHub Actions run ID)")
 	diffCmd.Flags().StringVar(&args.project, "project", "", "Filter scanning to a single project")
-	diffCmd.Flags().StringVar(&args.vcsProvider, "vcs-provider", "github", "VCS provider to use for posting comments")
 	diffCmd.Flags().StringVar(&args.githubToken, "github-token", os.Getenv("GITHUB_TOKEN"), "API token for posting comments")
 	diffCmd.Flags().StringVar(&args.githubOwner, "github-owner", "", "GitHub repository owner")
 	diffCmd.Flags().StringVar(&args.githubRepo, "github-repo", "", "GitHub repository name")
@@ -81,18 +83,23 @@ func Diff(cfg *config.Config, results *ScanResult) *cobra.Command {
 	return diffCmd
 }
 
-func newVCSClient(ctx context.Context, args *diffArgs) (vcs.VCS, error) {
-	switch args.vcsProvider {
+func newVCSClient(ctx context.Context, provider string, args *diffArgs) (vcs.VCS, error) {
+	switch provider {
 	case "github":
 		return github.New(ctx, args.githubOwner, args.githubRepo, args.githubToken, int32(args.prNumber), github.Options{}) //nolint:gosec // PR numbers won't overflow int32
 	default:
-		return nil, fmt.Errorf("unsupported VCS provider: %q", args.vcsProvider)
+		return nil, fmt.Errorf("posting comments is only supported on github, not %q", provider)
 	}
 }
 
 func diff(cfg *config.Config, args *diffArgs, vcsClient vcs.VCS, results *ScanResult) error {
 	ctx := context.Background()
 	startTime := time.Now()
+
+	vcsProvider, err := resolveVCSProvider(cfg)
+	if err != nil {
+		return err
+	}
 
 	headCommitSHA := git.RevParse(args.headPath, "HEAD")
 	headBranch := git.RevParse(args.headPath, "--abbrev-ref", "HEAD")
@@ -126,6 +133,8 @@ func diff(cfg *config.Config, args *diffArgs, vcsClient vcs.VCS, results *ScanRe
 
 	commit := git.GetCommitInfo(args.headPath, headCommitSHA)
 	runOpts := config.RunInputOptions{
+		CIPlatform:        ciPlatform(),
+		VCSProvider:       vcsProvider,
 		RepoURL:           args.repoURL,
 		RepoID:            runParams.RepositoryID,
 		RepoName:          runParams.RepositoryName,
