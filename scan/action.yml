@@ -116,6 +116,7 @@ runs:
       env:
         INFRACOST_CLI_AUTHENTICATION_TOKEN: ${{ inputs.api-key }}
         INFRACOST_CLI_LOG_LEVEL: info
+        INFRACOST_VCS_PROVIDER: github
         INPUT_PATH: ${{ inputs.path }}
         INPUT_PROJECT: ${{ inputs.project }}
         CONTEXT_REPO_URL: ${{ steps.context.outputs.repo-url }}

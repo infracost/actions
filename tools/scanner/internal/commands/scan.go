@@ -71,11 +71,25 @@ func scan(cfg *config.Config, args *scanArgs) error {
 		return fmt.Errorf("failed to retrieve access token: %w", err)
 	}
 
+	uploadEnabled := !cfg.DisableDashboard && runParams.CloudEnabled
+
+	// Only the upload carries the provider, so an unset one must not fail a
+	// local run with the dashboard disabled.
+	var vcsProvider string
+	if uploadEnabled {
+		vcsProvider, err = resolveVCSProvider(cfg)
+		if err != nil {
+			return err
+		}
+	}
+
 	commitSHA := git.RevParse(args.path, "HEAD")
 	commit := git.GetCommitInfo(args.path, commitSHA)
 	runOpts := config.RunInputOptions{
 		CommentPosted:   false,
 		Command:         "upload",
+		CIPlatform:      ciPlatform(),
+		VCSProvider:     vcsProvider,
 		RepoURL:         args.repoURL,
 		RepoID:          runParams.RepositoryID,
 		RepoName:        runParams.RepositoryName,
@@ -88,8 +102,6 @@ func scan(cfg *config.Config, args *scanArgs) error {
 		PipelineRunID:   args.pipelineRunID,
 		UsageAPIEnabled: runParams.UsageDefaults != nil && len(runParams.UsageDefaults.Resources) > 0,
 	}
-
-	uploadEnabled := !cfg.DisableDashboard && runParams.CloudEnabled
 
 	result, err := cfg.ScanDirectory(ctx, args.path, token.AccessToken, runParams, nil, args.project, branch)
 	if err != nil {

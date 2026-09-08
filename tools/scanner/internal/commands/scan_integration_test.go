@@ -159,3 +159,35 @@ func TestScan_DashboardError(t *testing.T) {
 		t.Fatal("expected error from scan() when dashboard fails")
 	}
 }
+
+func TestScan_VCSProviderFromConfig(t *testing.T) {
+	cfg, m := testingconfig.Config(t)
+	cfg.VCSProvider = "azure_repos"
+	t.Setenv("INFRACOST_CI_PLATFORM", "test_platform")
+	processPlugins(cfg)
+
+	m.Dashboard.EXPECT().
+		RunParameters(mock.Anything, mock.Anything, mock.Anything).
+		Return(emptyRunParams(), nil)
+
+	setupScanEventsMocks(m)
+
+	var metadata map[string]interface{}
+	m.Dashboard.EXPECT().
+		AddRun(mock.Anything, mock.Anything).
+		Run(func(_ context.Context, input dashboard.RunInput) {
+			metadata = input.Metadata
+		}).
+		Return(dashboard.AddRunResult{ID: "test-run-id"}, nil)
+
+	if err := runScan(t, cfg, filepath.Join(testdataDir(), "basic", "head")); err != nil {
+		t.Fatalf("scan() returned error: %v", err)
+	}
+
+	if metadata["vcsProvider"] != "azure_repos" {
+		t.Errorf("expected vcsProvider 'azure_repos', got %v", metadata["vcsProvider"])
+	}
+	if metadata["ciPlatform"] != "test_platform" {
+		t.Errorf("expected ciPlatform 'test_platform', got %v", metadata["ciPlatform"])
+	}
+}

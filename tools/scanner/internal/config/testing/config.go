@@ -52,6 +52,7 @@ func Config(t *testing.T) (*config.Config, *Mocks) {
 		},
 		OrgID:           "testing-organization",
 		PricingEndpoint: "https://pricing.api.infracost.io",
+		VCSProvider:     "github",
 		Plugins: plugins.Config{
 			BaseURL:    "https://releases.infracost.io",
 			AutoUpdate: false,
