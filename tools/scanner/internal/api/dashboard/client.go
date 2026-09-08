@@ -204,13 +204,13 @@ type BreakdownInput struct {
 
 // BudgetResultInput represents a budget evaluation result.
 type BudgetResultInput struct {
-	BudgetID             string              `json:"budgetId"`
-	Tags                 []BudgetTagInput    `json:"tags"`
-	StartDate            string              `json:"startDate"`
-	EndDate              string              `json:"endDate"`
-	Amount               string              `json:"amount"`
-	CurrentCost          string              `json:"currentCost"`
-	CustomOverrunMessage string              `json:"customOverrunMessage,omitempty"`
+	BudgetID             string           `json:"budgetId"`
+	Tags                 []BudgetTagInput `json:"tags"`
+	StartDate            string           `json:"startDate"`
+	EndDate              string           `json:"endDate"`
+	Amount               string           `json:"amount"`
+	CurrentCost          string           `json:"currentCost"`
+	CustomOverrunMessage string           `json:"customOverrunMessage,omitempty"`
 }
 
 // BudgetTagInput represents a budget tag key-value pair.
@@ -250,11 +250,10 @@ type Client interface {
 	RunParameters(ctx context.Context, repoURL, branchName string) (RunParameters, error)
 	AddRun(ctx context.Context, input RunInput) (AddRunResult, error)
 	UpdatePullRequestStatus(ctx context.Context, prURL string, status PullRequestStatus) error
+	SavePostedPrComment(ctx context.Context, runID, comment string) (bool, error)
 }
 
-var (
-	_ Client = (*client)(nil)
-)
+var _ Client = (*client)(nil)
 
 type client struct {
 	client *http.Client
@@ -363,4 +362,46 @@ func (c *client) UpdatePullRequestStatus(ctx context.Context, prURL string, stat
 		return errors.New(strings.Join(errs, "; "))
 	}
 	return nil
+}
+
+func (c *client) SavePostedPrComment(ctx context.Context, runID, comment string) (bool, error) {
+	if runID == "" {
+		return false, errors.New("runID is required")
+	}
+	if comment == "" {
+		return false, errors.New("comment is required")
+	}
+
+	const query = `mutation SavePostedPrComment($runId: String!, $comment: String!) {
+  savePostedPrComment(runId: $runId, comment: $comment)
+}`
+
+	type response struct {
+		SavePostedPrComment *bool `json:"savePostedPrComment"`
+	}
+
+	variables := map[string]interface{}{
+		"runId":   runID,
+		"comment": comment,
+	}
+
+	r, err := graphql.Query[response](ctx, c.client, fmt.Sprintf("%s/graphql", c.config.Endpoint), query, variables)
+	if err != nil {
+		return false, err
+	}
+
+	if len(r.Errors) > 0 {
+		var errs []string
+		for _, e := range r.Errors {
+			errs = append(errs, e.Message)
+		}
+		return false, errors.New(strings.Join(errs, "; "))
+	}
+
+	// The HTTP status is not checked, so an absent field is the only signal that
+	// the body came from something other than the GraphQL API.
+	if r.Data.SavePostedPrComment == nil {
+		return false, errors.New("savePostedPrComment missing from response")
+	}
+	return *r.Data.SavePostedPrComment, nil
 }
