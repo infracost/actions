@@ -9,6 +9,7 @@ import (
 	"github.com/infracost/actions/tools/scanner/internal/api"
 	"github.com/infracost/actions/tools/scanner/internal/config"
 	"github.com/infracost/actions/tools/scanner/internal/git"
+	"github.com/infracost/actions/tools/scanner/internal/vcsurl"
 	"github.com/infracost/go-proto/pkg/diagnostic"
 	pkgscanner "github.com/infracost/cli/pkg/scanner"
 	"github.com/infracost/proto/gen/go/infracost/parser/event"
@@ -85,7 +86,7 @@ func Diff(cfg *config.Config, results *ScanResult) *cobra.Command {
 
 func newVCSClient(ctx context.Context, provider string, args *diffArgs) (vcs.VCS, error) {
 	switch provider {
-	case "github":
+	case vcsurl.ProviderGitHub:
 		return github.New(ctx, args.githubOwner, args.githubRepo, args.githubToken, int32(args.prNumber), github.Options{}) //nolint:gosec // PR numbers won't overflow int32
 	default:
 		return nil, fmt.Errorf("posting comments is only supported on github, not %q", provider)
@@ -99,6 +100,16 @@ func diff(cfg *config.Config, args *diffArgs, vcsClient vcs.VCS, results *ScanRe
 	vcsProvider, err := resolveVCSProvider(cfg)
 	if err != nil {
 		return err
+	}
+
+	// Fail before scanning: diff is always a pull request run, so a missing or
+	// unbuildable PR URL would upload as a branch run and lose the PR.
+	prURL, err := vcsurl.PullRequest(vcsProvider, args.repoURL, args.prNumber)
+	if err != nil {
+		return err
+	}
+	if prURL == "" {
+		return fmt.Errorf("cannot determine the pull request URL: --repo-url and --pr-number are required")
 	}
 
 	headCommitSHA := git.RevParse(args.headPath, "HEAD")

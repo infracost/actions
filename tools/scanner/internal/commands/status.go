@@ -7,6 +7,7 @@ import (
 	"github.com/infracost/actions/tools/scanner/internal/api"
 	"github.com/infracost/actions/tools/scanner/internal/api/dashboard"
 	"github.com/infracost/actions/tools/scanner/internal/config"
+	"github.com/infracost/actions/tools/scanner/internal/vcsurl"
 	"github.com/spf13/cobra"
 )
 
@@ -29,7 +30,11 @@ func Status(cfg *config.Config) *cobra.Command {
 			default:
 				return fmt.Errorf("invalid status %q: must be OPEN, MERGED, or CLOSED", status)
 			}
-			return updatePullRequestStatus(cfg, args.repoURL, args.prNumber, status)
+			provider, err := resolveVCSProvider(cfg)
+			if err != nil {
+				return err
+			}
+			return updatePullRequestStatus(cfg, provider, args.repoURL, args.prNumber, status)
 		},
 	}
 
@@ -43,11 +48,14 @@ func Status(cfg *config.Config) *cobra.Command {
 	return statusCmd
 }
 
-func updatePullRequestStatus(cfg *config.Config, repoURL string, prNumber int, status dashboard.PullRequestStatus) error {
-	if repoURL == "" || prNumber == 0 {
+func updatePullRequestStatus(cfg *config.Config, provider, repoURL string, prNumber int, status dashboard.PullRequestStatus) error {
+	prURL, err := vcsurl.PullRequest(provider, repoURL, prNumber)
+	if err != nil {
+		return err
+	}
+	if prURL == "" {
 		return fmt.Errorf("cannot determine pull request URL: repo-url and pr-number are required")
 	}
-	prURL := fmt.Sprintf("%s/pull/%d", repoURL, prNumber)
 
 	ctx := context.Background()
 	if len(cfg.Auth.AuthenticationToken) == 0 {
