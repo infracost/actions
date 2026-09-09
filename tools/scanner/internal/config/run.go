@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/infracost/actions/tools/scanner/internal/api/dashboard"
+	"github.com/infracost/actions/tools/scanner/internal/vcsurl"
 	"github.com/infracost/actions/tools/scanner/internal/version"
 	pkgscanner "github.com/infracost/cli/pkg/scanner"
 	"github.com/infracost/go-proto/pkg/address"
@@ -191,10 +192,11 @@ func BuildRunInput(opts RunInputOptions) dashboard.RunInput {
 }
 
 func buildRunInputFromMetadata(opts RunInputOptions, projectResults []dashboard.ProjectResultInput) dashboard.RunInput {
-	var prURL string
+	// Dropped to keep BuildRunInput pure. Of its two callers, diff rejects an
+	// unbuildable URL before scanning and scan never sets PRNumber.
+	prURL, _ := vcsurl.PullRequest(opts.VCSProvider, opts.RepoURL, opts.PRNumber)
 	var prID string
-	if opts.PRNumber > 0 && opts.RepoURL != "" {
-		prURL = fmt.Sprintf("%s/pull/%d", opts.RepoURL, opts.PRNumber)
+	if prURL != "" {
 		prID = fmt.Sprintf("%d", opts.PRNumber)
 	}
 

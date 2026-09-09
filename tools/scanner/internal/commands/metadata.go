@@ -3,17 +3,13 @@ package commands
 import (
 	"fmt"
 	"os"
-	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/infracost/actions/tools/scanner/internal/api/events"
 	"github.com/infracost/actions/tools/scanner/internal/config"
+	"github.com/infracost/actions/tools/scanner/internal/vcsurl"
 )
-
-// vcsProviders is the accepted value set. The dashboard writes the provider
-// when it creates the repo and never rewrites it, so a typo would stick.
-var vcsProviders = []string{"github", "gitlab", "azure_repos", "bitbucket"}
 
 // ciPlatform passes an explicit INFRACOST_CI_PLATFORM through verbatim;
 // normalising it would discard a boolean-ish name chosen on purpose.
@@ -49,13 +45,13 @@ func normalizeCIPlatform(raw string) string {
 func resolveVCSProvider(cfg *config.Config) (string, error) {
 	if cfg.VCSProvider != "" {
 		provider := strings.ToLower(strings.TrimSpace(cfg.VCSProvider))
-		if !slices.Contains(vcsProviders, provider) {
-			return "", fmt.Errorf("unrecognised VCS provider %q: set INFRACOST_VCS_PROVIDER to %s", cfg.VCSProvider, strings.Join(vcsProviders, ", "))
+		if !vcsurl.Valid(provider) {
+			return "", fmt.Errorf("unrecognised VCS provider %q: set INFRACOST_VCS_PROVIDER to %s", cfg.VCSProvider, vcsurl.ProviderList())
 		}
 		return provider, nil
 	}
 	if os.Getenv("GITHUB_ACTIONS") != "" {
-		return "github", nil
+		return vcsurl.ProviderGitHub, nil
 	}
-	return "", fmt.Errorf("cannot determine the VCS provider: set INFRACOST_VCS_PROVIDER to %s", strings.Join(vcsProviders, ", "))
+	return "", fmt.Errorf("cannot determine the VCS provider: set INFRACOST_VCS_PROVIDER to %s", vcsurl.ProviderList())
 }

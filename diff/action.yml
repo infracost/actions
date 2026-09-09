@@ -209,6 +209,7 @@ runs:
       env:
         INFRACOST_CLI_AUTHENTICATION_TOKEN: ${{ inputs.api-key }}
         INFRACOST_CLI_LOG_LEVEL: info
+        # Must match the Update PR status step: both key on the same PR URL.
         INFRACOST_VCS_PROVIDER: github
         GITHUB_TOKEN: ${{ inputs.github-token }}
         INPUT_BASE_PATH: ${{ inputs.base-path }}
@@ -254,6 +255,7 @@ runs:
       env:
         INFRACOST_CLI_AUTHENTICATION_TOKEN: ${{ inputs.api-key }}
         INFRACOST_CLI_LOG_LEVEL: info
+        INFRACOST_VCS_PROVIDER: github
         CONTEXT_REPO_URL: ${{ steps.context.outputs.repo-url }}
         CONTEXT_PR: ${{ steps.context.outputs.pr }}
         CONTEXT_PR_STATUS: ${{ steps.context.outputs.pr-status }}

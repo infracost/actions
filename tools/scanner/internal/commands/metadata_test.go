@@ -52,6 +52,8 @@ func TestResolveVCSProvider(t *testing.T) {
 		{name: "configured without github actions", configured: "bitbucket", expected: "bitbucket"},
 		{name: "case and whitespace folded", configured: " Github ", expected: "github"},
 		{name: "typo rejected", configured: "githbu", githubActions: "true", expectErr: true},
+		{name: "vcs module package name rejected", configured: "azure", expectErr: true},
+		{name: "ci platform name rejected", configured: "gitlab_ci", expectErr: true},
 		{name: "unset falls back on github actions", githubActions: "true", expected: "github"},
 		{name: "unset elsewhere errors", expectErr: true},
 	}
