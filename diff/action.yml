@@ -26,16 +26,16 @@ inputs:
     required: false
     default: ${{ github.token }}
   github-owner:
-    description: "GitHub repository owner. Defaults to the current repository owner."
+    description: "Override the GitHub repository owner derived from repo-url. github.com only."
     required: false
   github-repo:
-    description: "GitHub repository name. Defaults to the current repository name."
+    description: "Override the GitHub repository name derived from repo-url. github.com only."
     required: false
   pr-number:
     description: "Pull request number to comment on. Defaults to the current PR."
     required: false
   repo-url:
-    description: "Repository URL for source links in comments."
+    description: "Repository URL. Selects the repository the comment is posted to and the source links, so github-token needs write access to it. Defaults to the current repository."
     required: false
 
 runs:
@@ -99,168 +99,121 @@ runs:
         chmod +x "$DEST"
         echo "${RUNNER_TEMP}" >> $GITHUB_PATH
 
-    - name: Derive context
+    # Only the status is derived here. The VCS contract is repeated in each
+    # step's env: GITHUB_ENV would export it to the whole caller job.
+    - name: Derive pull request status
       id: context
       shell: bash
       env:
-        INPUT_GITHUB_OWNER: ${{ inputs.github-owner }}
-        INPUT_GITHUB_REPO: ${{ inputs.github-repo }}
-        INPUT_PR_NUMBER: ${{ inputs.pr-number }}
-        INPUT_REPO_URL: ${{ inputs.repo-url }}
         INPUT_PR_STATUS: ${{ inputs.pr-status }}
         INPUT_BASE_PATH: ${{ inputs.base-path }}
         INPUT_HEAD_PATH: ${{ inputs.head-path }}
-        EVENT_PR_NUMBER: ${{ github.event.pull_request.number }}
-        EVENT_PR_TITLE: ${{ github.event.pull_request.title }}
-        EVENT_PR_AUTHOR: ${{ github.event.pull_request.user.login }}
-        EVENT_PR_LABELS_JSON: ${{ toJson(github.event.pull_request.labels.*.name) }}
         EVENT_NAME: ${{ github.event_name }}
         EVENT_ACTION: ${{ github.event.action }}
         EVENT_PR_MERGED: ${{ github.event.pull_request.merged }}
       run: |
         set -euo pipefail
 
-        write_output() {
-          local name="$1"
-          local value="$2"
-          local delimiter
-          delimiter="ghadelimiter_${RANDOM}_${RANDOM}_${RANDOM}_${RANDOM}"
-
-          {
-            printf '%s<<%s\n' "$name" "$delimiter"
-            printf '%s\n' "$value"
-            printf '%s\n' "$delimiter"
-          } >> "$GITHUB_OUTPUT"
-        }
-
-        OWNER="$INPUT_GITHUB_OWNER"
-        REPO="$INPUT_GITHUB_REPO"
-        PR="$INPUT_PR_NUMBER"
-        REPO_URL="$INPUT_REPO_URL"
         PR_STATUS="$INPUT_PR_STATUS"
-
-        if [ -z "$OWNER" ] || [ -z "$REPO" ]; then
-          OWNER="${GITHUB_REPOSITORY_OWNER}"
-          REPO="${GITHUB_REPOSITORY#*/}"
-        fi
-
-        if [ -z "$PR" ]; then
-          PR="$EVENT_PR_NUMBER"
-        fi
-
-        if [ -z "$PR" ] || [ "$PR" = "0" ]; then
-          echo "::error::Could not determine PR number. Either run on a pull_request event or set the pr-number input."
-          exit 1
-        fi
-
-        if [ -z "$REPO_URL" ]; then
-          REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
-        fi
-
-        PR_TITLE="$EVENT_PR_TITLE"
-        PR_AUTHOR="$EVENT_PR_AUTHOR"
-        PR_LABELS=""
-        if [ -n "$EVENT_PR_LABELS_JSON" ]; then
-          PR_LABELS=$(jq -r 'if type == "array" then join(",") else "" end' <<< "$EVENT_PR_LABELS_JSON")
-        fi
-        PIPELINE_RUN_ID="${GITHUB_RUN_ID}"
-
-        # Determine the action mode and PR status from the event context
-        # if not explicitly provided.
-        MODE="scan"
-        if [ -z "$PR_STATUS" ]; then
-          if [ "$EVENT_NAME" = "pull_request" ]; then
-            case "$EVENT_ACTION" in
-              closed)
-                MODE="status-only"
-                if [ "$EVENT_PR_MERGED" = "true" ]; then
-                  PR_STATUS="MERGED"
-                else
-                  PR_STATUS="CLOSED"
-                fi
-                ;;
-              *)
-                PR_STATUS="OPEN"
-                ;;
-            esac
-          fi
-        else
-          # User provided an explicit status. If base-path and head-path
-          # are not set, skip scanning and only update the status.
-          if [ -z "$INPUT_BASE_PATH" ] || [ -z "$INPUT_HEAD_PATH" ]; then
-            MODE="status-only"
+        if [ -z "$PR_STATUS" ] && [ "$EVENT_NAME" = "pull_request" ]; then
+          if [ "$EVENT_ACTION" = "closed" ]; then
+            if [ "$EVENT_PR_MERGED" = "true" ]; then
+              PR_STATUS="MERGED"
+            else
+              PR_STATUS="CLOSED"
+            fi
+          else
+            PR_STATUS="OPEN"
           fi
         fi
 
-        write_output "owner" "$OWNER"
-        write_output "repo" "$REPO"
-        write_output "pr" "$PR"
-        write_output "repo-url" "$REPO_URL"
-        write_output "pr-title" "$PR_TITLE"
-        write_output "pr-author" "$PR_AUTHOR"
-        write_output "pr-labels" "$PR_LABELS"
-        write_output "pipeline-run-id" "$PIPELINE_RUN_ID"
-        write_output "mode" "$MODE"
-        write_output "pr-status" "$PR_STATUS"
+        # Rejected rather than escaped: only these values are ever written to
+        # GITHUB_OUTPUT, so nothing caller-supplied can forge a line.
+        case "$PR_STATUS" in
+          ""|OPEN|MERGED|CLOSED) ;;
+          *)
+            echo "::error::pr-status must be OPEN, MERGED or CLOSED"
+            exit 1
+            ;;
+        esac
+
+        # Scanning is the default, so events other than pull_request still
+        # scan. A derived closed PR has nothing to compare, but an explicit
+        # pr-status is the caller's override and only the checkout stops it.
+        SCAN=true
+        if [ -z "$INPUT_PR_STATUS" ] && { [ "$PR_STATUS" = "MERGED" ] || [ "$PR_STATUS" = "CLOSED" ]; }; then
+          SCAN=false
+        fi
+        if [ -z "$INPUT_BASE_PATH" ] || [ -z "$INPUT_HEAD_PATH" ]; then
+          SCAN=false
+        fi
+
+        printf 'pr_status=%s\n' "$PR_STATUS" >> "$GITHUB_OUTPUT"
+        printf 'scan=%s\n' "$SCAN" >> "$GITHUB_OUTPUT"
+        echo "Infracost pull request status: ${PR_STATUS:-none}, scan: ${SCAN}"
 
     - name: Run scanner
-      if: steps.context.outputs.mode == 'scan'
+      if: steps.context.outputs.scan == 'true'
       shell: bash
       env:
         INFRACOST_CLI_AUTHENTICATION_TOKEN: ${{ inputs.api-key }}
         INFRACOST_CLI_LOG_LEVEL: info
-        # Must match the Update PR status step: both key on the same PR URL.
-        INFRACOST_VCS_PROVIDER: github
         GITHUB_TOKEN: ${{ inputs.github-token }}
+        INFRACOST_VCS_PROVIDER: github
+        INFRACOST_VCS_REPOSITORY_URL: ${{ inputs.repo-url || format('{0}/{1}', github.server_url, github.repository) }}
+        INFRACOST_VCS_PULL_REQUEST_ID: ${{ inputs.pr-number || github.event.pull_request.number }}
+        INFRACOST_VCS_PULL_REQUEST_TITLE: ${{ github.event.pull_request.title }}
+        INFRACOST_VCS_PULL_REQUEST_AUTHOR: ${{ github.event.pull_request.user.login }}
+        INFRACOST_VCS_PULL_REQUEST_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        INFRACOST_VCS_BRANCH: ${{ github.event.pull_request.head.ref }}
+        INFRACOST_VCS_BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
+        INFRACOST_VCS_PIPELINE_RUN_ID: ${{ github.run_id }}
+        # Blanked, not omitted: a caller job's env: block is inherited here and
+        # would otherwise outrank what the action derives from the event.
+        INFRACOST_VCS_PULL_REQUEST_URL: ''
+        INFRACOST_VCS_PULL_REQUEST_STATUS: ''
+        INFRACOST_VCS_COMMIT_SHA: ''
+        INFRACOST_VCS_COMMIT_MESSAGE: ''
+        INFRACOST_VCS_COMMIT_AUTHOR_NAME: ''
+        INFRACOST_VCS_COMMIT_AUTHOR_EMAIL: ''
+        INFRACOST_VCS_COMMIT_TIMESTAMP: ''
         INPUT_BASE_PATH: ${{ inputs.base-path }}
         INPUT_HEAD_PATH: ${{ inputs.head-path }}
         INPUT_PROJECT: ${{ inputs.project }}
-        CONTEXT_OWNER: ${{ steps.context.outputs.owner }}
-        CONTEXT_REPO: ${{ steps.context.outputs.repo }}
-        CONTEXT_PR: ${{ steps.context.outputs.pr }}
-        CONTEXT_REPO_URL: ${{ steps.context.outputs.repo-url }}
-        CONTEXT_PR_TITLE: ${{ steps.context.outputs.pr-title }}
-        CONTEXT_PR_AUTHOR: ${{ steps.context.outputs.pr-author }}
-        CONTEXT_PR_LABELS: ${{ steps.context.outputs.pr-labels }}
-        CONTEXT_PIPELINE_RUN_ID: ${{ steps.context.outputs.pipeline-run-id }}
+        INPUT_GITHUB_OWNER: ${{ inputs.github-owner }}
+        INPUT_GITHUB_REPO: ${{ inputs.github-repo }}
       run: |
         if [ -z "$INPUT_BASE_PATH" ] || [ -z "$INPUT_HEAD_PATH" ]; then
           echo "::error::base-path and head-path are required for scanning."
           exit 1
         fi
 
-        ARGS=(
-          diff
-          --base-path "$INPUT_BASE_PATH"
-          --head-path "$INPUT_HEAD_PATH"
-          --github-owner "$CONTEXT_OWNER"
-          --github-repo "$CONTEXT_REPO"
-          --pr-number "$CONTEXT_PR"
-          --repo-url "$CONTEXT_REPO_URL"
-          --pr-title "$CONTEXT_PR_TITLE"
-          --pr-author "$CONTEXT_PR_AUTHOR"
-          --pr-labels "$CONTEXT_PR_LABELS"
-          --pipeline-run-id "$CONTEXT_PIPELINE_RUN_ID"
-        )
-
+        ARGS=(diff --base-path "$INPUT_BASE_PATH" --head-path "$INPUT_HEAD_PATH")
+        if [ -n "$INPUT_GITHUB_OWNER" ]; then
+          ARGS+=(--github-owner "$INPUT_GITHUB_OWNER")
+        fi
+        if [ -n "$INPUT_GITHUB_REPO" ]; then
+          ARGS+=(--github-repo "$INPUT_GITHUB_REPO")
+        fi
         if [ -n "$INPUT_PROJECT" ]; then
           ARGS+=(--project "$INPUT_PROJECT")
         fi
 
         infracost-scanner "${ARGS[@]}"
 
+    # The same repository URL and PR ID expressions as above: the dashboard is
+    # keyed on the PR URL built from them, so the two steps must agree.
     - name: Update PR status
-      if: steps.context.outputs.pr-status != ''
+      if: steps.context.outputs.pr_status != ''
       shell: bash
       env:
         INFRACOST_CLI_AUTHENTICATION_TOKEN: ${{ inputs.api-key }}
         INFRACOST_CLI_LOG_LEVEL: info
         INFRACOST_VCS_PROVIDER: github
-        CONTEXT_REPO_URL: ${{ steps.context.outputs.repo-url }}
-        CONTEXT_PR: ${{ steps.context.outputs.pr }}
-        CONTEXT_PR_STATUS: ${{ steps.context.outputs.pr-status }}
-      run: |
-        infracost-scanner status \
-          --repo-url "$CONTEXT_REPO_URL" \
-          --pr-number "$CONTEXT_PR" \
-          --status "$CONTEXT_PR_STATUS"
+        INFRACOST_VCS_REPOSITORY_URL: ${{ inputs.repo-url || format('{0}/{1}', github.server_url, github.repository) }}
+        INFRACOST_VCS_PULL_REQUEST_ID: ${{ inputs.pr-number || github.event.pull_request.number }}
+        INFRACOST_VCS_PULL_REQUEST_STATUS: ${{ steps.context.outputs.pr_status }}
+        # Blanked for the same reason as the scan step: the inherited value
+        # would key the status to a different pull request.
+        INFRACOST_VCS_PULL_REQUEST_URL: ''
+      run: infracost-scanner status

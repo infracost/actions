@@ -21,6 +21,11 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+const (
+	testRepoURL  = "https://github.com/infracost/actions"
+	testPRNumber = 42
+)
+
 func testdataDir() string {
 	_, file, _, _ := runtime.Caller(0)
 	return filepath.Join(filepath.Dir(file), "testdata")
@@ -125,8 +130,19 @@ func runDiffWithArgs(t *testing.T, cfg *config.Config, m *testingconfig.Mocks, b
 	t.Helper()
 	extra.basePath = basePath
 	extra.headPath = headPath
+	// diff is always a pull request run, so every case needs an identity.
+	if extra.repoURL == "" {
+		extra.repoURL = testRepoURL
+	}
+	if extra.prNumber == 0 {
+		extra.prNumber = testPRNumber
+	}
+	vcsCtx, err := resolveDiffContext(cfg, &extra)
+	if err != nil {
+		return &ScanResult{}, err
+	}
 	var results ScanResult
-	err := diff(cfg, &extra, m.VCS, &results)
+	err = diff(cfg, &extra, vcsCtx, m.VCS, &results)
 	return &results, err
 }
 
@@ -485,12 +501,17 @@ func TestDiff_VCSProviderFromConfig(t *testing.T) {
 }
 
 func TestNewVCSClient_UnsupportedProvider(t *testing.T) {
-	for _, provider := range []string{"gitlab", "azure_repos", "bitbucket"} {
-		t.Run(provider, func(t *testing.T) {
-			_, err := newVCSClient(context.Background(), provider, &diffArgs{})
-			if err == nil {
-				t.Fatalf("expected newVCSClient to reject %q", provider)
-			}
-		})
+	// The explicit owner and repo must not buy a GitHub client on another
+	// provider: the comment would go to github.com.
+	for _, args := range []diffArgs{{}, {githubOwner: "acme", githubRepo: "infra"}} {
+		for _, provider := range []string{"gitlab", "azure_repos", "bitbucket"} {
+			t.Run(provider, func(t *testing.T) {
+				ctx := diffContext{provider: provider, repoURL: testRepoURL}
+				_, err := newVCSClient(context.Background(), &args, ctx)
+				if err == nil {
+					t.Fatalf("expected newVCSClient to reject %q", provider)
+				}
+			})
+		}
 	}
 }

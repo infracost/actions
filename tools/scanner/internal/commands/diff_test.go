@@ -10,11 +10,12 @@ import (
 
 // diff is always a pull request run, so it must refuse to scan rather than
 // upload a run the dashboard would file as a branch build.
-func TestDiff_RequiresBuildablePullRequestURL(t *testing.T) {
+func TestResolveDiffContext_RequiresBuildablePullRequestURL(t *testing.T) {
 	tests := []struct {
 		name     string
 		provider string
 		repoURL  string
+		prURL    string
 		prNumber int
 		wantErr  string
 	}{
@@ -22,13 +23,13 @@ func TestDiff_RequiresBuildablePullRequestURL(t *testing.T) {
 			name:     "missing repo url",
 			provider: "github",
 			prNumber: 42,
-			wantErr:  "cannot determine the pull request URL: --repo-url and --pr-number are required",
+			wantErr:  "cannot determine the repository URL: set INFRACOST_VCS_REPOSITORY_URL",
 		},
 		{
-			name:     "zero pr number",
+			name:     "no pull request at all",
 			provider: "github",
 			repoURL:  "https://github.com/infracost/actions",
-			wantErr:  "cannot determine the pull request URL: --repo-url and --pr-number are required",
+			wantErr:  "cannot determine the pull request: set INFRACOST_VCS_PULL_REQUEST_ID or INFRACOST_VCS_PULL_REQUEST_URL",
 		},
 		{
 			name:     "ssh clone url",
@@ -44,14 +45,37 @@ func TestDiff_RequiresBuildablePullRequestURL(t *testing.T) {
 			prNumber: 42,
 			wantErr:  `repo URL "https://dev.azure.com/infracost/actions" must be an Azure Repos repository URL containing /_git/`,
 		},
+		{
+			name:     "url and number disagree",
+			provider: "github",
+			repoURL:  "https://github.com/infracost/actions",
+			prURL:    "https://github.com/infracost/actions/pull/7",
+			prNumber: 42,
+			wantErr:  `pull request URL "https://github.com/infracost/actions/pull/7" does not match INFRACOST_VCS_REPOSITORY_URL and INFRACOST_VCS_PULL_REQUEST_ID, which give "https://github.com/infracost/actions/pull/42"`,
+		},
+		{
+			name:     "url names another repository",
+			provider: "github",
+			repoURL:  "https://github.com/infracost/actions",
+			prURL:    "https://github.com/attacker/actions/pull/42",
+			wantErr:  `pull request URL "https://github.com/attacker/actions/pull/42" does not match INFRACOST_VCS_REPOSITORY_URL and INFRACOST_VCS_PULL_REQUEST_ID, which give "https://github.com/infracost/actions/pull/42"`,
+		},
+		{
+			name:     "url is not a pull request url",
+			provider: "github",
+			repoURL:  "https://github.com/infracost/actions",
+			prURL:    "https://github.com/infracost/actions/issues/42",
+			wantErr:  `pull request URL "https://github.com/infracost/actions/issues/42" is not a github pull request URL: expected /pull/<number>`,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cfg := &config.Config{VCSProvider: tt.provider}
-			args := &diffArgs{repoURL: tt.repoURL, prNumber: tt.prNumber}
+			// prURL is a flag bound to INFRACOST_VCS_PULL_REQUEST_URL.
+			args := &diffArgs{repoURL: tt.repoURL, prURL: tt.prURL, prNumber: tt.prNumber}
 
-			err := diff(cfg, args, nil, &ScanResult{})
+			_, err := resolveDiffContext(cfg, args)
 
 			require.Error(t, err)
 			assert.EqualError(t, err, tt.wantErr)

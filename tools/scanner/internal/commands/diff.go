@@ -9,9 +9,8 @@ import (
 	"github.com/infracost/actions/tools/scanner/internal/api"
 	"github.com/infracost/actions/tools/scanner/internal/config"
 	"github.com/infracost/actions/tools/scanner/internal/git"
-	"github.com/infracost/actions/tools/scanner/internal/vcsurl"
-	"github.com/infracost/go-proto/pkg/diagnostic"
 	pkgscanner "github.com/infracost/cli/pkg/scanner"
+	"github.com/infracost/go-proto/pkg/diagnostic"
 	"github.com/infracost/proto/gen/go/infracost/parser/event"
 	"github.com/infracost/proto/gen/go/infracost/provider"
 	"github.com/infracost/vcs/pkg/vcs"
@@ -23,6 +22,7 @@ import (
 type diffArgs struct {
 	basePath      string
 	headPath      string
+	prURL         string
 	prNumber      int
 	prTitle       string
 	prAuthor      string
@@ -30,9 +30,32 @@ type diffArgs struct {
 	repoURL       string
 	project       string
 	pipelineRunID string
-	githubToken     string
-	githubOwner     string
-	githubRepo      string
+	githubToken   string
+	githubOwner   string
+	githubRepo    string
+}
+
+// diffContext is the VCS metadata for one diff run, resolved environment then
+// flag then git, once, so the policy lookup and the metadata cannot disagree.
+type diffContext struct {
+	provider string
+	repoURL  string
+	prURL    string
+	prNumber int
+	prTitle  string
+	prAuthor string
+	prLabels []string
+	branch   string
+	// baseBranch selects the policy set: RunParameters takes it and returns the
+	// guardrails, budgets and policies this run is judged against.
+	baseBranch        string
+	commitSHA         string
+	baseCommitSHA     string
+	commitMessage     string
+	commitAuthorName  string
+	commitAuthorEmail string
+	commitTimestamp   string
+	pipelineRunID     string
 }
 
 // ScanResult holds the outcome of a scan, including whether policies or
@@ -43,6 +66,13 @@ type ScanResult struct {
 }
 
 func Diff(cfg *config.Config, results *ScanResult) *cobra.Command {
+	cmd, _ := diffCommand(cfg, results)
+	return cmd
+}
+
+// diffCommand also returns the args it binds, so tests can drive the real
+// flag registration and read what parsing produced.
+func diffCommand(cfg *config.Config, results *ScanResult) (*cobra.Command, *diffArgs) {
 	var args diffArgs
 
 	diffCmd := &cobra.Command{
@@ -50,71 +80,100 @@ func Diff(cfg *config.Config, results *ScanResult) *cobra.Command {
 		Short: "Scan base and head branches, compute cost diff, and post a PR comment",
 		RunE: func(_ *cobra.Command, _ []string) error {
 			ctx := context.Background()
-			provider, err := resolveVCSProvider(cfg)
+			vcsCtx, err := resolveDiffContext(cfg, &args)
 			if err != nil {
 				return err
 			}
-			client, err := newVCSClient(ctx, provider, &args)
+			client, err := newVCSClient(ctx, &args, vcsCtx)
 			if err != nil {
 				return fmt.Errorf("failed to create VCS client: %w", err)
 			}
-			return diff(cfg, &args, client, results)
+			return diff(cfg, &args, vcsCtx, client, results)
 		},
 	}
 
+	// The VCS flags default to the hydrated INFRACOST_VCS_* value, so an
+	// explicit flag overrides the environment. main must PreProcess first.
 	diffCmd.Flags().StringVar(&args.basePath, "base-path", "", "Path to the base branch checkout")
 	diffCmd.Flags().StringVar(&args.headPath, "head-path", "", "Path to the head (PR) branch checkout")
-	diffCmd.Flags().IntVar(&args.prNumber, "pr-number", 0, "Pull request number to comment on")
-	diffCmd.Flags().StringVar(&args.prTitle, "pr-title", "", "Pull request title")
-	diffCmd.Flags().StringVar(&args.prAuthor, "pr-author", "", "Pull request author")
-	diffCmd.Flags().StringSliceVar(&args.prLabels, "pr-labels", nil, "Pull request labels")
-	diffCmd.Flags().StringVar(&args.repoURL, "repo-url", "", "Repository URL for source links in comments")
-	diffCmd.Flags().StringVar(&args.pipelineRunID, "pipeline-run-id", "", "CI pipeline run ID (e.g. GitHub Actions run ID)")
+	diffCmd.Flags().StringVar(&args.prURL, "pr-url", cfg.VCS.PullRequestURL, "Pull request URL, the key the dashboard matches on")
+	diffCmd.Flags().IntVar(&args.prNumber, "pr-number", cfg.VCS.PullRequestID, "Pull request number to comment on")
+	diffCmd.Flags().StringVar(&args.prTitle, "pr-title", cfg.VCS.PullRequestTitle, "Pull request title")
+	diffCmd.Flags().StringVar(&args.prAuthor, "pr-author", cfg.VCS.PullRequestAuthor, "Pull request author")
+	diffCmd.Flags().StringSliceVar(&args.prLabels, "pr-labels", cfg.VCS.Labels(), "Pull request labels")
+	diffCmd.Flags().StringVar(&args.repoURL, "repo-url", cfg.VCS.RepositoryURL, "Repository URL for source links in comments")
+	diffCmd.Flags().StringVar(&args.pipelineRunID, "pipeline-run-id", cfg.VCS.PipelineRunID, "CI pipeline run ID (e.g. GitHub Actions run ID)")
 	diffCmd.Flags().StringVar(&args.project, "project", "", "Filter scanning to a single project")
 	diffCmd.Flags().StringVar(&args.githubToken, "github-token", os.Getenv("GITHUB_TOKEN"), "API token for posting comments")
-	diffCmd.Flags().StringVar(&args.githubOwner, "github-owner", "", "GitHub repository owner")
-	diffCmd.Flags().StringVar(&args.githubRepo, "github-repo", "", "GitHub repository name")
+	diffCmd.Flags().StringVar(&args.githubOwner, "github-owner", "", "GitHub repository owner (derived from the repo URL when unset)")
+	diffCmd.Flags().StringVar(&args.githubRepo, "github-repo", "", "GitHub repository name (derived from the repo URL when unset)")
 
+	// pr-number, github-owner and github-repo were MarkFlagRequired, which asks
+	// only about the command line; resolveDiffContext names the variable.
 	_ = diffCmd.MarkFlagRequired("base-path")
 	_ = diffCmd.MarkFlagRequired("head-path")
-	_ = diffCmd.MarkFlagRequired("pr-number")
-	_ = diffCmd.MarkFlagRequired("github-owner")
-	_ = diffCmd.MarkFlagRequired("github-repo")
 
-	return diffCmd
+	return diffCmd, &args
 }
 
-func newVCSClient(ctx context.Context, provider string, args *diffArgs) (vcs.VCS, error) {
-	switch provider {
-	case vcsurl.ProviderGitHub:
-		return github.New(ctx, args.githubOwner, args.githubRepo, args.githubToken, int32(args.prNumber), github.Options{}) //nolint:gosec // PR numbers won't overflow int32
-	default:
-		return nil, fmt.Errorf("posting comments is only supported on github, not %q", provider)
-	}
-}
-
-func diff(cfg *config.Config, args *diffArgs, vcsClient vcs.VCS, results *ScanResult) error {
-	ctx := context.Background()
-	startTime := time.Now()
-
-	vcsProvider, err := resolveVCSProvider(cfg)
+// resolveDiffContext collapses environment, flags and git into the single set
+// of values the run is uploaded and judged with.
+func resolveDiffContext(cfg *config.Config, args *diffArgs) (diffContext, error) {
+	provider, err := resolveVCSProvider(cfg)
 	if err != nil {
-		return err
+		return diffContext{}, err
+	}
+
+	if args.repoURL == "" {
+		return diffContext{}, fmt.Errorf("cannot determine the repository URL: set INFRACOST_VCS_REPOSITORY_URL")
 	}
 
 	// Fail before scanning: diff is always a pull request run, so a missing or
 	// unbuildable PR URL would upload as a branch run and lose the PR.
-	prURL, err := vcsurl.PullRequest(vcsProvider, args.repoURL, args.prNumber)
+	prURL, prNumber, err := resolvePullRequest(provider, args.repoURL, args.prURL, args.prNumber)
 	if err != nil {
-		return err
-	}
-	if prURL == "" {
-		return fmt.Errorf("cannot determine the pull request URL: --repo-url and --pr-number are required")
+		return diffContext{}, err
 	}
 
-	headCommitSHA := git.RevParse(args.headPath, "HEAD")
-	headBranch := git.RevParse(args.headPath, "--abbrev-ref", "HEAD")
-	baseBranch := git.RevParse(args.basePath, "--abbrev-ref", "HEAD")
+	headSHA := git.RevParse(args.headPath, "HEAD")
+	commit := git.GetCommitInfo(args.headPath, headSHA)
+	timestamp, err := normaliseTimestamp("INFRACOST_VCS_COMMIT_TIMESTAMP", firstNonEmpty(cfg.VCS.CommitTimestamp, commit.Timestamp))
+	if err != nil {
+		return diffContext{}, err
+	}
+
+	return diffContext{
+		provider:   provider,
+		repoURL:    args.repoURL,
+		prURL:      prURL,
+		prNumber:   prNumber,
+		prTitle:    args.prTitle,
+		prAuthor:   args.prAuthor,
+		prLabels:   args.prLabels,
+		branch:     firstNonEmpty(cfg.VCS.Branch, git.RevParse(args.headPath, "--abbrev-ref", "HEAD")),
+		baseBranch: firstNonEmpty(cfg.VCS.BaseBranch, git.RevParse(args.basePath, "--abbrev-ref", "HEAD")),
+		commitSHA:  firstNonEmpty(cfg.VCS.CommitSHA, headSHA),
+		// No v0.1 name: the base commit is only knowable from the checkout.
+		baseCommitSHA:     git.RevParse(args.basePath, "HEAD"),
+		commitMessage:     firstNonEmpty(cfg.VCS.CommitMessage, commit.Message),
+		commitAuthorName:  firstNonEmpty(cfg.VCS.CommitAuthorName, commit.AuthorName),
+		commitAuthorEmail: firstNonEmpty(cfg.VCS.CommitAuthorEmail, commit.AuthorEmail),
+		commitTimestamp:   timestamp,
+		pipelineRunID:     args.pipelineRunID,
+	}, nil
+}
+
+func newVCSClient(ctx context.Context, args *diffArgs, vcsCtx diffContext) (vcs.VCS, error) {
+	owner, repo, err := resolveOwnerRepo(vcsCtx.provider, vcsCtx.repoURL, args.githubOwner, args.githubRepo)
+	if err != nil {
+		return nil, err
+	}
+	return github.New(ctx, owner, repo, args.githubToken, int32(vcsCtx.prNumber), github.Options{}) //nolint:gosec // PR numbers won't overflow int32
+}
+
+func diff(cfg *config.Config, args *diffArgs, vcsCtx diffContext, vcsClient vcs.VCS, results *ScanResult) error {
+	ctx := context.Background()
+	startTime := time.Now()
 
 	if len(cfg.Auth.AuthenticationToken) == 0 {
 		return fmt.Errorf("authentication token is required: set INFRACOST_CLI_AUTHENTICATION_TOKEN")
@@ -127,7 +186,7 @@ func diff(cfg *config.Config, args *diffArgs, vcsClient vcs.VCS, results *ScanRe
 	httpClient := api.Client(ctx, tokenSource, cfg.OrgID)
 
 	dashboardClient := cfg.Dashboard.Client(httpClient)
-	rawRunParams, err := dashboardClient.RunParameters(ctx, args.repoURL, baseBranch)
+	rawRunParams, err := dashboardClient.RunParameters(ctx, vcsCtx.repoURL, vcsCtx.baseBranch)
 	if err != nil {
 		return fmt.Errorf("failed to fetch run parameters: %w", err)
 	}
@@ -142,31 +201,31 @@ func diff(cfg *config.Config, args *diffArgs, vcsClient vcs.VCS, results *ScanRe
 		return fmt.Errorf("failed to retrieve access token: %w", err)
 	}
 
-	commit := git.GetCommitInfo(args.headPath, headCommitSHA)
 	runOpts := config.RunInputOptions{
 		CIPlatform:        ciPlatform(),
-		VCSProvider:       vcsProvider,
-		RepoURL:           args.repoURL,
+		VCSProvider:       vcsCtx.provider,
+		RepoURL:           vcsCtx.repoURL,
 		RepoID:            runParams.RepositoryID,
 		RepoName:          runParams.RepositoryName,
-		PRNumber:          args.prNumber,
-		PRTitle:           args.prTitle,
-		PRAuthor:          args.prAuthor,
-		PRLabels:          args.prLabels,
-		CommitSHA:         headCommitSHA,
-		CommitMessage:     commit.Message,
-		CommitAuthorName:  commit.AuthorName,
-		CommitAuthorEmail: commit.AuthorEmail,
-		CommitTimestamp:   commit.Timestamp,
-		Branch:            headBranch,
-		BaseBranch:        baseBranch,
-		BaseCommitSHA:     git.RevParse(args.basePath, "HEAD"),
-		PipelineRunID:     args.pipelineRunID,
+		PRURL:             vcsCtx.prURL,
+		PRNumber:          vcsCtx.prNumber,
+		PRTitle:           vcsCtx.prTitle,
+		PRAuthor:          vcsCtx.prAuthor,
+		PRLabels:          vcsCtx.prLabels,
+		CommitSHA:         vcsCtx.commitSHA,
+		CommitMessage:     vcsCtx.commitMessage,
+		CommitAuthorName:  vcsCtx.commitAuthorName,
+		CommitAuthorEmail: vcsCtx.commitAuthorEmail,
+		CommitTimestamp:   vcsCtx.commitTimestamp,
+		Branch:            vcsCtx.branch,
+		BaseBranch:        vcsCtx.baseBranch,
+		BaseCommitSHA:     vcsCtx.baseCommitSHA,
+		PipelineRunID:     vcsCtx.pipelineRunID,
 	}
 
 	uploadEnabled := !cfg.DisableDashboard && runParams.CloudEnabled
 
-	baseResult, err := cfg.ScanDirectory(ctx, args.basePath, token.AccessToken, runParams, nil, args.project, baseBranch)
+	baseResult, err := cfg.ScanDirectory(ctx, args.basePath, token.AccessToken, runParams, nil, args.project, vcsCtx.baseBranch)
 	if err != nil {
 		if uploadEnabled {
 			errInput := config.BuildErrorRunInput(runOpts, diagnostic.ErrorCodeCLIBreakdownError, "Failed to scan base branch", err.Error())
@@ -186,7 +245,7 @@ func diff(cfg *config.Config, args *diffArgs, vcsClient vcs.VCS, results *ScanRe
 		previousAddresses[p.Name] = addrs
 	}
 
-	headResult, err := cfg.ScanDirectory(ctx, args.headPath, token.AccessToken, runParams, previousAddresses, args.project, baseBranch)
+	headResult, err := cfg.ScanDirectory(ctx, args.headPath, token.AccessToken, runParams, previousAddresses, args.project, vcsCtx.baseBranch)
 	if err != nil {
 		if uploadEnabled {
 			errInput := config.BuildErrorRunInput(runOpts, diagnostic.ErrorCodeCLIBreakdownError, "Failed to scan head branch", err.Error())
@@ -215,9 +274,9 @@ func diff(cfg *config.Config, args *diffArgs, vcsClient vcs.VCS, results *ScanRe
 		FinopsPolicySettings:     runParams.FinopsPolicies,
 		UsageAPIEnabled:          usageAPIEnabled,
 		Currency:                 headResult.Currency,
-		RepoURL:                  args.repoURL,
-		CommitSHA:                headCommitSHA,
-		Branch:                   baseBranch,
+		RepoURL:                  vcsCtx.repoURL,
+		CommitSHA:                vcsCtx.commitSHA,
+		Branch:                   vcsCtx.baseBranch,
 		OrgSlug:                  runParams.OrganizationSlug,
 		RepoID:                   runParams.RepositoryID,
 		RepoName:                 runParams.RepositoryName,

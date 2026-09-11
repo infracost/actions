@@ -84,49 +84,26 @@ runs:
         chmod +x "$DEST"
         echo "${RUNNER_TEMP}" >> $GITHUB_PATH
 
-    - name: Derive context
-      id: context
-      shell: bash
-      env:
-        INPUT_REPO_URL: ${{ inputs.repo-url }}
-      run: |
-        write_output() {
-          local name="$1"
-          local value="$2"
-          local delimiter
-          delimiter="ghadelimiter_${RANDOM}_${RANDOM}_${RANDOM}_${RANDOM}"
-
-          {
-            printf '%s<<%s\n' "$name" "$delimiter"
-            printf '%s\n' "$value"
-            printf '%s\n' "$delimiter"
-          } >> "$GITHUB_OUTPUT"
-        }
-
-        REPO_URL="$INPUT_REPO_URL"
-
-        if [ -z "$REPO_URL" ]; then
-          REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
-        fi
-
-        write_output "repo-url" "$REPO_URL"
-
     - name: Run scanner
       shell: bash
       env:
         INFRACOST_CLI_AUTHENTICATION_TOKEN: ${{ inputs.api-key }}
         INFRACOST_CLI_LOG_LEVEL: info
         INFRACOST_VCS_PROVIDER: github
+        INFRACOST_VCS_REPOSITORY_URL: ${{ inputs.repo-url || format('{0}/{1}', github.server_url, github.repository) }}
+        INFRACOST_VCS_PIPELINE_RUN_ID: ${{ github.run_id }}
+        # Blanked, not omitted: a caller job's env: block is inherited here and
+        # would otherwise outrank what the action derives from the scanned path.
+        INFRACOST_VCS_BRANCH: ''
+        INFRACOST_VCS_COMMIT_SHA: ''
+        INFRACOST_VCS_COMMIT_MESSAGE: ''
+        INFRACOST_VCS_COMMIT_AUTHOR_NAME: ''
+        INFRACOST_VCS_COMMIT_AUTHOR_EMAIL: ''
+        INFRACOST_VCS_COMMIT_TIMESTAMP: ''
         INPUT_PATH: ${{ inputs.path }}
         INPUT_PROJECT: ${{ inputs.project }}
-        CONTEXT_REPO_URL: ${{ steps.context.outputs.repo-url }}
       run: |
-        ARGS=(
-          scan
-          --path "$INPUT_PATH"
-          --repo-url "$CONTEXT_REPO_URL"
-          --pipeline-run-id "${GITHUB_RUN_ID}"
-        )
+        ARGS=(scan --path "$INPUT_PATH")
 
         if [ -n "$INPUT_PROJECT" ]; then
           ARGS+=(--project "$INPUT_PROJECT")

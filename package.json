@@ -17,6 +17,7 @@
   "scripts": {
     "examples:generate_tests": "./scripts/generateExamplesTests.js",
     "examples:test": "./scripts/testExamples.js",
+    "scanner-actions:test": "node scripts/testScannerActions.js",
     "examples:update_golden": "./scripts/testExamples.js true"
   },
   "devDependencies": {
