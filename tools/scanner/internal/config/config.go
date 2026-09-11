@@ -32,6 +32,10 @@ type Config struct {
 	// contract name, unlike the INFRACOST_CI_* fields above.
 	VCSProvider string `env:"INFRACOST_VCS_PROVIDER" flag:"vcs-provider" usage:"VCS provider hosting the repository"`
 
+	// VCS is the rest of the INFRACOST_VCS_* contract, hydrated from the
+	// environment only. See vcs.go for why none of it carries a flag tag.
+	VCS VCS
+
 	// JSON toggles JSON output for logs. Registered here so sub-configs that
 	// bind via `flagvalue:"json"` (e.g. logging) have a flag to reference.
 	// Must stay above Logging so it is registered before logging binds to it.

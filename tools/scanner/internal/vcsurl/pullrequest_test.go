@@ -147,6 +147,62 @@ func TestPullRequest(t *testing.T) {
 	}
 }
 
+func TestParsePullRequest_RoundTrips(t *testing.T) {
+	for _, tt := range []struct {
+		provider string
+		repoURL  string
+		number   int
+	}{
+		{ProviderGitHub, "https://github.com/infracost/actions", 42},
+		{ProviderGitLab, "https://gitlab.com/infracost/team/actions", 7},
+		{ProviderAzureRepos, "https://dev.azure.com/infracost/actions/_git/actions", 3},
+		{ProviderBitbucket, "https://bitbucket.org/infracost/actions", 9},
+	} {
+		t.Run(tt.provider, func(t *testing.T) {
+			prURL, err := PullRequest(tt.provider, tt.repoURL, tt.number)
+			require.NoError(t, err)
+
+			repoURL, number, err := ParsePullRequest(tt.provider, prURL)
+			require.NoError(t, err)
+			assert.Equal(t, tt.repoURL, repoURL)
+			assert.Equal(t, tt.number, number)
+		})
+	}
+}
+
+func TestOwnerRepo(t *testing.T) {
+	tests := []struct {
+		name    string
+		repoURL string
+		owner   string
+		repo    string
+		wantErr string
+	}{
+		{name: "github", repoURL: "https://github.com/infracost/actions", owner: "infracost", repo: "actions"},
+		{name: "trims clone suffix", repoURL: "https://github.com/infracost/actions.git/", owner: "infracost", repo: "actions"},
+		{name: "host case is ignored", repoURL: "https://GitHub.com/infracost/actions", owner: "infracost", repo: "actions"},
+		{name: "explicit port is ignored", repoURL: "https://github.com:443/infracost/actions", owner: "infracost", repo: "actions"},
+		{name: "enterprise host is refused", repoURL: "https://github.example.com/infracost/actions", wantErr: "the repository URL host is not github.com"},
+		{name: "credentials do not leak", repoURL: "https://user:secret@github.com/infracost/actions", wantErr: "repo URL must not contain credentials"},
+		{name: "token in the userinfo does not leak", repoURL: "https://secret@github.com/infracost/actions", wantErr: "repo URL must not contain credentials"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			owner, repo, err := OwnerRepo(tt.repoURL)
+			if tt.wantErr != "" {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.wantErr)
+				assert.NotContains(t, err.Error(), "secret")
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tt.owner, owner)
+			assert.Equal(t, tt.repo, repo)
+		})
+	}
+}
+
 func TestPullRequest_Errors(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -173,10 +229,11 @@ func TestPullRequest_Errors(t *testing.T) {
 			wantMessage: `repo URL "git@github.com:infracost/actions.git" must be an http(s) web URL of the repository, not a clone URL`,
 		},
 		{
+			// The userinfo is checked first, so the URL is never echoed.
 			name:        "ssh scheme remote",
 			provider:    ProviderGitHub,
 			repoURL:     "ssh://git@github.com/infracost/actions.git",
-			wantMessage: `repo URL "ssh://git@github.com/infracost/actions.git" must be an http(s) web URL of the repository, not a clone URL`,
+			wantMessage: "repo URL must not contain credentials: pass the repository's web URL, not a credentialed clone URL",
 		},
 		{
 			name:        "no scheme",
@@ -201,13 +258,26 @@ func TestPullRequest_Errors(t *testing.T) {
 			name:        "gitlab job token in the userinfo",
 			provider:    ProviderGitLab,
 			repoURL:     "https://gitlab-ci-token:secret-token@gitlab.com/infracost/actions.git",
-			wantMessage: "repo URL must not contain a password: pass the repository's web URL, not a credentialed clone URL",
+			wantMessage: "repo URL must not contain credentials: pass the repository's web URL, not a credentialed clone URL",
+		},
+		{
+			name:        "github token as the whole userinfo",
+			provider:    ProviderGitHub,
+			repoURL:     "https://secret-token@github.com/infracost/actions.git",
+			wantMessage: "repo URL must not contain credentials: pass the repository's web URL, not a credentialed clone URL",
+		},
+		{
+			// The org@ prefix Azure hands out is allowed, a password is not.
+			name:        "azure pat in the userinfo",
+			provider:    ProviderAzureRepos,
+			repoURL:     "https://infracost:secret-token@dev.azure.com/infracost/actions/_git/actions",
+			wantMessage: "repo URL must not contain credentials: pass the repository's web URL, not a credentialed clone URL",
 		},
 		{
 			name:        "credentialed url with no host",
 			provider:    ProviderGitHub,
 			repoURL:     "https://user:secret-token@",
-			wantMessage: "repo URL must not contain a password: pass the repository's web URL, not a credentialed clone URL",
+			wantMessage: "repo URL must not contain credentials: pass the repository's web URL, not a credentialed clone URL",
 		},
 		{
 			name:        "fragment",

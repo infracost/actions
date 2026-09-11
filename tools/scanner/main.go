@@ -49,6 +49,9 @@ func run() int {
 				})
 				return flags
 			}())
+			// Visit only sees flags set on the command line, so an
+			// env-driven run would otherwise report nothing at all.
+			events.RegisterMetadata("vcsEnv", commands.VCSEnvNames())
 
 			process.Process(cfg)
 		},
@@ -56,12 +59,16 @@ func run() int {
 		SilenceErrors: true,
 	}
 
+	// Before AddCommand: each subcommand registers its VCS flags with the
+	// hydrated value as the default, which is the pre-env zero value if the
+	// commands are built first.
+	diags = diags.Merge(process.PreProcess(cfg, cmd.PersistentFlags()))
+
 	var results commands.ScanResult
 	cmd.AddCommand(commands.Diff(cfg, &results))
 	cmd.AddCommand(commands.Scan(cfg))
 	cmd.AddCommand(commands.Status(cfg))
 
-	diags.Merge(process.PreProcess(cfg, cmd.PersistentFlags()))
 	if diags.Critical().Len() > 0 {
 		for _, diag := range diags.Critical().Unwrap() {
 			_, _ = fmt.Fprintf(os.Stderr, "%s\n", diag.FormatMessage())

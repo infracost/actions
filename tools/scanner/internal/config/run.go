@@ -35,6 +35,7 @@ type RunInputOptions struct {
 	RepoURL           string
 	RepoID            string
 	RepoName          string
+	PRURL             string
 	PRNumber          int
 	PRTitle           string
 	PRAuthor          string
@@ -192,37 +193,41 @@ func BuildRunInput(opts RunInputOptions) dashboard.RunInput {
 }
 
 func buildRunInputFromMetadata(opts RunInputOptions, projectResults []dashboard.ProjectResultInput) dashboard.RunInput {
-	// Dropped to keep BuildRunInput pure. Of its two callers, diff rejects an
-	// unbuildable URL before scanning and scan never sets PRNumber.
-	prURL, _ := vcsurl.PullRequest(opts.VCSProvider, opts.RepoURL, opts.PRNumber)
+	// diff resolves the URL before scanning, so this only builds one for a
+	// caller that supplied a number alone. Dropped to keep BuildRunInput
+	// pure: scan never sets either, and diff has already rejected a bad one.
+	prURL := opts.PRURL
+	if prURL == "" {
+		prURL, _ = vcsurl.PullRequest(opts.VCSProvider, opts.RepoURL, opts.PRNumber)
+	}
 	var prID string
-	if prURL != "" {
+	if prURL != "" && opts.PRNumber > 0 {
 		prID = fmt.Sprintf("%d", opts.PRNumber)
 	}
 
 	metadata := runMetadata{
-		Command:              opts.Command,
-		Version:              version.Version,
-		CIPlatform:           opts.CIPlatform,
-		VCSProvider:          opts.VCSProvider,
-		VCSRepositoryURL:     opts.RepoURL,
-		RepoID:               opts.RepoID,
-		RepoName:             opts.RepoName,
-		VCSBranch:            opts.Branch,
-		VCSBaseBranch:        opts.BaseBranch,
-		VCSCommitSHA:         opts.CommitSHA,
-		VCSCommitMessage:     opts.CommitMessage,
-		VCSCommitAuthorName:  opts.CommitAuthorName,
-		VCSCommitAuthorEmail: opts.CommitAuthorEmail,
-		VCSCommitTimestamp:   opts.CommitTimestamp,
-		VCSBaseCommitSHA:     opts.BaseCommitSHA,
-		VCSPullRequestURL:    prURL,
-		VCSPullRequestID:     prID,
-		VCSPullRequestTitle:  opts.PRTitle,
-		VCSPullRequestAuthor: opts.PRAuthor,
-		VCSPullRequestLabels: opts.PRLabels,
-		VCSPipelineRunID:     opts.PipelineRunID,
-		DashboardEnabled:     true,
+		Command:                opts.Command,
+		Version:                version.Version,
+		CIPlatform:             opts.CIPlatform,
+		VCSProvider:            opts.VCSProvider,
+		VCSRepositoryURL:       opts.RepoURL,
+		RepoID:                 opts.RepoID,
+		RepoName:               opts.RepoName,
+		VCSBranch:              opts.Branch,
+		VCSBaseBranch:          opts.BaseBranch,
+		VCSCommitSHA:           opts.CommitSHA,
+		VCSCommitMessage:       opts.CommitMessage,
+		VCSCommitAuthorName:    opts.CommitAuthorName,
+		VCSCommitAuthorEmail:   opts.CommitAuthorEmail,
+		VCSCommitTimestamp:     opts.CommitTimestamp,
+		VCSBaseCommitSHA:       opts.BaseCommitSHA,
+		VCSPullRequestURL:      prURL,
+		VCSPullRequestID:       prID,
+		VCSPullRequestTitle:    opts.PRTitle,
+		VCSPullRequestAuthor:   opts.PRAuthor,
+		VCSPullRequestLabels:   opts.PRLabels,
+		VCSPipelineRunID:       opts.PipelineRunID,
+		DashboardEnabled:       true,
 		UsageAPIEnabled:        opts.UsageAPIEnabled,
 		UsageFilePath:          opts.UsageFilePath,
 		HasConfigFile:          opts.HasConfigFile,

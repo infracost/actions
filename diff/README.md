@@ -83,10 +83,10 @@ When `pr-status` is set and `base-path`/`head-path` are omitted, the action only
 | `project` | No | | Filter scanning to a single project |
 | `pr-status` | No | Auto-detected | Explicitly set PR status (`OPEN`, `MERGED`, `CLOSED`) |
 | `github-token` | No | `github.token` | GitHub API token for posting PR comments |
-| `github-owner` | No | Current owner | GitHub repository owner |
-| `github-repo` | No | Current repo | GitHub repository name |
+| `github-owner` | No | Derived from `repo-url` | GitHub repository owner (github.com only) |
+| `github-repo` | No | Derived from `repo-url` | GitHub repository name (github.com only) |
 | `pr-number` | No | Current PR | Pull request number to comment on |
-| `repo-url` | No | Current repo URL | Repository URL for source links in comments |
+| `repo-url` | No | Current repo URL | Repository URL. Selects the repository the comment is posted to and the source links, so `github-token` needs write access to it |
 
 ## Requirements
 

@@ -5,9 +5,17 @@ on:
       - master
     paths:
       - tools/scanner/**
+      - diff/action.yml
+      - scan/action.yml
+      - scripts/testScannerActions.js
+      - package.json
   pull_request:
     paths:
       - tools/scanner/**
+      - diff/action.yml
+      - scan/action.yml
+      - scripts/testScannerActions.js
+      - package.json
 
 defaults:
   run:
@@ -15,6 +23,21 @@ defaults:
     working-directory: tools/scanner
 
 jobs:
+  action-context:
+    name: Action context tests
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - run: npm run scanner-actions:test
+
   test:
     name: Unit Tests
     runs-on: ubuntu-24.04
