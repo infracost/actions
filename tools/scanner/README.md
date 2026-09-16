@@ -1,5 +1,8 @@
 # Scanner
 
+> **This source has moved to [`infracost/ci`](https://github.com/infracost/ci).**
+> Changes belong there; this copy is frozen and hotfixes must be cherry-picked there for release until it is removed.
+
 Scanner is the Go CLI that powers the Infracost GitHub Actions. It embeds the Infracost CLI as a library to scan directories of infrastructure code, calculate cost diffs, and post comments on pull requests.
 
 The tool requires `git` at runtime to derive commit SHAs, branch names, and commit metadata from the checkout directories. Scanning and diffing logic is imported directly via `github.com/infracost/cli/pkg/scanner` rather than shelling out to the Infracost CLI.
@@ -23,4 +26,4 @@ make mocks            # Regenerate mockery mocks
 
 ## Releasing
 
-Push a tag matching `scanner/v*.*.*` to trigger the [release workflow](../../.github/workflows/scanner_release.yml), which builds multi-platform binaries and creates a GitHub release. The version is set via `-ldflags` at build time.
+Scanner releases are published from [`infracost/ci`](https://github.com/infracost/ci). Do not tag a scanner release in this repository; cherry-pick any hotfix there before releasing it.

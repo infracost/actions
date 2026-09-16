@@ -79,10 +79,10 @@ When `pr-status` is set and `base-path`/`head-path` are omitted, the action only
 | `api-key` | Yes | | Infracost API key for authentication |
 | `base-path` | No | | Path to the base branch checkout (required for diffing) |
 | `head-path` | No | | Path to the head (PR) branch checkout (required for diffing) |
-| `version` | No | `latest` | Scanner version to use (e.g. `0.1.0`) |
+| `version` | No | `latest` | Scanner version to use (e.g. `0.1.0`), resolved to an [infracost/ci](https://github.com/infracost/ci/releases) release |
 | `project` | No | | Filter scanning to a single project |
 | `pr-status` | No | Auto-detected | Explicitly set PR status (`OPEN`, `MERGED`, `CLOSED`) |
-| `github-token` | No | `github.token` | GitHub API token for posting PR comments |
+| `github-token` | No | `github.token` | GitHub API token for posting PR comments. Not used to download the scanner |
 | `github-owner` | No | Derived from `repo-url` | GitHub repository owner (github.com only) |
 | `github-repo` | No | Derived from `repo-url` | GitHub repository name (github.com only) |
 | `pr-number` | No | Current PR | Pull request number to comment on |
@@ -91,4 +91,5 @@ When `pr-status` is set and `base-path`/`head-path` are omitted, the action only
 ## Requirements
 
 - A PR number is required. This is derived automatically on `pull_request` events, or can be set explicitly via the `pr-number` input.
-- Both `git` and `gh` (GitHub CLI) must be available on the runner. GitHub-hosted runners include them by default; self-hosted runners may need to install them.
+- `git`, `curl` and `tar` must be available on the runner. GitHub-hosted runners include them by default; self-hosted runners may need to install them.
+- The runner must be able to reach `github.com` and `release-assets.githubusercontent.com` to download the scanner from [infracost/ci releases](https://github.com/infracost/ci/releases). The download is anonymous — no GitHub token is used — and the release URL is fixed in the action, so `INFRACOST_SCANNER_BASE_URL` has no effect here.

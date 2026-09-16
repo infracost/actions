@@ -41,63 +41,73 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Determine version
-      id: version
-      shell: bash
-      env:
-        GH_TOKEN: ${{ inputs.github-token }}
-        VERSION: ${{ inputs.version }}
-      run: |
-        write_output() {
-          local name="$1"
-          local value="$2"
-          local delimiter
-          delimiter="ghadelimiter_${RANDOM}_${RANDOM}_${RANDOM}_${RANDOM}"
-
-          {
-            printf '%s<<%s\n' "$name" "$delimiter"
-            printf '%s\n' "$value"
-            printf '%s\n' "$delimiter"
-          } >> "$GITHUB_OUTPUT"
-        }
-
-        if [ "$VERSION" = "latest" ]; then
-          RELEASE=$(gh release list --repo "infracost/actions" --limit 50 --json tagName --jq '[.[] | select(.tagName | startswith("scanner/v"))][0].tagName')
-          if [ -z "$RELEASE" ]; then
-            echo "::error::No scanner release found"
-            exit 1
-          fi
-          VERSION="${RELEASE#scanner/v}"
-        fi
-        write_output "version" "$VERSION"
-        write_output "tag" "scanner/v${VERSION}"
-
+    # No token: infracost/ci releases are public and checksummed. The base URL
+    # is hardcoded — a composite step inherits the caller job's env:, so an
+    # INFRACOST_SCANNER_BASE_URL override would redirect the download.
     - name: Download scanner
       shell: bash
       env:
-        GH_TOKEN: ${{ inputs.github-token }}
-        TAG: ${{ steps.version.outputs.tag }}
-        VERSION: ${{ steps.version.outputs.version }}
+        VERSION: ${{ inputs.version }}
       run: |
+        set -euo pipefail
+
+        RELEASES="https://github.com/infracost/ci/releases"
+
         OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+        case "$OS" in
+          linux|darwin) ;;
+          *) echo "::error::Unsupported scanner operating system: ${OS}"; exit 1 ;;
+        esac
         ARCH=$(uname -m)
         case "$ARCH" in
           x86_64) ARCH="amd64" ;;
           aarch64|arm64) ARCH="arm64" ;;
+          *) echo "::error::Unsupported scanner architecture: ${ARCH}"; exit 1 ;;
         esac
 
-        ARCHIVE="infracost-scanner_${VERSION}_${OS}_${ARCH}.tar.gz"
+        # Resolved to a concrete tag first: latest/download is a redirect
+        # evaluated per request, so the archive and checksums.txt fetched
+        # through it could straddle a release and fail the checksum.
+        if [ "$VERSION" = "latest" ]; then
+          if ! TAG=$(curl -fsS --connect-timeout 10 --max-time 120 -o /dev/null -w '%{redirect_url}' "${RELEASES}/latest"); then
+            echo "::error::Could not resolve the latest infracost-scanner release from ${RELEASES}/latest"
+            exit 1
+          fi
+          TAG="${TAG##*/}"
+          case "$TAG" in
+            v*) ;;
+            *) echo "::error::Could not resolve the latest infracost-scanner release from ${RELEASES}/latest"; exit 1 ;;
+          esac
+        else
+          if ! [[ "$VERSION" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::version must be a semantic version, optionally prefixed with v"
+            exit 1
+          fi
+          TAG="v${VERSION#v}"
+        fi
+
+        ARCHIVE="infracost-scanner_${OS}_${ARCH}.tar.gz"
         DEST="${RUNNER_TEMP}/infracost-scanner"
+        SHA=$(command -v sha256sum || echo "shasum -a 256")   # macOS has no sha256sum
 
-        gh release download "$TAG" \
-          --repo "infracost/actions" \
-          --pattern "$ARCHIVE" \
-          --dir "$RUNNER_TEMP"
+        # -o into RUNNER_TEMP, never the CWD: a composite step runs in
+        # GITHUB_WORKSPACE, which here is a checkout the scanner is about to read.
+        STATUS=0
+        curl -fsSL --retry 3 --connect-timeout 10 --max-time 120 -o "${RUNNER_TEMP}/${ARCHIVE}" "${RELEASES}/download/${TAG}/${ARCHIVE}" || STATUS=$?
+        if [ "$STATUS" -ne 0 ]; then
+          echo "::error::Could not download scanner archive from ${RELEASES}/download/${TAG}/${ARCHIVE} (curl exit ${STATUS})"
+          exit 1
+        fi
 
-        mkdir -p "$(dirname "$DEST")"
+        # set -e stops an unverified archive reaching tar. grep | $SHA fails
+        # closed when the asset is absent from checksums.txt: both sha256sum
+        # and shasum exit non-zero on empty input.
+        curl -fsSL --retry 3 --connect-timeout 10 --max-time 120 -o "${RUNNER_TEMP}/checksums.txt" "${RELEASES}/download/${TAG}/checksums.txt"
+        (cd "$RUNNER_TEMP" && grep " ${ARCHIVE}$" checksums.txt | $SHA -c -)
+
         tar -xzf "${RUNNER_TEMP}/${ARCHIVE}" -C "$RUNNER_TEMP"
         chmod +x "$DEST"
-        echo "${RUNNER_TEMP}" >> $GITHUB_PATH
+        echo "${RUNNER_TEMP}" >> "$GITHUB_PATH"
 
     # Only the status is derived here. The VCS contract is repeated in each
     # step's env: GITHUB_ENV would export it to the whole caller job.
