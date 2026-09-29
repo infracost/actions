@@ -95,6 +95,8 @@ jobs:
     needs: [version, draft-release]
     permissions:
       contents: write
+      id-token: write
+      attestations: write
     strategy:
       matrix:
         include:
@@ -132,6 +134,12 @@ jobs:
           ARCHIVE="infracost-scanner_${VERSION}_${GOOS}_${GOARCH}"
           mkdir -p dist
           tar -czf "dist/${ARCHIVE}.tar.gz" -C bin infracost-scanner
+          (cd dist && shasum -a 256 "${ARCHIVE}.tar.gz" > "${ARCHIVE}.tar.gz.sha256")
+
+      - name: Attest build provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: tools/scanner/dist/*.tar.gz
 
       - name: Upload
         working-directory: tools/scanner
