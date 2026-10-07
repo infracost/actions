@@ -12,9 +12,9 @@ inputs:
     description: "Path to the head (PR) branch checkout. Required for scanning (not needed when only updating PR status)."
     required: false
   version:
-    description: "Version of the scanner to use (e.g. 0.1.0). Defaults to latest."
+    description: "Tag of the ghcr.io/infracost/ci image to run (e.g. 2, 2.0.1, latest, or sha256:<digest>). Must be 2.0.0 or later."
     required: false
-    default: "latest"
+    default: "2"
   project:
     description: "Filter scanning to a single project."
     required: false
@@ -41,13 +41,14 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Determine version
-      id: version
+    - name: Resolve image tag
+      id: image
       shell: bash
       env:
-        GH_TOKEN: ${{ inputs.github-token }}
         VERSION: ${{ inputs.version }}
       run: |
+        set -euo pipefail
+
         write_output() {
           local name="$1"
           local value="$2"
@@ -61,43 +62,36 @@ runs:
           } >> "$GITHUB_OUTPUT"
         }
 
-        if [ "$VERSION" = "latest" ]; then
-          RELEASE=$(gh release list --repo "infracost/actions" --limit 50 --json tagName --jq '[.[] | select(.tagName | startswith("scanner/v"))][0].tagName')
-          if [ -z "$RELEASE" ]; then
-            echo "::error::No scanner release found"
+        IMAGE="ghcr.io/infracost/ci"
+        case "$VERSION" in
+          "")
+            echo "::error::version must be a ghcr.io/infracost/ci tag or sha256: digest"
             exit 1
-          fi
-          VERSION="${RELEASE#scanner/v}"
-        fi
-        write_output "version" "$VERSION"
-        write_output "tag" "scanner/v${VERSION}"
-
-    - name: Download scanner
-      shell: bash
-      env:
-        GH_TOKEN: ${{ inputs.github-token }}
-        TAG: ${{ steps.version.outputs.tag }}
-        VERSION: ${{ steps.version.outputs.version }}
-      run: |
-        OS=$(uname -s | tr '[:upper:]' '[:lower:]')
-        ARCH=$(uname -m)
-        case "$ARCH" in
-          x86_64) ARCH="amd64" ;;
-          aarch64|arm64) ARCH="arm64" ;;
+            ;;
+          sha256:*)
+            REF="${IMAGE}@${VERSION}"
+            ;;
+          latest)
+            REF="${IMAGE}:latest"
+            ;;
+          *)
+            if ! [[ "$VERSION" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
+              echo "::error::version ${VERSION} is not a ghcr.io/infracost/ci tag. Use a numeric tag (2, 2.0, 2.0.1), latest, or sha256:<digest>."
+              exit 1
+            fi
+            # Below 2.0.0 is pre-launch in infracost/ci, and the same numbers
+            # name a different build under @v4. Digits, not -lt: a 20-digit
+            # major overflows [ and the comparison errors instead of failing.
+            MAJOR="${VERSION%%.*}"
+            MAJOR="${MAJOR#"${MAJOR%%[!0]*}"}"
+            if [ -z "$MAJOR" ] || { [ "${#MAJOR}" -eq 1 ] && [ "$MAJOR" -lt 2 ]; }; then
+              echo "::error::version ${VERSION} is below 2.0.0, the oldest release v5 of this action runs. Use infracost/actions/diff@v4 for older scanner releases."
+              exit 1
+            fi
+            REF="${IMAGE}:${VERSION}"
+            ;;
         esac
-
-        ARCHIVE="infracost-scanner_${VERSION}_${OS}_${ARCH}.tar.gz"
-        DEST="${RUNNER_TEMP}/infracost-scanner"
-
-        gh release download "$TAG" \
-          --repo "infracost/actions" \
-          --pattern "$ARCHIVE" \
-          --dir "$RUNNER_TEMP"
-
-        mkdir -p "$(dirname "$DEST")"
-        tar -xzf "${RUNNER_TEMP}/${ARCHIVE}" -C "$RUNNER_TEMP"
-        chmod +x "$DEST"
-        echo "${RUNNER_TEMP}" >> $GITHUB_PATH
+        write_output "ref" "$REF"
 
     # Only the status is derived here. The VCS contract is repeated in each
     # step's env: GITHUB_ENV would export it to the whole caller job.
@@ -177,6 +171,7 @@ runs:
         INFRACOST_VCS_COMMIT_AUTHOR_NAME: ''
         INFRACOST_VCS_COMMIT_AUTHOR_EMAIL: ''
         INFRACOST_VCS_COMMIT_TIMESTAMP: ''
+        IMAGE_REF: ${{ steps.image.outputs.ref }}
         INPUT_BASE_PATH: ${{ inputs.base-path }}
         INPUT_HEAD_PATH: ${{ inputs.head-path }}
         INPUT_PROJECT: ${{ inputs.project }}
@@ -187,6 +182,32 @@ runs:
           echo "::error::base-path and head-path are required for scanning."
           exit 1
         fi
+
+        command -v docker >/dev/null || {
+          echo "::error::v5 runs ghcr.io/infracost/ci and needs Docker on the runner. For macOS or Docker-less runners use the container: job or binary install documented in infracost/ci."
+          exit 1
+        }
+
+        # Only the workspace is mounted, so a path outside it exists on the
+        # runner but not in the container.
+        WORKSPACE=$(cd "$GITHUB_WORKSPACE" && pwd -P)
+        require_in_workspace() {
+          local label="$1" value="$2" resolved
+          # Resolved against the workspace, which is the container's workdir.
+          resolved=$(cd "$WORKSPACE" && cd "$value" 2>/dev/null && pwd -P) || {
+            echo "::error::${label} ${value} does not exist."
+            exit 1
+          }
+          case "$resolved" in
+            "$WORKSPACE"|"$WORKSPACE"/*) ;;
+            *)
+              echo "::error::${label} ${value} is outside GITHUB_WORKSPACE, the only directory mounted into the container. Check it out under the workspace, or use the container: job documented in infracost/ci."
+              exit 1
+              ;;
+          esac
+        }
+        require_in_workspace base-path "$INPUT_BASE_PATH"
+        require_in_workspace head-path "$INPUT_HEAD_PATH"
 
         ARGS=(diff --base-path "$INPUT_BASE_PATH" --head-path "$INPUT_HEAD_PATH")
         if [ -n "$INPUT_GITHUB_OWNER" ]; then
@@ -199,7 +220,37 @@ runs:
           ARGS+=(--project "$INPUT_PROJECT")
         fi
 
-        infracost-scanner "${ARGS[@]}"
+        # Bare -e passes the step's value through, blanks included, so the
+        # inherited env the block above overrides stays overridden. v4 ran in
+        # the runner process, so the parser inherited the rest of these.
+        DOCKER_ENV=(-e GITHUB_TOKEN -e GITHUB_ACTIONS)
+        for name in "${!INFRACOST_@}" "${!TF_VAR_@}" "${!AWS_@}" \
+          HTTP_PROXY HTTPS_PROXY NO_PROXY http_proxy https_proxy no_proxy; do
+          # The image bakes the plugin cache; a caller's leftover value points
+          # it at a root-owned directory this non-root run cannot write.
+          case "$name" in
+            INFRACOST_CLI_PLUGIN_*) continue ;;
+          esac
+          DOCKER_ENV+=(-e "$name")
+        done
+
+        # Forwarded only with the host path mounted: the name on its own points
+        # the container at a socket or file that is not there.
+        if [ -S "${SSH_AUTH_SOCK:-}" ]; then
+          DOCKER_ENV+=(-e SSH_AUTH_SOCK -v "${SSH_AUTH_SOCK}:${SSH_AUTH_SOCK}")
+        fi
+        if [ -f "${SSL_CERT_FILE:-}" ]; then
+          DOCKER_ENV+=(-e SSL_CERT_FILE -v "${SSL_CERT_FILE}:${SSL_CERT_FILE}:ro")
+        fi
+
+        # --pull always: the default tag 2 is mutable, so a persistent runner's
+        # cache must not decide what runs. --user: the image runs as root and a
+        # root-owned file in the workspace breaks the caller's later steps.
+        docker run --rm --pull always \
+          --user "$(id -u):$(id -g)" -e HOME=/tmp \
+          -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" -w "${GITHUB_WORKSPACE}" \
+          "${DOCKER_ENV[@]}" \
+          "$IMAGE_REF" "${ARGS[@]}"
 
     # The same repository URL and PR ID expressions as above: the dashboard is
     # keyed on the PR URL built from them, so the two steps must agree.
@@ -216,4 +267,26 @@ runs:
         # Blanked for the same reason as the scan step: the inherited value
         # would key the status to a different pull request.
         INFRACOST_VCS_PULL_REQUEST_URL: ''
-      run: infracost-scanner status
+        IMAGE_REF: ${{ steps.image.outputs.ref }}
+      run: |
+        command -v docker >/dev/null || {
+          echo "::error::v5 runs ghcr.io/infracost/ci and needs Docker on the runner. For macOS or Docker-less runners use the container: job or binary install documented in infracost/ci."
+          exit 1
+        }
+
+        DOCKER_ENV=(-e GITHUB_ACTIONS)
+        for name in "${!INFRACOST_@}" \
+          HTTP_PROXY HTTPS_PROXY NO_PROXY http_proxy https_proxy no_proxy; do
+          case "$name" in
+            INFRACOST_CLI_PLUGIN_*) continue ;;
+          esac
+          DOCKER_ENV+=(-e "$name")
+        done
+        if [ -f "${SSL_CERT_FILE:-}" ]; then
+          DOCKER_ENV+=(-e SSL_CERT_FILE -v "${SSL_CERT_FILE}:${SSL_CERT_FILE}:ro")
+        fi
+
+        docker run --rm --pull always \
+          --user "$(id -u):$(id -g)" -e HOME=/tmp \
+          "${DOCKER_ENV[@]}" \
+          "$IMAGE_REF" status
