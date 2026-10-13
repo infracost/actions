@@ -85,4 +85,4 @@ Leave `v4` where it is. It resolves the `scanner/v*` releases out of this repo, 
 
 Deletion is not the only way to break `v4`: its `Determine version` step runs `gh release list --limit 50` and takes the newest tag starting `scanner/v`, so every new `v5.x` release pushes the scanner releases closer to falling outside that window. `scanner/v0.2.10` is the newest release today, so 50 further releases have to land before `v4` callers on the default `version: latest` fail with `No scanner release found`. Before that, cut a `v4.3.0` that drops the lookup and hardcodes `VERSION=0.2.10`, and move the `v4` tag to it — a larger `--limit` is still an API call that can fail.
 
-The scanner itself ships from [infracost/ci](https://github.com/infracost/ci); see [tools/scanner](tools/scanner/README.md).
+The binary the `diff` and `scan` actions run ships from [infracost/ci](https://github.com/infracost/ci), which is where changes to it belong. This repo no longer holds a copy.
