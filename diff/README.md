@@ -33,7 +33,7 @@ jobs:
 
       # The diff action runs on every event. On closed PRs it skips diffing
       # and only updates the PR status in the Infracost dashboard.
-      - uses: infracost/actions/diff@v4
+      - uses: infracost/actions/diff@v5
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
           base-path: base
@@ -49,7 +49,7 @@ The action detects the event type automatically:
 To skip all dashboard interactions (addRun and PR status updates), set the `INFRACOST_CI_DISABLE_DASHBOARD` environment variable:
 
 ```yaml
-- uses: infracost/actions/diff@v4
+- uses: infracost/actions/diff@v5
   env:
     INFRACOST_CI_DISABLE_DASHBOARD: "true"
   with:
@@ -63,7 +63,7 @@ To skip all dashboard interactions (addRun and PR status updates), set the `INFR
 To set the PR status explicitly (e.g. from a `workflow_dispatch`):
 
 ```yaml
-- uses: infracost/actions/diff@v4
+- uses: infracost/actions/diff@v5
   with:
     api-key: ${{ secrets.INFRACOST_API_KEY }}
     pr-status: MERGED
@@ -79,7 +79,7 @@ When `pr-status` is set and `base-path`/`head-path` are omitted, the action only
 | `api-key` | Yes | | Infracost API key for authentication |
 | `base-path` | No | | Path to the base branch checkout (required for diffing) |
 | `head-path` | No | | Path to the head (PR) branch checkout (required for diffing) |
-| `version` | No | `latest` | Scanner version to use (e.g. `0.1.0`) |
+| `version` | No | `2` | Tag of the [`ghcr.io/infracost/ci`](https://github.com/infracost/ci) image to run (e.g. `2`, `2.0.1`, `latest`, or `sha256:<digest>`). Must be `2.0.0` or later; use `diff@v4` for older scanner releases |
 | `project` | No | | Filter scanning to a single project |
 | `pr-status` | No | Auto-detected | Explicitly set PR status (`OPEN`, `MERGED`, `CLOSED`) |
 | `github-token` | No | `github.token` | GitHub API token for posting PR comments |
@@ -88,7 +88,14 @@ When `pr-status` is set and `base-path`/`head-path` are omitted, the action only
 | `pr-number` | No | Current PR | Pull request number to comment on |
 | `repo-url` | No | Current repo URL | Repository URL. Selects the repository the comment is posted to and the source links, so `github-token` needs write access to it |
 
+`2` is the recommended `version`. The image bakes its parser plugins in, so a parser update only reaches you through a new image; `infracost/ci` cuts a patch release whenever the plugins drift, and `2` picks it up. Pinning `2.0.1` freezes the parsers until you edit the workflow, and a `sha256:` digest freezes them hardest.
+
+`latest`, or any tag outside the 2.x series, logs a warning and still runs. This version of the action is built against `infracost/ci` 2.x, so `latest` will move you onto a new major the day one ships.
+
 ## Requirements
 
 - A PR number is required. This is derived automatically on `pull_request` events, or can be set explicitly via the `pr-number` input.
-- Both `git` and `gh` (GitHub CLI) must be available on the runner. GitHub-hosted runners include them by default; self-hosted runners may need to install them.
+- A Linux runner with Docker. GitHub-hosted Linux runners qualify; macOS runners have no Docker, and Windows runners have Docker but no Linux image to run. The action fails with a clear message on both.
+- Not a job that sets `container:`. The bind mount is resolved by the host Docker daemon, which cannot see the job container's workspace. Use the `container:` job documented in [infracost/ci](https://github.com/infracost/ci#github-actions) instead of this action.
+- Private Terraform module sources: the runner's `~/.gitconfig`, `~/.ssh`, `~/.aws` and any `GIT_*`, `TF_TOKEN_*` or `TF_CLI_CONFIG_FILE` are passed into the container, so a `git config --global url."…".insteadOf` setup keeps working. SSH module sources (`git::ssh://`) are not supported — use `insteadOf` to rewrite them to HTTPS.
+- Only `$GITHUB_WORKSPACE` is mounted into the container, so `base-path` and `head-path` must be inside it. For checkouts elsewhere, macOS runners, or runners without Docker, use the `container:` job or binary install documented in [infracost/ci](https://github.com/infracost/ci#getting-started).

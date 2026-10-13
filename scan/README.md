@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: infracost/actions/scan@v4
+      - uses: infracost/actions/scan@v5
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
           path: .
@@ -27,11 +27,17 @@ jobs:
 |---|---|---|---|
 | `api-key` | Yes | | Infracost API key for authentication |
 | `path` | Yes | | Path to the directory to scan |
-| `version` | No | `latest` | Scanner version to use (e.g. `0.1.0`) |
+| `version` | No | `2` | Tag of the [`ghcr.io/infracost/ci`](https://github.com/infracost/ci) image to run (e.g. `2`, `2.0.1`, `latest`, or `sha256:<digest>`). Must be `2.0.0` or later; use `scan@v4` for older scanner releases |
 | `project` | No | | Filter scanning to a single project |
 | `repo-url` | No | Current repo URL | Repository URL for metadata |
-| `github-token` | No | `github.token` | GitHub API token used to download the scanner binary |
+
+`2` is the recommended `version`. The image bakes its parser plugins in, so a parser update only reaches you through a new image; `infracost/ci` cuts a patch release whenever the plugins drift, and `2` picks it up. Pinning `2.0.1` freezes the parsers until you edit the workflow, and a `sha256:` digest freezes them hardest.
+
+`latest`, or any tag outside the 2.x series, logs a warning and still runs. This version of the action is built against `infracost/ci` 2.x, so `latest` will move you onto a new major the day one ships.
 
 ## Requirements
 
-- Both `git` and `gh` (GitHub CLI) must be available on the runner. GitHub-hosted runners include them by default; self-hosted runners may need to install them.
+- A Linux runner with Docker. GitHub-hosted Linux runners qualify; macOS runners have no Docker, and Windows runners have Docker but no Linux image to run. The action fails with a clear message on both.
+- Not a job that sets `container:`. The bind mount is resolved by the host Docker daemon, which cannot see the job container's workspace. Use the `container:` job documented in [infracost/ci](https://github.com/infracost/ci#github-actions) instead of this action.
+- Private Terraform module sources: the runner's `~/.gitconfig`, `~/.ssh`, `~/.aws` and any `GIT_*`, `TF_TOKEN_*` or `TF_CLI_CONFIG_FILE` are passed into the container, so a `git config --global url."…".insteadOf` setup keeps working. SSH module sources (`git::ssh://`) are not supported — use `insteadOf` to rewrite them to HTTPS.
+- Only `$GITHUB_WORKSPACE` is mounted into the container, so `path` must be inside it. For checkouts elsewhere, macOS runners, or runners without Docker, use the `container:` job or binary install documented in [infracost/ci](https://github.com/infracost/ci#getting-started).

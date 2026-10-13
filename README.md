@@ -50,7 +50,7 @@ jobs:
           ref: ${{ github.event.pull_request.base.ref }}
           path: base
 
-      - uses: infracost/actions/diff@v4
+      - uses: infracost/actions/diff@v5
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
           base-path: base
@@ -62,13 +62,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: infracost/actions/scan@v4
+      - uses: infracost/actions/scan@v5
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
           path: .
 ```
 
 See the [`diff` README](diff/README.md) and [`scan` README](scan/README.md) for the full list of inputs.
+
+Both actions run the [`ghcr.io/infracost/ci`](https://github.com/infracost/ci) image, so the runner needs Docker. For macOS runners, self-hosted runners without Docker, or checkouts outside `$GITHUB_WORKSPACE`, use the `container:` job or the binary install documented in [infracost/ci](https://github.com/infracost/ci#getting-started) instead.
 
 ### [`setup`](setup/) (legacy)
 
