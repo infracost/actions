@@ -50,24 +50,34 @@ runs:
             exit 1
             ;;
           sha256:*)
+            if ! [[ "${VERSION#sha256:}" =~ ^[0-9a-f]{64}$ ]]; then
+              echo "::error::version ${VERSION} is not a digest. Use sha256: followed by 64 hex characters."
+              exit 1
+            fi
             REF="${IMAGE}@${VERSION}"
             ;;
           latest)
+            echo "::warning::version: latest follows the newest infracost/ci release and will move to a new major when one ships. Pin version: 2 to stay on the series this action was built against."
             REF="${IMAGE}:latest"
             ;;
           *)
-            if ! [[ "$VERSION" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
-              echo "::error::version ${VERSION} is not a ghcr.io/infracost/ci tag. Use a numeric tag (2, 2.0, 2.0.1), latest, or sha256:<digest>."
+            # Prerelease suffix allowed: infracost/ci publishes rc tags. Leading
+            # zeros are rejected here rather than 404ing at docker run.
+            if ! [[ "$VERSION" =~ ^(0|[1-9][0-9]*)(\.(0|[1-9][0-9]*))*(-[0-9A-Za-z][0-9A-Za-z.-]*)?$ ]]; then
+              echo "::error::version ${VERSION} is not a ghcr.io/infracost/ci tag. Use a numeric tag (2, 2.0, 2.0.1, 2.1.0-rc.1), latest, or sha256:<digest>."
               exit 1
             fi
-            # Below 2.0.0 is pre-launch in infracost/ci, and the same numbers
-            # name a different build under @v4. Digits, not -lt: a 20-digit
-            # major overflows [ and the comparison errors instead of failing.
-            MAJOR="${VERSION%%.*}"
-            MAJOR="${MAJOR#"${MAJOR%%[!0]*}"}"
-            if [ -z "$MAJOR" ] || { [ "${#MAJOR}" -eq 1 ] && [ "$MAJOR" -lt 2 ]; }; then
+            # Below 2.0.0 is pre-launch in infracost/ci. Length test first: a
+            # 20-digit major overflows [ and errors instead of failing.
+            MAJOR="${VERSION%%[.-]*}"
+            if [ "${#MAJOR}" -eq 1 ] && [ "$MAJOR" -lt 2 ]; then
               echo "::error::version ${VERSION} is below 2.0.0, the oldest release v5 of this action runs. Use infracost/actions/scan@v4 for older scanner releases."
               exit 1
+            fi
+            # Warning, not an error: above the floor the tag is only newer than
+            # this action was tested against, which is the caller's call to make.
+            if [ "$MAJOR" != "2" ]; then
+              echo "::warning::version ${VERSION} is outside the 2.x series this action was built against. Pin version: 2 unless you mean to run a newer infracost/ci."
             fi
             REF="${IMAGE}:${VERSION}"
             ;;
@@ -94,10 +104,19 @@ runs:
         INPUT_PATH: ${{ inputs.path }}
         INPUT_PROJECT: ${{ inputs.project }}
       run: |
-        command -v docker >/dev/null || {
-          echo "::error::v5 runs ghcr.io/infracost/ci and needs Docker on the runner. For macOS or Docker-less runners use the container: job or binary install documented in infracost/ci."
+        # Windows runners have Docker but no linux/amd64 manifest, so without
+        # this the failure surfaces deep inside docker run.
+        if [ "${RUNNER_OS:-Linux}" != "Linux" ] || ! command -v docker >/dev/null; then
+          echo "::error::v5 runs the linux-only ghcr.io/infracost/ci image and needs Docker on a Linux runner. For macOS, Windows or Docker-less runners use the container: job or binary install documented in infracost/ci."
           exit 1
-        }
+        fi
+
+        # cd "" succeeds, so an empty path would resolve to the workspace and
+        # scan the whole repository.
+        if [ -z "$INPUT_PATH" ]; then
+          echo "::error::path is required."
+          exit 1
+        fi
 
         # Only the workspace is mounted, so a path outside it exists on the
         # runner but not in the container.
@@ -125,7 +144,8 @@ runs:
         # inherited env the block above overrides stays overridden. v4 ran in
         # the runner process, so the parser inherited the rest of these.
         DOCKER_ENV=(-e GITHUB_ACTIONS)
-        for name in "${!INFRACOST_@}" "${!TF_VAR_@}" "${!AWS_@}" \
+        for name in "${!INFRACOST_@}" "${!TF_VAR_@}" "${!TF_TOKEN_@}" \
+          "${!AWS_@}" "${!ARM_@}" "${!GOOGLE_@}" "${!GIT_@}" \
           HTTP_PROXY HTTPS_PROXY NO_PROXY http_proxy https_proxy no_proxy; do
           # The image bakes the plugin cache; a caller's leftover value points
           # it at a root-owned directory this non-root run cannot write.
@@ -143,12 +163,50 @@ runs:
         if [ -f "${SSL_CERT_FILE:-}" ]; then
           DOCKER_ENV+=(-e SSL_CERT_FILE -v "${SSL_CERT_FILE}:${SSL_CERT_FILE}:ro")
         fi
+        if [ -d "${SSL_CERT_DIR:-}" ]; then
+          DOCKER_ENV+=(-e SSL_CERT_DIR -v "${SSL_CERT_DIR}:${SSL_CERT_DIR}:ro")
+        fi
+        if [ -f "${TF_CLI_CONFIG_FILE:-}" ]; then
+          DOCKER_ENV+=(-e TF_CLI_CONFIG_FILE -v "${TF_CLI_CONFIG_FILE}:${TF_CLI_CONFIG_FILE}:ro")
+        fi
+        # The loop above forwards these by name; the file each names is outside
+        # the workspace, so it has to be mounted too.
+        for name in GOOGLE_APPLICATION_CREDENTIALS INFRACOST_CLI_SSH_KEY_FILE \
+          GIT_CONFIG_GLOBAL AWS_SHARED_CREDENTIALS_FILE AWS_CONFIG_FILE \
+          AWS_WEB_IDENTITY_TOKEN_FILE; do
+          value="${!name:-}"
+          if [ -f "$value" ]; then
+            DOCKER_ENV+=(-v "${value}:${value}:ro")
+          fi
+        done
+        # HOME is /tmp in the container, so the ~/.ssh and ~/.aws the CLI reads
+        # by default only exist there if the runner's are mounted.
+        for dir in .ssh .aws; do
+          if [ -d "${HOME:-}/${dir}" ]; then
+            DOCKER_ENV+=(-v "${HOME}/${dir}:/tmp/${dir}:ro")
+          fi
+        done
+        # Same reason, and the one that matters most: url."…".insteadOf in a
+        # global gitconfig is how a private module source is usually authed.
+        if [ -f "${HOME:-}/.gitconfig" ]; then
+          DOCKER_ENV+=(-v "${HOME}/.gitconfig:/tmp/.gitconfig:ro")
+        fi
 
         # --pull always: the default tag 2 is mutable, so a persistent runner's
-        # cache must not decide what runs. --user: the image runs as root and a
-        # root-owned file in the workspace breaks the caller's later steps.
+        # cache must not decide what runs. --user: the image runs as root.
+        # --mount over -v: a daemon that does not have this path errors instead
+        # of mounting an empty directory and scanning nothing.
+        STATUS=0
         docker run --rm --pull always \
           --user "$(id -u):$(id -g)" -e HOME=/tmp \
-          -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" -w "${GITHUB_WORKSPACE}" \
+          --mount "type=bind,source=${GITHUB_WORKSPACE},target=${GITHUB_WORKSPACE}" \
+          -w "${GITHUB_WORKSPACE}" \
           "${DOCKER_ENV[@]}" \
-          "$IMAGE_REF" "${ARGS[@]}"
+          "$IMAGE_REF" "${ARGS[@]}" || STATUS=$?
+
+        # A notice, not a gate: the bind is resolved by the host daemon, which
+        # in a container: job has no /__w. Some containerised runners do work.
+        if [ "$STATUS" -ne 0 ] && [ -f /.dockerenv ]; then
+          echo "::notice::This step ran inside a container. If the failure above names ${GITHUB_WORKSPACE}, the host Docker daemon cannot see it — drop container: from the job, or use the container: job documented in infracost/ci instead of this action."
+        fi
+        exit "$STATUS"

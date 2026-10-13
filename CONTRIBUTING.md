@@ -83,6 +83,6 @@ One of the Infracost team members should follow these steps to release this repo
 
 Leave `v4` where it is. It resolves the `scanner/v*` releases out of this repo, which is why those releases are never deleted.
 
-Deletion is not the only way to break `v4`: its `Determine version` step runs `gh release list --limit 50` and takes the newest tag starting `scanner/v`, so every new `v5.x` release pushes the scanner releases closer to falling outside that window. Once they do, `v4` callers on the default `version: latest` fail with `No scanner release found`. There are ~24 releases today; re-tag `v4` at a commit that raises the limit (or pins the tag) before that many `v5` releases accumulate.
+Deletion is not the only way to break `v4`: its `Determine version` step runs `gh release list --limit 50` and takes the newest tag starting `scanner/v`, so every new `v5.x` release pushes the scanner releases closer to falling outside that window. `scanner/v0.2.10` is the newest release today, so 50 further releases have to land before `v4` callers on the default `version: latest` fail with `No scanner release found`. Before that, cut a `v4.3.0` that drops the lookup and hardcodes `VERSION=0.2.10`, and move the `v4` tag to it — a larger `--limit` is still an API call that can fail.
 
 The scanner itself ships from [infracost/ci](https://github.com/infracost/ci); see [tools/scanner](tools/scanner/README.md).
