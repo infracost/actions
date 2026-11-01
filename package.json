@@ -25,6 +25,6 @@
     "js-yaml": "^4.3.2"
   },
   "dependencies": {
-    "@babel/core": "^8.0.7"
+    "@babel/core": "^8.0.9"
   }
 }
